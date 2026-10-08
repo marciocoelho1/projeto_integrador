@@ -10,6 +10,20 @@
     </button>
   </header>
 
+  @if (carregando) {
+    <p role="status">Carregando colaboradores...</p>
+  }
+  @if (erro) {
+    <p role="alert">{{ erro }}</p>
+  }
+  <button
+    type="button"
+    class="sst-btn-link"
+    (click)="carregar()"
+    [disabled]="carregando || salvando"
+  >
+    Atualizar lista
+  </button>
   <section class="sst-card" aria-labelledby="titulo-colaboradores">
     <header class="sst-card__toolbar">
       <h2 id="titulo-colaboradores" class="sst-card__title">Equipe e Matriz de SST</h2>
@@ -37,14 +51,16 @@
         </tr>
       </thead>
       <tbody>
-        @for (colab of colaboradoresFiltrados; track colab.matricula) {
+        @for (colab of colaboradoresFiltrados; track colab.id) {
           <tr>
             <td>
               <strong>{{ colab.nome }}</strong>
               <span class="sst-table__subtext">Colaborador Essenza</span>
             </td>
             <td>{{ colab.email }}</td>
-            <td>{{ colab.matricula }}</td>
+            <td>
+              {{ colab.matricula }}<span class="sst-table__subtext">CPF: {{ colab.cpf }}</span>
+            </td>
             <td>
               <strong>{{ colab.cargo }}</strong>
               <span class="sst-table__subtext">{{ colab.setor }}</span>
@@ -62,6 +78,14 @@
             <td class="sst-text-right">
               <button type="button" class="sst-btn-link" (click)="abrirModalDetalhes(colab)">
                 Ver Detalhes / Editar
+              </button>
+              <button
+                type="button"
+                class="sst-btn-link"
+                (click)="excluir(colab)"
+                [disabled]="salvando"
+              >
+                Excluir
               </button>
             </td>
           </tr>
@@ -128,6 +152,7 @@
                 class="sst-search__input sst-input-full"
                 [(ngModel)]="colab.nome"
                 name="nome"
+                maxlength="150"
                 required
               />
             </div>
@@ -140,23 +165,36 @@
                 class="sst-search__input sst-input-full"
                 [(ngModel)]="colab.email"
                 name="email"
+                maxlength="180"
                 email
                 required
               />
             </div>
 
             <div class="sst-form-group">
-              <label for="colab-edit-mat">CPF / Matrícula</label>
+              <label for="colab-edit-mat">Matrícula</label>
               <input
                 type="text"
                 id="colab-edit-mat"
                 class="sst-search__input sst-input-full"
                 [(ngModel)]="colab.matricula"
                 name="matricula"
+                maxlength="30"
                 required
               />
             </div>
 
+            <div class="sst-form-group">
+              <label for="colab-edit-cpf">CPF</label
+              ><input
+                id="colab-edit-cpf"
+                name="cpf"
+                class="sst-search__input sst-input-full"
+                [(ngModel)]="colab.cpf"
+                maxlength="14"
+                required
+              />
+            </div>
             <div class="sst-form-group">
               <label for="colab-edit-status">Status</label>
               <select
@@ -180,6 +218,7 @@
                 class="sst-search__input sst-input-full"
                 [(ngModel)]="colab.cargo"
                 name="cargo"
+                maxlength="120"
                 required
               />
             </div>
@@ -192,6 +231,7 @@
                 class="sst-search__input sst-input-full"
                 [(ngModel)]="colab.setor"
                 name="setor"
+                maxlength="120"
                 required
               />
             </div>
@@ -214,7 +254,7 @@
                 <p
                   style="color: var(--cor-texto-secundario); font-style: italic; margin: 0.25rem 0"
                 >
-                  Não há EPIs vinculados.
+                  Entregas e vínculos de EPIs fora do escopo.
                 </p>
               }
             </div>
@@ -235,7 +275,7 @@
                 <p
                   style="color: var(--cor-texto-secundario); font-style: italic; margin: 0.25rem 0"
                 >
-                  Não há Treinamentos vinculados.
+                  Vínculos e certificações fora do escopo.
                 </p>
               }
             </div>
@@ -256,7 +296,7 @@
                 <p
                   style="color: var(--cor-texto-secundario); font-style: italic; margin: 0.25rem 0"
                 >
-                  Não há Reciclagens vinculadas.
+                  Reciclagens fora do escopo.
                 </p>
               }
             </div>
@@ -269,7 +309,9 @@
               >
                 Cancelar
               </button>
-              <button type="submit" class="sst-btn sst-btn--dark">Salvar Alterações</button>
+              <button type="submit" class="sst-btn sst-btn--dark" [disabled]="salvando">
+                Salvar Alterações
+              </button>
             </footer>
           </form>
         </div>

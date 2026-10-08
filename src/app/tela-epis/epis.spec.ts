@@ -1,3 +1,5 @@
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { Epis } from './epis';
@@ -6,7 +8,7 @@ describe('Epis', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [Epis],
-      providers: [provideRouter([])],
+      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
   });
 
@@ -16,6 +18,7 @@ describe('Epis', () => {
 
     component.abrirModalEntrega();
     fixture.detectChanges();
+    TestBed.inject(HttpTestingController).expectOne('http://localhost:8080/api/epis').flush([]);
 
     const overlay = fixture.nativeElement.querySelector('.sst-modal-overlay') as HTMLElement;
     const modal = overlay.querySelector('.sst-modal') as HTMLElement;

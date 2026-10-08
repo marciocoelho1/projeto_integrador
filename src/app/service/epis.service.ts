@@ -2,15 +2,16 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-
 export interface Epi {
-  id?: string;
+  id: number;
   descricao: string;
   quantidade: number;
   inclusao: string;
   validade: string;
   ca: string;
 }
+
+export type EpiRequest = Omit<Epi, 'id'>;
 
 export interface EntregaEpi {
   id?: number | string;
@@ -21,10 +22,10 @@ export interface EntregaEpi {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class EpisService {
-  private apiUrl = 'http://localhost:3000/epis';
+  private apiUrl = 'http://localhost:8080/api/epis';
   private apiEntregasUrl = 'http://localhost:3000/entregas-epis';
 
   constructor(private http: HttpClient) {}
@@ -37,19 +38,19 @@ export class EpisService {
     return this.http.get<Epi[]>(this.apiUrl);
   }
 
-  obterEpiPorId(id: string): Observable<Epi> {
+  obterEpiPorId(id: number): Observable<Epi> {
     return this.http.get<Epi>(`${this.apiUrl}/${id}`);
   }
 
-  cadastrarEpi(epi: Epi): Observable<Epi> {
+  cadastrarEpi(epi: EpiRequest): Observable<Epi> {
     return this.http.post<Epi>(this.apiUrl, epi);
   }
 
-  atualizarEpi(id: string, epi: Epi): Observable<Epi> {
+  atualizarEpi(id: number, epi: EpiRequest): Observable<Epi> {
     return this.http.put<Epi>(`${this.apiUrl}/${id}`, epi);
   }
 
-  excluirEpi(id: string): Observable<void> {
+  excluirEpi(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 

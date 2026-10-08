@@ -56,6 +56,13 @@
   </nav>
 
   <section class="sst-content">
+    @if (erro) {
+      <p role="alert">{{ erro }}</p>
+    }
+    <p>
+      Grupos de acesso, autenticação, importação, LNT e reciclagens não estão integrados nesta
+      etapa.
+    </p>
     @switch (abaAtual) {
       @case ('colaborador') {
         <section class="sst-card sst-card--form">
@@ -79,6 +86,7 @@
                 [(ngModel)]="novoColaborador.nome"
                 name="nome"
                 required
+                maxlength="150"
               />
             </div>
 
@@ -93,6 +101,7 @@
                 [(ngModel)]="novoColaborador.cpf"
                 name="cpf"
                 required
+                maxlength="14"
               />
             </div>
 
@@ -107,74 +116,63 @@
                 name="email"
                 email
                 required
+                maxlength="180"
               />
             </div>
 
             <div class="sst-form-group">
               <label for="cargo">Cargo</label>
-              <select
+              <input
                 id="cargo"
+                name="cargo"
                 class="sst-search__input sst-input-full"
                 [(ngModel)]="novoColaborador.cargo"
-                name="cargo"
+                maxlength="120"
                 required
-              >
-                <option value="" disabled>Selecione...</option>
-                @for (cargo of cargosCadastrados; track cargo) {
-                  <option [value]="cargo">{{ cargo }}</option>
-                }
-              </select>
+              />
             </div>
 
             <div class="sst-form-group">
               <label for="setor">Setor</label>
-              <select
+              <input
                 id="setor"
+                name="setor"
                 class="sst-search__input sst-input-full"
                 [(ngModel)]="novoColaborador.setor"
-                name="setor"
+                maxlength="120"
                 required
-              >
-                <option value="" disabled>Selecione...</option>
-                @for (setor of setoresCadastrados; track setor) {
-                  <option [value]="setor">{{ setor }}</option>
-                }
-              </select>
-            </div>
-
-            <div class="sst-form-group">
-              <label for="grupo-acesso">Grupo de Acesso</label>
-              <select
-                id="grupo-acesso"
-                class="sst-search__input sst-input-full"
-                [(ngModel)]="novoColaborador.grupoAcessoId"
-                name="grupoAcessoId"
-                required
-              >
-                <option value="" disabled>Selecione...</option>
-                @for (grupo of gruposAcesso(); track grupo.id) {
-                  <option [value]="grupo.id">{{ grupo.nomenclatura }}</option>
-                }
-              </select>
-            </div>
-
-            <div class="sst-form-group">
-              <label for="senhaPadrao">Senha de Acesso Inicial</label>
-
-              <input
-                type="text"
-                id="senhaPadrao"
-                class="sst-search__input sst-input-full"
-                [value]="cpfInput.value"
-                readonly
-                disabled
-                style="background-color: #f8fafc; color: #94a3b8; cursor: not-allowed"
-                title="A senha padrão inicial será o CPF do colaborador"
               />
             </div>
 
+            <div class="sst-form-group">
+              <label for="matricula">Matrícula</label
+              ><input
+                id="matricula"
+                name="matricula"
+                class="sst-search__input sst-input-full"
+                [(ngModel)]="novoColaborador.matricula"
+                maxlength="30"
+                required
+              />
+            </div>
+            <div class="sst-form-group">
+              <label for="status-colaborador">Status</label
+              ><select
+                id="status-colaborador"
+                name="statusColaborador"
+                class="sst-search__input sst-input-full"
+                [(ngModel)]="novoColaborador.status"
+                required
+              >
+                <option>Ativo</option>
+                <option>Inativo</option>
+                <option>Afastado</option>
+              </select>
+            </div>
             <footer class="sst-form-actions sst-col-span-2">
-              <button type="submit" class="sst-btn sst-btn--dark">Salvar Colaborador</button>
+              <button type="submit" class="sst-btn sst-btn--dark" [disabled]="salvandoColaborador">
+                Salvar Colaborador
+              </button>
             </footer>
           </form>
         </section>
@@ -186,14 +184,21 @@
             <h2 class="sst-card__title">Cadastro de Matriz de Treinamento</h2>
           </header>
 
-          <form class="sst-form-grid" (submit)="$event.preventDefault(); salvarTreinamento()">
+          <form
+            class="sst-form-grid"
+            #formularioTreinamento="ngForm"
+            (ngSubmit)="salvarTreinamento(formularioTreinamento)"
+          >
             <div class="sst-form-group sst-col-span-2">
               <label for="desc-treinamento">Descrição do Treinamento</label>
               <input
                 type="text"
                 id="desc-treinamento"
+                name="desc-treinamento"
+                [(ngModel)]="novoTreinamento.nome"
                 class="sst-search__input sst-input-full"
                 required
+                maxlength="180"
               />
             </div>
 
@@ -202,9 +207,12 @@
               <input
                 type="text"
                 id="classificacao"
+                name="classificacao"
+                [(ngModel)]="novoTreinamento.classificacao"
                 list="lista-classificacao"
                 class="sst-search__input sst-input-full"
                 required
+                maxlength="60"
               />
               <datalist id="lista-classificacao">
                 <option value="Integração"></option>
@@ -215,7 +223,15 @@
 
             <div class="sst-form-group">
               <label for="nr">NR Regulamentadora</label>
-              <input type="text" id="nr" list="lista-nr" class="sst-search__input sst-input-full" />
+              <input
+                type="text"
+                id="nr"
+                name="nr"
+                [(ngModel)]="novoTreinamento.nr"
+                list="lista-nr"
+                class="sst-search__input sst-input-full"
+                maxlength="60"
+              />
               <datalist id="lista-nr">
                 <option value="NR-06 (EPI)"></option>
                 <option value="NR-11 (Movimentação de Materiais)"></option>
@@ -228,11 +244,14 @@
               <label for="carga-horaria">Carga Horária</label>
 
               <input
-                type="number"
+                type="text"
                 id="carga-horaria"
+                name="carga-horaria"
+                [(ngModel)]="novoTreinamento.cargaHoraria"
                 class="sst-search__input sst-input-full"
                 placeholder="...h...min"
                 required
+                maxlength="30"
               />
             </div>
 
@@ -241,19 +260,47 @@
               <input
                 type="text"
                 id="status"
+                name="status"
+                [(ngModel)]="novoTreinamento.status"
                 list="lista-status"
                 class="sst-search__input sst-input-full"
                 required
+                pattern="Ativo|Inativo"
               />
               <datalist id="lista-status">
                 <option value="Ativo"></option>
                 <option value="Inativo"></option>
-                <option value="Obrigatório"></option>
               </datalist>
             </div>
 
+            <div class="sst-form-group">
+              <label for="codigo">Código</label
+              ><input
+                id="codigo"
+                name="codigo"
+                class="sst-search__input sst-input-full"
+                [(ngModel)]="novoTreinamento.codigo"
+                maxlength="30"
+                required
+              />
+            </div>
+            <div class="sst-form-group">
+              <label for="validade-meses">Validade (meses, opcional)</label
+              ><input
+                id="validade-meses"
+                name="validadeMeses"
+                type="number"
+                min="0"
+                max="2147483647"
+                step="1"
+                class="sst-search__input sst-input-full"
+                [(ngModel)]="novoTreinamento.validadeMeses"
+              />
+            </div>
             <footer class="sst-form-actions sst-col-span-2">
-              <button type="submit" class="sst-btn sst-btn--dark">Salvar Treinamento</button>
+              <button type="submit" class="sst-btn sst-btn--dark" [disabled]="salvandoTreinamento">
+                Salvar Treinamento
+              </button>
             </footer>
           </form>
         </section>
@@ -265,10 +312,18 @@
             <h2 class="sst-card__title">Cadastro de Novo EPI</h2>
           </header>
 
-          <form class="sst-form-grid" (submit)="$event.preventDefault(); salvarEPI()">
+          <form class="sst-form-grid" #formularioEpi="ngForm" (ngSubmit)="salvarEPI(formularioEpi)">
             <div class="sst-form-group sst-col-span-2">
               <label for="desc-epi">Descrição do EPI</label>
-              <input type="text" id="desc-epi" class="sst-search__input sst-input-full" required />
+              <input
+                type="text"
+                id="desc-epi"
+                name="desc-epi"
+                [(ngModel)]="novoEpi.descricao"
+                class="sst-search__input sst-input-full"
+                required
+                maxlength="180"
+              />
             </div>
 
             <div class="sst-form-group">
@@ -276,8 +331,12 @@
 
               <input
                 type="number"
-                step="0.01"
+                step="1"
+                min="0"
+                max="2147483647"
                 id="quantidade"
+                name="quantidade"
+                [(ngModel)]="novoEpi.quantidade"
                 class="sst-search__input sst-input-full"
                 required
               />
@@ -286,11 +345,13 @@
             <div class="sst-form-group">
               <label for="ca">Número do CA (Certificado de Aprovação)</label>
               <input
-                type="number"
-                step="0.01"
+                type="text"
                 id="ca"
+                name="ca"
+                [(ngModel)]="novoEpi.ca"
                 class="sst-search__input sst-input-full"
                 required
+                maxlength="30"
               />
             </div>
 
@@ -300,6 +361,8 @@
               <input
                 type="date"
                 id="data-inclusao"
+                name="data-inclusao"
+                [(ngModel)]="novoEpi.inclusao"
                 class="sst-search__input sst-input-full"
                 required
               />
@@ -310,13 +373,17 @@
               <input
                 type="date"
                 id="data-validade"
+                name="data-validade"
+                [(ngModel)]="novoEpi.validade"
                 class="sst-search__input sst-input-full"
                 required
               />
             </div>
 
             <footer class="sst-form-actions sst-col-span-2">
-              <button type="submit" class="sst-btn sst-btn--dark">Salvar EPI</button>
+              <button type="submit" class="sst-btn sst-btn--dark" [disabled]="salvandoEpi">
+                Salvar EPI
+              </button>
             </footer>
           </form>
         </section>

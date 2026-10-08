@@ -8,15 +8,15 @@ A aplicação reúne interfaces para gestão de colaboradores, treinamentos e eq
 
 ## Estado Atual e Integração com o Backend
 
-A versão publicada neste repositório contém o frontend Angular. O backend Java e a integração dos CRUDs de colaboradores, catálogo de treinamentos e estoque de EPIs estão em desenvolvimento local e aguardam versionamento.
+A versão publicada neste repositório contém o frontend Angular e o backend Java, com integração dos CRUDs de colaboradores, catálogo de treinamentos e estoque de EPIs ao PostgreSQL.
 
-A base local utiliza **Spring Boot e PostgreSQL**, com código Java em `src/main/java/br/com/senac/sgsst/`. As configurações ficam em `src/main/resources/application.properties`, e o esquema do banco em `src/sql/criar-tabelas.sql`. Esses arquivos estarão disponíveis no repositório após a publicação da integração.
+A base local utiliza **Spring Boot e PostgreSQL**, com código Java em `src/main/java/br/com/senac/sgsst/`. As configurações ficam em [application.properties](src/main/resources/application.properties), e o esquema do banco em [criar-tabelas.sql](src/sql/criar-tabelas.sql). Consulte também as [instruções de execução dos CRUDs](docs/cruds-execucao.md).
 
 O login é demonstrativo, com sessão armazenada no navegador. Dashboard, certificações, vínculos de treinamentos, entregas de EPIs, importação, configurações e suporte apresentam fluxos de protótipo; sua presença na interface não significa que estejam integrados ao banco.
 
 ### Escopo da Integração
 
-| Recurso | Operações previstas na integração | URL da API local |
+| Recurso | Operações implementadas | URL da API local |
 | :--- | :--- | :--- |
 | Colaboradores | Cadastrar, listar, consultar por ID, editar e excluir | `/api/colaboradores` |
 | Catálogo de treinamentos | Cadastrar, listar, consultar por ID, editar e excluir | `/api/treinamentos` |
@@ -36,7 +36,7 @@ Na base local, a API atende em `http://localhost:8080`, e o frontend em `http://
 - **Planilhas:** SheetJS (`xlsx`) para os fluxos de leitura de arquivos.
 - **Ferramentas de desenvolvimento:** Angular CLI local, npm e Prettier.
 - **Testes do frontend:** Vitest e jsdom.
-- **Backend em desenvolvimento:** Java 17, Spring Boot, Spring Data JPA, Bean Validation e Maven.
+- **Backend:** Java 17, Spring Boot, Spring Data JPA, Bean Validation e Maven.
 - **Banco da integração local:** PostgreSQL.
 
 ---
@@ -86,8 +86,15 @@ projeto_integrador/
 │   │   ├── app.routes.ts            # Rotas da aplicação
 │   │   ├── auth.service.ts          # Sessão demonstrativa no navegador
 │   │   └── auth.guard.ts            # Verificação de sessão nas rotas
+│   ├── main/
+│   │   ├── java/br/com/senac/sgsst/ # Aplicação Spring Boot e camadas da API
+│   │   └── resources/              # Configuração do backend
+│   ├── sql/                         # Script do esquema PostgreSQL
+│   ├── test/java/                   # Testes do backend
 │   ├── main.ts                      # Inicialização do Angular
 │   └── styles.scss                  # Estilos e tokens globais
+├── docs/                            # Instruções de execução dos CRUDs
+├── pom.xml                          # Dependências e build do backend
 ├── angular.json                     # Configuração do Angular CLI
 └── package.json                     # Dependências e scripts
 ```
@@ -101,6 +108,7 @@ projeto_integrador/
 - **Node.js 24**, a partir da versão **24.15.0**.
 - **npm**; o `package.json` declara a versão **11.16.0**.
 - **Git** para clonar o repositório.
+- **Java 17, Maven e PostgreSQL** para executar o backend e os CRUDs integrados.
 
 Os scripts utilizam o Angular CLI instalado no projeto, sem necessidade de instalação global.
 
@@ -127,9 +135,9 @@ Os scripts utilizam o Angular CLI instalado no projeto, sem necessidade de insta
 
 4. Acesse [http://localhost:4200/login](http://localhost:4200/login) e utilize uma das contas demonstrativas abaixo.
 
-### Backend em Desenvolvimento Local
+### Backend Local
 
-Após o versionamento dos arquivos de integração, a execução completa também exigirá Java 17, Maven e PostgreSQL. A configuração local utiliza:
+A configuração do banco utiliza as seguintes variáveis de ambiente:
 
 | Variável | Finalidade | Valor padrão |
 | :--- | :--- | :--- |
@@ -137,7 +145,7 @@ Após o versionamento dos arquivos de integração, a execução completa també
 | `DB_USERNAME` | Usuário do banco | `sgsst_app` |
 | `DB_PASSWORD` | Senha do usuário do banco | Vazia; preencher no ambiente local |
 
-Prepare o banco `sgsst` e as tabelas do script SQL, configure as variáveis de ambiente e execute `SgsstApplication` no IntelliJ ou `mvn spring-boot:run` na raiz. O Hibernate está configurado com `ddl-auto=validate`: as tabelas precisam existir antes da inicialização.
+Prepare o banco `sgsst` e as tabelas do script SQL, configure as variáveis de ambiente e execute `SgsstApplication` no IntelliJ ou `mvn spring-boot:run` na raiz. Em bancos existentes, crie somente as tabelas ausentes. O Hibernate está configurado com `ddl-auto=validate`: as tabelas precisam existir antes da inicialização.
 
 A configuração CORS da base local permite a origem `http://localhost:4200`. A disponibilidade da API e do banco pode ser consultada em `http://localhost:8080/api/health`.
 
@@ -162,6 +170,9 @@ Essas contas são verificadas pelo frontend e não representam autenticação no
 | `npm run build` | Gerar o build do frontend |
 | `npm run watch` | Recompilar o frontend ao alterar arquivos |
 | `npm test` | Executar os testes do frontend |
+| `mvn spring-boot:run` | Executar a API local |
+| `mvn test` | Executar os testes do backend |
+| `mvn package` | Gerar o JAR do backend |
 
 ---
 

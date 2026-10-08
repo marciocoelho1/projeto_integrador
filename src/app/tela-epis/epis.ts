@@ -1,18 +1,12 @@
-import { Component, inject } from '@angular/core';
+import { validarEpi } from '../service/crud-validation';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ToastService } from '../service/toast.service';
-import { AuditService } from '../service/audit.service';
-
-interface Epi {
-  id: string;
-  descricao: string;
-  quantidade: number;
-  inclusao: string;
-  validade: string;
-  ca: string;
-}
+import { EpisService, Epi } from '../service/epis.service';
+import { finalize } from 'rxjs';
+import { mensagemErroApi } from '../service/api-error';
 
 interface EntregaEpi {
   colaborador: string;
@@ -29,70 +23,109 @@ interface EntregaEpi {
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './epis.html',
-  styleUrls: ['./epis.scss']
+  styleUrls: ['./epis.scss'],
 })
-export class Epis {
+export class Epis implements OnInit {
   private router = inject(Router);
   private toast = inject(ToastService);
-  private auditService = inject(AuditService);
+  private api = inject(EpisService);
+  private cdr = inject(ChangeDetectorRef);
+  erro = '';
+  carregando = false;
+  salvando = false;
+  ngOnInit() {
+    this.carregar();
+  }
+  carregar() {
+    if (this.carregando) return;
+    this.carregando = true;
+    this.erro = '';
+    this.api
+      .obterEpis()
+      .pipe(
+        finalize(() => {
+          this.carregando = false;
+          this.cdr.markForCheck();
+        }),
+      )
+      .subscribe({
+        next: (items) => (this.epis = items),
+        error: (e) => (this.erro = mensagemErroApi(e)),
+      });
+  }
 
   termoBusca: string = '';
 
-  
-  readonly listaEpisCadastrados: string[] = [
-    'Capacete de Segurança',
-    'Luva de Vaqueta',
-    'Óculos de Segurança',
-    'Luva de Malha de Aço',
-    'Botina de Segurança',
-    'Protetor Auricular',
-    'Avental de PVC',
-    'Máscara PFF2'
-  ];
+  get listaEpisCadastrados() {
+    return this.epis.map((e) => e.descricao);
+  }
 
-  epis: Epi[] = [
-    { id: 'EPI-01', descricao: 'Capacete de Segurança', quantidade: 45, inclusao: '01/02/2026', validade: '03/02/2028', ca: '12345' },
-    { id: 'EPI-02', descricao: 'Luva de Vaqueta', quantidade: 84, inclusao: '03/02/2026', validade: '03/02/2028', ca: '89765' },
-    { id: 'EPI-03', descricao: 'Óculos de Segurança', quantidade: 100, inclusao: '03/02/2026', validade: '03/02/2028', ca: '23456' }
-  ];
+  epis: Epi[] = [];
 
-  
-  entregas: EntregaEpi[] = [
-    { colaborador: 'João Souza', epi: 'Capacete de Segurança', quantidade: 1, validadeCa: '03/02/2028', numeroCa: '12345', data: '01/06/2026', assinatura: 'João Souza' }
-  ];
+  entregas: EntregaEpi[] = [];
 
-  
-  
-  
   mostrarModalEdicao = false;
-  epiEmEdicao: Epi = { id: '', descricao: '', quantidade: 0, inclusao: '', validade: '', ca: '' };
+  epiEmEdicao: Epi = { id: 0, descricao: '', quantidade: 0, inclusao: '', validade: '', ca: '' };
 
   abrirModalEdicao(epi: Epi) {
-    
-    this.epiEmEdicao = { ...epi };
-    this.mostrarModalEdicao = true;
+    if (this.salvando) return;
+    this.salvando = true;
+    this.erro = '';
+    this.api
+      .obterEpiPorId(epi.id)
+      .pipe(
+        finalize(() => {
+          this.salvando = false;
+          this.cdr.markForCheck();
+        }),
+      )
+      .subscribe({
+        next: (item) => {
+          this.epiEmEdicao = { ...item };
+          this.mostrarModalEdicao = true;
+        },
+        error: (e) => {
+          this.erro = mensagemErroApi(e);
+          this.toast.error(this.erro);
+        },
+      });
   }
 
   fecharModalEdicao() {
+    if (this.salvando) return;
     this.mostrarModalEdicao = false;
   }
 
-  salvarEdicao() {
-    const descricao = this.epiEmEdicao.descricao.trim();
-    const existe = this.listaEpisCadastrados.some(e => e.toLowerCase() === descricao.toLowerCase());
-
-    if (!existe) {
-      this.toast.error(`A descrição "${descricao}" não corresponde a um EPI cadastrado no sistema.`);
+  salvarEdicao(form?: NgForm) {
+    if (this.salvando) return;
+    const d = this.epiEmEdicao;
+    if (form?.invalid || !validarEpi(d)) {
+      form?.control.markAllAsTouched();
+      this.toast.error('Preencha os campos e uma quantidade inteira não negativa.');
       return;
     }
-
-    const index = this.epis.findIndex(e => e.id === this.epiEmEdicao.id);
-    if (index !== -1) {
-      this.epis[index] = { ...this.epiEmEdicao };
-      this.toast.success('EPI atualizado com sucesso!');
-      this.auditService.registrarAcao('Marcio Coelho', 'EPIs', 'EDICAO', `Editou dados do EPI ${this.epiEmEdicao.descricao}`);
-    }
-    this.fecharModalEdicao();
+    const { id, ...dados } = d;
+    this.salvando = true;
+    this.erro = '';
+    this.api
+      .atualizarEpi(id, dados)
+      .pipe(
+        finalize(() => {
+          this.salvando = false;
+          this.cdr.markForCheck();
+        }),
+      )
+      .subscribe({
+        next: (item) => {
+          this.epis = this.epis.map((e) => (e.id === id ? item : e));
+          this.mostrarModalEdicao = false;
+          this.toast.success('EPI atualizado com sucesso!');
+        },
+        error: (e) => {
+          this.erro = mensagemErroApi(e);
+          this.toast.error(this.erro);
+        },
+      });
   }
 
   filtrarApenasNumerosCa(event: Event): void {
@@ -103,14 +136,16 @@ export class Epis {
     }
   }
 
-  
-  
-  
   mostrarModalEntrega = false;
   novaEntrega = { colaborador: '', epiId: '', data: '', quantidade: 1 };
 
   abrirModalEntrega() {
-    this.novaEntrega = { colaborador: '', epiId: '', data: new Date().toISOString().split('T')[0], quantidade: 1 };
+    this.novaEntrega = {
+      colaborador: '',
+      epiId: '',
+      data: new Date().toISOString().split('T')[0],
+      quantidade: 1,
+    };
     this.mostrarModalEntrega = true;
   }
 
@@ -119,57 +154,48 @@ export class Epis {
   }
 
   salvarEntrega() {
-    const epiIndex = this.epis.findIndex(e => e.id === this.novaEntrega.epiId);
-    
-    if (epiIndex === -1) {
-      this.toast.error('Selecione um EPI válido.');
-      return;
-    }
-
-    const epiSelecionado = this.epis[epiIndex];
-
-    if (epiSelecionado.quantidade < this.novaEntrega.quantidade) {
-      this.toast.warning('Estoque insuficiente para esta entrega.');
-      return;
-    }
-
-    
-    this.epis[epiIndex].quantidade -= this.novaEntrega.quantidade;
-
-    
-    const dataFormatada = this.novaEntrega.data.split('-').reverse().join('/');
-
-    
-    this.entregas.unshift({
-      colaborador: this.novaEntrega.colaborador,
-      epi: epiSelecionado.descricao,
-      quantidade: this.novaEntrega.quantidade,
-      validadeCa: epiSelecionado.validade,
-      numeroCa: epiSelecionado.ca,
-      data: dataFormatada,
-      assinatura: 'Pendente (Sistema)'
-    });
-
-    this.toast.success('Entrega registrada com abatimento no estoque!');
-    this.auditService.registrarAcao('Marcio Coelho', 'EPIs', 'CRIACAO', `Registrou entrega de ${this.novaEntrega.quantidade}x ${epiSelecionado.descricao} para ${this.novaEntrega.colaborador}`);
-    
-    this.fecharModalEntrega();
+    this.toast.warning('Entregas fora do escopo: não há persistência nem alteração do estoque.');
   }
 
-  
-  
-  
   get episFiltrados(): Epi[] {
     if (!this.termoBusca) return this.epis;
     const termo = this.termoBusca.toLowerCase();
-    return this.epis.filter(e => 
-      e.descricao.toLowerCase().includes(termo) || 
-      e.id.toLowerCase().includes(termo) ||
-      e.ca.includes(termo)
+    return this.epis.filter(
+      (e) =>
+        e.descricao.toLowerCase().includes(termo) ||
+        String(e.id).toLowerCase().includes(termo) ||
+        e.ca.includes(termo),
     );
   }
 
   actionNovoEPI(): void {
     this.router.navigate(['/cadastramentos'], { queryParams: { aba: 'epi' } });
+  }
+  excluir(item: Epi) {
+    if (
+      this.salvando ||
+      !window.confirm(`Excluir "${item.descricao}"? Esta ação não pode ser desfeita.`)
+    )
+      return;
+    this.salvando = true;
+    this.erro = '';
+    this.api
+      .excluirEpi(item.id)
+      .pipe(
+        finalize(() => {
+          this.salvando = false;
+          this.cdr.markForCheck();
+        }),
+      )
+      .subscribe({
+        next: () => {
+          this.epis = this.epis.filter((r) => r.id !== item.id);
+          this.toast.success('Registro excluído com sucesso!');
+        },
+        error: (e) => {
+          this.erro = mensagemErroApi(e);
+          this.toast.error(this.erro);
+        },
+      });
   }
 }

@@ -1,12 +1,30 @@
 <div class="matriz-container">
-  
+  @if (carregando) {
+    <p role="status">Carregando catálogo...</p>
+  }
+  @if (erro) {
+    <p role="alert">{{ erro }}</p>
+  }
+  <button
+    type="button"
+    class="sst-btn-link"
+    (click)="carregar()"
+    [disabled]="carregando || salvando"
+  >
+    Atualizar catálogo
+  </button>
+  @if (cardSelecionado !== 'Treinamentos' || modoVisualizacao !== 'lista') {
+    <p role="status">
+      Matrizes, cargos, vínculos, certificações e reciclagens fora do escopo. Apenas o catálogo de
+      treinamentos está integrado.
+    </p>
+  }
+
   <header class="matriz-header">
     <h2>Matriz de Treinamentos</h2>
     @switch (cardSelecionado) {
       @case ('Visão Geral') {
-        <button class="sst-btn sst-btn--dark" (click)="exportarMatriz()">
-          Exportar Matriz
-        </button>
+        <button class="sst-btn sst-btn--dark" (click)="exportarMatriz()">Exportar Matriz</button>
       }
       @case ('LNT / Cargos') {
         <button class="sst-btn sst-btn--dark" (click)="navegarParaCadastro()">
@@ -36,12 +54,13 @@
     }
   </header>
 
-  
   <section class="cards-grid">
     @for (card of resumos; track card.titulo) {
-      <div class="card-summary"
-           [class.card-summary--active]="cardSelecionado === card.titulo"
-           (click)="selecionarCard(card.titulo)">
+      <div
+        class="card-summary"
+        [class.card-summary--active]="cardSelecionado === card.titulo"
+        (click)="selecionarCard(card.titulo)"
+      >
         <span class="card-summary__title">{{ card.titulo }}</span>
         @if (card.total !== undefined) {
           <strong class="card-summary__val">{{ card.total }}</strong>
@@ -52,9 +71,7 @@
     }
   </section>
 
-  
   <div class="tables-column">
-    
     @if (cardSelecionado === 'Visão Geral') {
       <section class="table-card">
         <h3 class="table-card__title">Matriz Cruzada de Conformidade por Colaborador</h3>
@@ -75,25 +92,59 @@
             <tbody>
               @for (row of matrizCruzada; track row.colaborador) {
                 <tr>
-                  <td><strong>{{ row.colaborador }}</strong></td>
+                  <td>
+                    <strong>{{ row.colaborador }}</strong>
+                  </td>
                   <td>{{ row.cargo }}</td>
                   <td class="text-center">
-                    <span class="badge" [ngClass]="row.nr06 === 'N/A' ? 'badge--na' : 'badge--' + row.nr06.toLowerCase()">{{ row.nr06 }}</span>
+                    <span
+                      class="badge"
+                      [ngClass]="
+                        row.nr06 === 'N/A' ? 'badge--na' : 'badge--' + row.nr06.toLowerCase()
+                      "
+                      >{{ row.nr06 }}</span
+                    >
                   </td>
                   <td class="text-center">
-                    <span class="badge" [ngClass]="row.nr11 === 'N/A' ? 'badge--na' : 'badge--' + row.nr11.toLowerCase()">{{ row.nr11 }}</span>
+                    <span
+                      class="badge"
+                      [ngClass]="
+                        row.nr11 === 'N/A' ? 'badge--na' : 'badge--' + row.nr11.toLowerCase()
+                      "
+                      >{{ row.nr11 }}</span
+                    >
                   </td>
                   <td class="text-center">
-                    <span class="badge" [ngClass]="row.nr12 === 'N/A' ? 'badge--na' : 'badge--' + row.nr12.toLowerCase()">{{ row.nr12 }}</span>
+                    <span
+                      class="badge"
+                      [ngClass]="
+                        row.nr12 === 'N/A' ? 'badge--na' : 'badge--' + row.nr12.toLowerCase()
+                      "
+                      >{{ row.nr12 }}</span
+                    >
                   </td>
                   <td class="text-center">
-                    <span class="badge" [ngClass]="row.nr17 === 'N/A' ? 'badge--na' : 'badge--' + row.nr17.toLowerCase()">{{ row.nr17 }}</span>
+                    <span
+                      class="badge"
+                      [ngClass]="
+                        row.nr17 === 'N/A' ? 'badge--na' : 'badge--' + row.nr17.toLowerCase()
+                      "
+                      >{{ row.nr17 }}</span
+                    >
                   </td>
                   <td class="text-center">
-                    <span class="badge" [ngClass]="row.nr35 === 'N/A' ? 'badge--na' : 'badge--' + row.nr35.toLowerCase()">{{ row.nr35 }}</span>
+                    <span
+                      class="badge"
+                      [ngClass]="
+                        row.nr35 === 'N/A' ? 'badge--na' : 'badge--' + row.nr35.toLowerCase()
+                      "
+                      >{{ row.nr35 }}</span
+                    >
                   </td>
                   <td class="sst-text-right">
-                    <button type="button" class="sst-btn-link" (click)="abrirModalEdicaoGeral(row)">Editar</button>
+                    <button type="button" class="sst-btn-link" (click)="abrirModalEdicaoGeral(row)">
+                      Editar
+                    </button>
                   </td>
                 </tr>
               }
@@ -108,14 +159,20 @@
         <header class="table-card__toolbar">
           <h3 class="table-card__title">LNT / Cargos Cadastrados</h3>
           <div class="table-toggle" role="group" aria-label="Modo de visualização">
-            <button type="button" class="table-toggle__btn"
-                    [class.table-toggle__btn--active]="modoVisualizacao === 'colaborador'"
-                    (click)="setModoVisualizacao('colaborador')">
+            <button
+              type="button"
+              class="table-toggle__btn"
+              [class.table-toggle__btn--active]="modoVisualizacao === 'colaborador'"
+              (click)="setModoVisualizacao('colaborador')"
+            >
               Por Colaborador
             </button>
-            <button type="button" class="table-toggle__btn"
-                    [class.table-toggle__btn--active]="modoVisualizacao === 'lista'"
-                    (click)="setModoVisualizacao('lista')">
+            <button
+              type="button"
+              class="table-toggle__btn"
+              [class.table-toggle__btn--active]="modoVisualizacao === 'lista'"
+              (click)="setModoVisualizacao('lista')"
+            >
               Lista Completa
             </button>
           </div>
@@ -137,17 +194,28 @@
               <tbody>
                 @for (item of cargosLntColaborador; track item.colaborador) {
                   <tr>
-                    <td><strong>{{ item.colaborador }}</strong></td>
+                    <td>
+                      <strong>{{ item.colaborador }}</strong>
+                    </td>
                     <td>{{ item.cargo }}</td>
                     <td>{{ item.setor }}</td>
                     <td>{{ item.treinamentosPendentes }}</td>
                     <td>
-                      <span class="badge" [ngClass]="item.status === 'Conforme' ? 'badge--ok' : 'badge--alerta'">
+                      <span
+                        class="badge"
+                        [ngClass]="item.status === 'Conforme' ? 'badge--ok' : 'badge--alerta'"
+                      >
                         {{ item.status }}
                       </span>
                     </td>
                     <td class="sst-text-right">
-                      <button type="button" class="sst-btn-link" (click)="abrirModalEdicaoGeral(item)">Editar</button>
+                      <button
+                        type="button"
+                        class="sst-btn-link"
+                        (click)="abrirModalEdicaoGeral(item)"
+                      >
+                        Editar
+                      </button>
                     </td>
                   </tr>
                 }
@@ -167,12 +235,22 @@
               <tbody>
                 @for (cargo of cargosLnt; track cargo.cargo) {
                   <tr>
-                    <td><strong>{{ cargo.cargo }}</strong></td>
+                    <td>
+                      <strong>{{ cargo.cargo }}</strong>
+                    </td>
                     <td>{{ cargo.setor }}</td>
                     <td>{{ cargo.treinamentosObrigatorios }}</td>
-                    <td><strong>{{ cargo.status }}</strong></td>
+                    <td>
+                      <strong>{{ cargo.status }}</strong>
+                    </td>
                     <td class="sst-text-right">
-                      <button type="button" class="sst-btn-link" (click)="abrirModalEdicaoGeral(cargo)">Editar</button>
+                      <button
+                        type="button"
+                        class="sst-btn-link"
+                        (click)="abrirModalEdicaoGeral(cargo)"
+                      >
+                        Editar
+                      </button>
                     </td>
                   </tr>
                 }
@@ -188,14 +266,20 @@
         <header class="table-card__toolbar">
           <h3 class="table-card__title">Treinamentos Cadastrados</h3>
           <div class="table-toggle" role="group" aria-label="Modo de visualização">
-            <button type="button" class="table-toggle__btn"
-                    [class.table-toggle__btn--active]="modoVisualizacao === 'colaborador'"
-                    (click)="setModoVisualizacao('colaborador')">
+            <button
+              type="button"
+              class="table-toggle__btn"
+              [class.table-toggle__btn--active]="modoVisualizacao === 'colaborador'"
+              (click)="setModoVisualizacao('colaborador')"
+            >
               Por Colaborador
             </button>
-            <button type="button" class="table-toggle__btn"
-                    [class.table-toggle__btn--active]="modoVisualizacao === 'lista'"
-                    (click)="setModoVisualizacao('lista')">
+            <button
+              type="button"
+              class="table-toggle__btn"
+              [class.table-toggle__btn--active]="modoVisualizacao === 'lista'"
+              (click)="setModoVisualizacao('lista')"
+            >
               Lista Completa
             </button>
           </div>
@@ -217,17 +301,30 @@
               <tbody>
                 @for (item of treinamentosColaborador; track item.colaborador + item.treinamento) {
                   <tr>
-                    <td><strong>{{ item.colaborador }}</strong></td>
+                    <td>
+                      <strong>{{ item.colaborador }}</strong>
+                    </td>
                     <td>{{ item.cargo }}</td>
-                    <td><strong>{{ item.treinamento }}</strong></td>
+                    <td>
+                      <strong>{{ item.treinamento }}</strong>
+                    </td>
                     <td>{{ item.dataConclusao }}</td>
                     <td>
-                      <span class="badge" [ngClass]="item.status === 'Concluído' ? 'badge--ok' : 'badge--alerta'">
+                      <span
+                        class="badge"
+                        [ngClass]="item.status === 'Concluído' ? 'badge--ok' : 'badge--alerta'"
+                      >
                         {{ item.status }}
                       </span>
                     </td>
                     <td class="sst-text-right">
-                      <button type="button" class="sst-btn-link" (click)="abrirModalEdicaoGeral(item)">Editar</button>
+                      <button
+                        type="button"
+                        class="sst-btn-link"
+                        (click)="abrirModalEdicaoGeral(item)"
+                      >
+                        Editar
+                      </button>
                     </td>
                   </tr>
                 }
@@ -248,17 +345,38 @@
                 </tr>
               </thead>
               <tbody>
-                @for (item of treinamentos; track item.nome) {
+                @for (item of treinamentos; track item.id) {
                   <tr>
-                    <td><strong>{{ item.codigo || '-' }}</strong></td>
-                    <td><strong>{{ item.nome }}</strong></td>
+                    <td>
+                      <strong>{{ item.codigo || '-' }}</strong>
+                    </td>
+                    <td>
+                      <strong>{{ item.nome }}</strong>
+                    </td>
                     <td>{{ item.classificacao }}</td>
                     <td>{{ item.nr }}</td>
                     <td>{{ item.cargaHoraria }}</td>
-                    <td>{{ item.validadeMeses ? item.validadeMeses + ' meses' : '-' }}</td>
-                    <td><strong>{{ item.status }}</strong></td>
+                    <td>{{ item.validadeMeses !== null ? item.validadeMeses + ' meses' : '-' }}</td>
+                    <td>
+                      <strong>{{ item.status }}</strong>
+                    </td>
                     <td class="sst-text-right">
-                      <button type="button" class="sst-btn-link" (click)="abrirModalEdicaoGeral(item)">Editar</button>
+                      <button
+                        type="button"
+                        class="sst-btn-link"
+                        (click)="abrirModalEdicaoGeral(item)"
+                        [disabled]="salvando"
+                      >
+                        Editar
+                      </button>
+                      <button
+                        type="button"
+                        class="sst-btn-link"
+                        (click)="excluir(item)"
+                        [disabled]="salvando"
+                      >
+                        Excluir
+                      </button>
                     </td>
                   </tr>
                 }
@@ -274,14 +392,20 @@
         <header class="table-card__toolbar">
           <h3 class="table-card__title">Certificações</h3>
           <div class="table-toggle" role="group" aria-label="Modo de visualização">
-            <button type="button" class="table-toggle__btn"
-                    [class.table-toggle__btn--active]="modoVisualizacao === 'colaborador'"
-                    (click)="setModoVisualizacao('colaborador')">
+            <button
+              type="button"
+              class="table-toggle__btn"
+              [class.table-toggle__btn--active]="modoVisualizacao === 'colaborador'"
+              (click)="setModoVisualizacao('colaborador')"
+            >
               Por Colaborador
             </button>
-            <button type="button" class="table-toggle__btn"
-                    [class.table-toggle__btn--active]="modoVisualizacao === 'lista'"
-                    (click)="setModoVisualizacao('lista')">
+            <button
+              type="button"
+              class="table-toggle__btn"
+              [class.table-toggle__btn--active]="modoVisualizacao === 'lista'"
+              (click)="setModoVisualizacao('lista')"
+            >
               Lista Completa
             </button>
           </div>
@@ -304,9 +428,13 @@
               <tbody>
                 @for (c of certificacoes; track c.colaborador + c.treinamento) {
                   <tr>
-                    <td><strong>{{ c.colaborador }}</strong></td>
+                    <td>
+                      <strong>{{ c.colaborador }}</strong>
+                    </td>
                     <td>{{ c.cargo }}</td>
-                    <td><strong>{{ c.treinamento }}</strong></td>
+                    <td>
+                      <strong>{{ c.treinamento }}</strong>
+                    </td>
                     <td>{{ c.certificacao }}</td>
                     <td>{{ c.validade }}</td>
                     <td>
@@ -315,7 +443,9 @@
                       </span>
                     </td>
                     <td class="sst-text-right">
-                      <button type="button" class="sst-btn-link" (click)="abrirModalEdicaoGeral(c)">Editar</button>
+                      <button type="button" class="sst-btn-link" (click)="abrirModalEdicaoGeral(c)">
+                        Editar
+                      </button>
                     </td>
                   </tr>
                 }
@@ -336,13 +466,23 @@
               <tbody>
                 @for (cert of certificacoesLista; track cert.id) {
                   <tr>
-                    <td><strong>{{ cert.id }}</strong></td>
-                    <td><strong>{{ cert.treinamento }}</strong></td>
+                    <td>
+                      <strong>{{ cert.id }}</strong>
+                    </td>
+                    <td>
+                      <strong>{{ cert.treinamento }}</strong>
+                    </td>
                     <td>{{ cert.instituicao }}</td>
                     <td>{{ cert.cargaHoraria }}</td>
                     <td>{{ cert.validadePadrao }}</td>
                     <td class="sst-text-right">
-                      <button type="button" class="sst-btn-link" (click)="abrirModalEdicaoGeral(cert)">Editar</button>
+                      <button
+                        type="button"
+                        class="sst-btn-link"
+                        (click)="abrirModalEdicaoGeral(cert)"
+                      >
+                        Editar
+                      </button>
                     </td>
                   </tr>
                 }
@@ -358,14 +498,20 @@
         <header class="table-card__toolbar">
           <h3 class="table-card__title">Reciclagens</h3>
           <div class="table-toggle" role="group" aria-label="Modo de visualização">
-            <button type="button" class="table-toggle__btn"
-                    [class.table-toggle__btn--active]="modoVisualizacao === 'colaborador'"
-                    (click)="setModoVisualizacao('colaborador')">
+            <button
+              type="button"
+              class="table-toggle__btn"
+              [class.table-toggle__btn--active]="modoVisualizacao === 'colaborador'"
+              (click)="setModoVisualizacao('colaborador')"
+            >
               Por Colaborador
             </button>
-            <button type="button" class="table-toggle__btn"
-                    [class.table-toggle__btn--active]="modoVisualizacao === 'lista'"
-                    (click)="setModoVisualizacao('lista')">
+            <button
+              type="button"
+              class="table-toggle__btn"
+              [class.table-toggle__btn--active]="modoVisualizacao === 'lista'"
+              (click)="setModoVisualizacao('lista')"
+            >
               Lista Completa
             </button>
           </div>
@@ -387,17 +533,31 @@
               <tbody>
                 @for (rec of reciclagens; track rec.colaborador + rec.treinamento) {
                   <tr>
-                    <td><strong>{{ rec.colaborador }}</strong></td>
+                    <td>
+                      <strong>{{ rec.colaborador }}</strong>
+                    </td>
                     <td>{{ rec.cargo }}</td>
-                    <td><strong>{{ rec.treinamento }}</strong></td>
+                    <td>
+                      <strong>{{ rec.treinamento }}</strong>
+                    </td>
                     <td>{{ rec.prazoMaximo }}</td>
                     <td>
-                      <span class="badge" [class.badge--vencido]="rec.status === 'Vencido'" [class.badge--alerta]="rec.status !== 'Vencido'">
+                      <span
+                        class="badge"
+                        [class.badge--vencido]="rec.status === 'Vencido'"
+                        [class.badge--alerta]="rec.status !== 'Vencido'"
+                      >
                         {{ rec.status }}
                       </span>
                     </td>
                     <td class="sst-text-right">
-                      <button type="button" class="sst-btn-link" (click)="abrirModalEdicaoGeral(rec)">Editar</button>
+                      <button
+                        type="button"
+                        class="sst-btn-link"
+                        (click)="abrirModalEdicaoGeral(rec)"
+                      >
+                        Editar
+                      </button>
                     </td>
                   </tr>
                 }
@@ -419,14 +579,26 @@
               <tbody>
                 @for (turma of reciclagensLista; track turma.turma) {
                   <tr>
-                    <td><strong>{{ turma.turma }}</strong></td>
-                    <td><strong>{{ turma.treinamento }}</strong></td>
+                    <td>
+                      <strong>{{ turma.turma }}</strong>
+                    </td>
+                    <td>
+                      <strong>{{ turma.treinamento }}</strong>
+                    </td>
                     <td>{{ turma.instrutor }}</td>
                     <td>{{ turma.dataAgendada }}</td>
                     <td>{{ turma.vagas }}</td>
-                    <td><strong>{{ turma.status }}</strong></td>
+                    <td>
+                      <strong>{{ turma.status }}</strong>
+                    </td>
                     <td class="sst-text-right">
-                      <button type="button" class="sst-btn-link" (click)="abrirModalEdicaoGeral(turma)">Editar</button>
+                      <button
+                        type="button"
+                        class="sst-btn-link"
+                        (click)="abrirModalEdicaoGeral(turma)"
+                      >
+                        Editar
+                      </button>
                     </td>
                   </tr>
                 }
@@ -436,16 +608,16 @@
         </div>
       </section>
     }
-
   </div>
 
-  
   @if (mostrarModalCertificacao) {
     <div class="sst-modal-overlay">
       <div class="sst-modal sst-card">
         <header class="sst-modal__header">
           <h3 class="sst-card__title">Vincular Certificação</h3>
-          <button type="button" class="sst-modal__close" (click)="fecharModalCertificacao()">&times;</button>
+          <button type="button" class="sst-modal__close" (click)="fecharModalCertificacao()">
+            &times;
+          </button>
         </header>
 
         <form class="sst-form-grid" (submit)="$event.preventDefault(); salvarVinculoCertificacao()">
@@ -467,28 +639,40 @@
             <label for="treina-modal-cert">Treinamento</label>
             <select id="treina-modal-cert" class="sst-search__input sst-input-full" required>
               <option value="" disabled selected>Selecione um treinamento...</option>
-              <option value="NR-06 Uso Adequado e Guarda de EPIs">NR-06 Uso Adequado e Guarda de EPIs</option>
-              <option value="NR-11 Operação Segura de Empilhadeira">NR-11 Operação Segura de Empilhadeira</option>
+              <option value="NR-06 Uso Adequado e Guarda de EPIs">
+                NR-06 Uso Adequado e Guarda de EPIs
+              </option>
+              <option value="NR-11 Operação Segura de Empilhadeira">
+                NR-11 Operação Segura de Empilhadeira
+              </option>
               <option value="NR-12 Segurança em Máquinas">NR-12 Segurança em Máquinas</option>
               <option value="NR-17 Ergonomia para Checkout">NR-17 Ergonomia para Checkout</option>
               <option value="NR-35 Trabalho em Altura">NR-35 Trabalho em Altura</option>
               <option value="NR-23 e Brigada de Incêndio">NR-23 e Brigada de Incêndio</option>
-              <option value="Boas Práticas de Manipulação de Alimentos">Boas Práticas de Manipulação de Alimentos</option>
+              <option value="Boas Práticas de Manipulação de Alimentos">
+                Boas Práticas de Manipulação de Alimentos
+              </option>
             </select>
           </div>
 
           <div class="sst-form-group">
             <label for="dt-cert">Data da Certificação</label>
-            <input type="date" id="dt-cert" class="sst-search__input sst-input-full" required>
+            <input type="date" id="dt-cert" class="sst-search__input sst-input-full" required />
           </div>
 
           <div class="sst-form-group">
             <label for="dt-val-cert">Validade</label>
-            <input type="date" id="dt-val-cert" class="sst-search__input sst-input-full" required>
+            <input type="date" id="dt-val-cert" class="sst-search__input sst-input-full" required />
           </div>
 
           <footer class="sst-form-actions sst-col-span-2">
-            <button type="button" class="sst-btn sst-btn--light" (click)="fecharModalCertificacao()">Cancelar</button>
+            <button
+              type="button"
+              class="sst-btn sst-btn--light"
+              (click)="fecharModalCertificacao()"
+            >
+              Cancelar
+            </button>
             <button type="submit" class="sst-btn sst-btn--dark">Salvar Vínculo</button>
           </footer>
         </form>
@@ -496,19 +680,27 @@
     </div>
   }
 
-  
   @if (mostrarModalReciclagem) {
     <div class="sst-modal-overlay">
       <div class="sst-modal sst-card">
         <header class="sst-modal__header">
           <h3 class="sst-card__title">Vincular Reciclagem</h3>
-          <button type="button" class="sst-modal__close" (click)="fecharModalReciclagem()">&times;</button>
+          <button type="button" class="sst-modal__close" (click)="fecharModalReciclagem()">
+            &times;
+          </button>
         </header>
 
         <form class="sst-form-grid" (submit)="$event.preventDefault(); salvarVinculoReciclagem()">
           <div class="sst-form-group sst-col-span-2">
             <label for="colab-modal-rec">Colaborador</label>
-            <input type="text" id="colab-modal-rec" list="lista-colab-rec" class="sst-search__input sst-input-full" placeholder="Digite ou selecione o colaborador..." required>
+            <input
+              type="text"
+              id="colab-modal-rec"
+              list="lista-colab-rec"
+              class="sst-search__input sst-input-full"
+              placeholder="Digite ou selecione o colaborador..."
+              required
+            />
             <datalist id="lista-colab-rec">
               <option value="Carlos Eduardo Silva"></option>
               <option value="Maria Joana Oliveira"></option>
@@ -522,7 +714,14 @@
 
           <div class="sst-form-group sst-col-span-2">
             <label for="treina-modal-rec">Treinamento de Reciclagem</label>
-            <input type="text" id="treina-modal-rec" list="lista-treina-rec" class="sst-search__input sst-input-full" placeholder="Digite ou selecione o treinamento..." required>
+            <input
+              type="text"
+              id="treina-modal-rec"
+              list="lista-treina-rec"
+              class="sst-search__input sst-input-full"
+              placeholder="Digite ou selecione o treinamento..."
+              required
+            />
             <datalist id="lista-treina-rec">
               <option value="NR-06 Uso Adequado e Guarda de EPIs"></option>
               <option value="NR-11 Operação Segura de Empilhadeira"></option>
@@ -536,11 +735,18 @@
 
           <div class="sst-form-group sst-col-span-2">
             <label for="dt-limite-rec">Data Limite</label>
-            <input type="date" id="dt-limite-rec" class="sst-search__input sst-input-full" required>
+            <input
+              type="date"
+              id="dt-limite-rec"
+              class="sst-search__input sst-input-full"
+              required
+            />
           </div>
 
           <footer class="sst-form-actions sst-col-span-2">
-            <button type="button" class="sst-btn sst-btn--light" (click)="fecharModalReciclagem()">Cancelar</button>
+            <button type="button" class="sst-btn sst-btn--light" (click)="fecharModalReciclagem()">
+              Cancelar
+            </button>
             <button type="submit" class="sst-btn sst-btn--dark">Salvar Vínculo</button>
           </footer>
         </form>
@@ -548,24 +754,41 @@
     </div>
   }
 
-  
   @if (mostrarModalEdicaoGeral && itemEmEdicao) {
     <div class="sst-modal-overlay">
-      <div class="sst-modal sst-card" style="max-width: 600px;">
+      <div class="sst-modal sst-card" style="max-width: 600px">
         <header class="sst-card__toolbar">
           <h3 class="sst-card__title">Editar Registro - {{ cardSelecionado }}</h3>
-          <button type="button" class="sst-btn-link" (click)="fecharModalEdicaoGeral()" style="font-size: 1.5rem; text-decoration: none;">&times;</button>
+          <button
+            type="button"
+            class="sst-btn-link"
+            (click)="fecharModalEdicaoGeral()"
+            style="font-size: 1.5rem; text-decoration: none"
+          >
+            &times;
+          </button>
         </header>
 
-        <form class="sst-form-grid" (submit)="$event.preventDefault(); salvarEdicaoGeral()">
+        <form class="sst-form-grid" #formEdicao="ngForm" (ngSubmit)="salvarEdicaoGeral(formEdicao)">
           @if (cardSelecionado === 'Visão Geral') {
             <div class="sst-form-group sst-col-span-2">
               <label>Colaborador</label>
-              <input type="text" class="sst-search__input sst-input-full" [value]="itemEmEdicao.colaborador + ' (' + itemEmEdicao.cargo + ')'" disabled>
+              <input
+                type="text"
+                class="sst-search__input sst-input-full"
+                [value]="itemEmEdicao.colaborador + ' (' + itemEmEdicao.cargo + ')'"
+                disabled
+              />
             </div>
             <div class="sst-form-group">
               <label for="status-nr06">NR-06 (EPI)</label>
-              <select id="status-nr06" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.nr06" name="nr06" required>
+              <select
+                id="status-nr06"
+                class="sst-search__input sst-input-full"
+                [(ngModel)]="itemEmEdicao.nr06"
+                name="nr06"
+                required
+              >
                 <option value="OK">OK</option>
                 <option value="Alerta">Alerta</option>
                 <option value="Vencido">Vencido</option>
@@ -574,7 +797,13 @@
             </div>
             <div class="sst-form-group">
               <label for="status-nr11">NR-11 (Empilhadeira)</label>
-              <select id="status-nr11" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.nr11" name="nr11" required>
+              <select
+                id="status-nr11"
+                class="sst-search__input sst-input-full"
+                [(ngModel)]="itemEmEdicao.nr11"
+                name="nr11"
+                required
+              >
                 <option value="OK">OK</option>
                 <option value="Alerta">Alerta</option>
                 <option value="Vencido">Vencido</option>
@@ -583,7 +812,13 @@
             </div>
             <div class="sst-form-group">
               <label for="status-nr12">NR-12 (Máquinas)</label>
-              <select id="status-nr12" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.nr12" name="nr12" required>
+              <select
+                id="status-nr12"
+                class="sst-search__input sst-input-full"
+                [(ngModel)]="itemEmEdicao.nr12"
+                name="nr12"
+                required
+              >
                 <option value="OK">OK</option>
                 <option value="Alerta">Alerta</option>
                 <option value="Vencido">Vencido</option>
@@ -592,7 +827,13 @@
             </div>
             <div class="sst-form-group">
               <label for="status-nr17">NR-17 (Ergonomia)</label>
-              <select id="status-nr17" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.nr17" name="nr17" required>
+              <select
+                id="status-nr17"
+                class="sst-search__input sst-input-full"
+                [(ngModel)]="itemEmEdicao.nr17"
+                name="nr17"
+                required
+              >
                 <option value="OK">OK</option>
                 <option value="Alerta">Alerta</option>
                 <option value="Vencido">Vencido</option>
@@ -601,7 +842,13 @@
             </div>
             <div class="sst-form-group sst-col-span-2">
               <label for="status-nr35">NR-35 (Altura)</label>
-              <select id="status-nr35" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.nr35" name="nr35" required>
+              <select
+                id="status-nr35"
+                class="sst-search__input sst-input-full"
+                [(ngModel)]="itemEmEdicao.nr35"
+                name="nr35"
+                required
+              >
                 <option value="OK">OK</option>
                 <option value="Alerta">Alerta</option>
                 <option value="Vencido">Vencido</option>
@@ -612,23 +859,63 @@
             @if (modoVisualizacao === 'colaborador') {
               <div class="sst-form-group sst-col-span-2">
                 <label for="lnt-colab">Colaborador</label>
-                <input type="text" id="lnt-colab" list="lista-matriz-colaboradores" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.colaborador" name="colaborador" placeholder="Selecione o colaborador..." required>
+                <input
+                  type="text"
+                  id="lnt-colab"
+                  list="lista-matriz-colaboradores"
+                  class="sst-search__input sst-input-full"
+                  [(ngModel)]="itemEmEdicao.colaborador"
+                  name="colaborador"
+                  placeholder="Selecione o colaborador..."
+                  required
+                />
               </div>
               <div class="sst-form-group">
                 <label for="lnt-cargo">Cargo</label>
-                <input type="text" id="lnt-cargo" list="lista-matriz-cargos" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.cargo" name="cargo" placeholder="Selecione o cargo..." required>
+                <input
+                  type="text"
+                  id="lnt-cargo"
+                  list="lista-matriz-cargos"
+                  class="sst-search__input sst-input-full"
+                  [(ngModel)]="itemEmEdicao.cargo"
+                  name="cargo"
+                  placeholder="Selecione o cargo..."
+                  required
+                />
               </div>
               <div class="sst-form-group">
                 <label for="lnt-setor">Setor</label>
-                <input type="text" id="lnt-setor" list="lista-matriz-setores" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.setor" name="setor" placeholder="Selecione o setor..." required>
+                <input
+                  type="text"
+                  id="lnt-setor"
+                  list="lista-matriz-setores"
+                  class="sst-search__input sst-input-full"
+                  [(ngModel)]="itemEmEdicao.setor"
+                  name="setor"
+                  placeholder="Selecione o setor..."
+                  required
+                />
               </div>
               <div class="sst-form-group">
                 <label for="lnt-pendentes">Treinamentos Pendentes</label>
-                <input type="text" id="lnt-pendentes" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.treinamentosPendentes" name="treinamentosPendentes" required>
+                <input
+                  type="text"
+                  id="lnt-pendentes"
+                  class="sst-search__input sst-input-full"
+                  [(ngModel)]="itemEmEdicao.treinamentosPendentes"
+                  name="treinamentosPendentes"
+                  required
+                />
               </div>
               <div class="sst-form-group">
                 <label for="lnt-status">Status</label>
-                <select id="lnt-status" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.status" name="status" required>
+                <select
+                  id="lnt-status"
+                  class="sst-search__input sst-input-full"
+                  [(ngModel)]="itemEmEdicao.status"
+                  name="status"
+                  required
+                >
                   <option value="Conforme">Conforme</option>
                   <option value="Pendente">Pendente</option>
                 </select>
@@ -636,19 +923,50 @@
             } @else {
               <div class="sst-form-group sst-col-span-2">
                 <label for="lnt-lista-cargo">Cargo</label>
-                <input type="text" id="lnt-lista-cargo" list="lista-matriz-cargos" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.cargo" name="cargo" placeholder="Selecione o cargo..." required>
+                <input
+                  type="text"
+                  id="lnt-lista-cargo"
+                  list="lista-matriz-cargos"
+                  class="sst-search__input sst-input-full"
+                  [(ngModel)]="itemEmEdicao.cargo"
+                  name="cargo"
+                  placeholder="Selecione o cargo..."
+                  required
+                />
               </div>
               <div class="sst-form-group sst-col-span-2">
                 <label for="lnt-lista-setor">Setor</label>
-                <input type="text" id="lnt-lista-setor" list="lista-matriz-setores" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.setor" name="setor" placeholder="Selecione o setor..." required>
+                <input
+                  type="text"
+                  id="lnt-lista-setor"
+                  list="lista-matriz-setores"
+                  class="sst-search__input sst-input-full"
+                  [(ngModel)]="itemEmEdicao.setor"
+                  name="setor"
+                  placeholder="Selecione o setor..."
+                  required
+                />
               </div>
               <div class="sst-form-group">
                 <label for="lnt-lista-treina">Treinamentos Obrigatórios</label>
-                <input type="text" id="lnt-lista-treina" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.treinamentosObrigatorios" name="treinamentosObrigatorios" required>
+                <input
+                  type="text"
+                  id="lnt-lista-treina"
+                  class="sst-search__input sst-input-full"
+                  [(ngModel)]="itemEmEdicao.treinamentosObrigatorios"
+                  name="treinamentosObrigatorios"
+                  required
+                />
               </div>
               <div class="sst-form-group">
                 <label for="lnt-lista-status">Status</label>
-                <select id="lnt-lista-status" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.status" name="status" required>
+                <select
+                  id="lnt-lista-status"
+                  class="sst-search__input sst-input-full"
+                  [(ngModel)]="itemEmEdicao.status"
+                  name="status"
+                  required
+                >
                   <option value="Ativo">Ativo</option>
                   <option value="Inativo">Inativo</option>
                 </select>
@@ -658,23 +976,63 @@
             @if (modoVisualizacao === 'colaborador') {
               <div class="sst-form-group sst-col-span-2">
                 <label for="treina-colab">Colaborador</label>
-                <input type="text" id="treina-colab" list="lista-matriz-colaboradores" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.colaborador" name="colaborador" placeholder="Selecione o colaborador..." required>
+                <input
+                  type="text"
+                  id="treina-colab"
+                  list="lista-matriz-colaboradores"
+                  class="sst-search__input sst-input-full"
+                  [(ngModel)]="itemEmEdicao.colaborador"
+                  name="colaborador"
+                  placeholder="Selecione o colaborador..."
+                  required
+                />
               </div>
               <div class="sst-form-group">
                 <label for="treina-cargo">Cargo</label>
-                <input type="text" id="treina-cargo" list="lista-matriz-cargos" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.cargo" name="cargo" placeholder="Selecione o cargo..." required>
+                <input
+                  type="text"
+                  id="treina-cargo"
+                  list="lista-matriz-cargos"
+                  class="sst-search__input sst-input-full"
+                  [(ngModel)]="itemEmEdicao.cargo"
+                  name="cargo"
+                  placeholder="Selecione o cargo..."
+                  required
+                />
               </div>
               <div class="sst-form-group">
                 <label for="treina-nome-colab">Treinamento</label>
-                <input type="text" id="treina-nome-colab" list="lista-matriz-treinamentos" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.treinamento" name="treinamento" placeholder="Selecione o treinamento..." required>
+                <input
+                  type="text"
+                  id="treina-nome-colab"
+                  list="lista-matriz-treinamentos"
+                  class="sst-search__input sst-input-full"
+                  [(ngModel)]="itemEmEdicao.treinamento"
+                  name="treinamento"
+                  placeholder="Selecione o treinamento..."
+                  required
+                />
               </div>
               <div class="sst-form-group">
                 <label for="treina-data">Conclusão</label>
-                <input type="text" id="treina-data" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.dataConclusao" name="dataConclusao" required>
+                <input
+                  type="text"
+                  id="treina-data"
+                  class="sst-search__input sst-input-full"
+                  [(ngModel)]="itemEmEdicao.dataConclusao"
+                  name="dataConclusao"
+                  required
+                />
               </div>
               <div class="sst-form-group">
                 <label for="treina-status-colab">Status</label>
-                <select id="treina-status-colab" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.status" name="status" required>
+                <select
+                  id="treina-status-colab"
+                  class="sst-search__input sst-input-full"
+                  [(ngModel)]="itemEmEdicao.status"
+                  name="status"
+                  required
+                >
                   <option value="Concluído">Concluído</option>
                   <option value="Em Andamento">Em Andamento</option>
                   <option value="Pendente">Pendente</option>
@@ -683,31 +1041,86 @@
             } @else {
               <div class="sst-form-group">
                 <label for="treina-cod">Código</label>
-                <input type="text" id="treina-cod" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.codigo" name="codigo">
+                <input
+                  type="text"
+                  id="treina-cod"
+                  class="sst-search__input sst-input-full"
+                  [(ngModel)]="itemEmEdicao.codigo"
+                  name="codigo"
+                  maxlength="30"
+                />
               </div>
               <div class="sst-form-group">
                 <label for="treina-nr">NR / Norma</label>
-                <input type="text" id="treina-nr" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.nr" name="nr" required>
+                <input
+                  type="text"
+                  id="treina-nr"
+                  class="sst-search__input sst-input-full"
+                  [(ngModel)]="itemEmEdicao.nr"
+                  name="nr"
+                  maxlength="60"
+                />
               </div>
               <div class="sst-form-group sst-col-span-2">
                 <label for="treina-nome">Treinamento</label>
-                <input type="text" id="treina-nome" list="lista-matriz-treinamentos" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.nome" name="nome" placeholder="Selecione o treinamento..." required>
+                <input
+                  type="text"
+                  id="treina-nome"
+                  list="lista-matriz-treinamentos"
+                  class="sst-search__input sst-input-full"
+                  [(ngModel)]="itemEmEdicao.nome"
+                  name="nome"
+                  placeholder="Selecione o treinamento..."
+                  required
+                  maxlength="180"
+                />
               </div>
               <div class="sst-form-group">
                 <label for="treina-class">Classificação</label>
-                <input type="text" id="treina-class" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.classificacao" name="classificacao" required>
+                <input
+                  type="text"
+                  id="treina-class"
+                  class="sst-search__input sst-input-full"
+                  [(ngModel)]="itemEmEdicao.classificacao"
+                  name="classificacao"
+                  required
+                  maxlength="60"
+                />
               </div>
               <div class="sst-form-group">
                 <label for="treina-ch">Carga Horária</label>
-                <input type="text" id="treina-ch" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.cargaHoraria" name="cargaHoraria" required>
+                <input
+                  type="text"
+                  id="treina-ch"
+                  class="sst-search__input sst-input-full"
+                  [(ngModel)]="itemEmEdicao.cargaHoraria"
+                  name="cargaHoraria"
+                  required
+                  maxlength="30"
+                />
               </div>
               <div class="sst-form-group">
                 <label for="treina-val">Validade (Meses)</label>
-                <input type="number" id="treina-val" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.validadeMeses" name="validadeMeses">
+                <input
+                  type="number"
+                  id="treina-val"
+                  class="sst-search__input sst-input-full"
+                  [(ngModel)]="itemEmEdicao.validadeMeses"
+                  name="validadeMeses"
+                  min="0"
+                  max="2147483647"
+                  step="1"
+                />
               </div>
               <div class="sst-form-group">
                 <label for="treina-stat">Status</label>
-                <select id="treina-stat" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.status" name="status" required>
+                <select
+                  id="treina-stat"
+                  class="sst-search__input sst-input-full"
+                  [(ngModel)]="itemEmEdicao.status"
+                  name="status"
+                  required
+                >
                   <option value="Ativo">Ativo</option>
                   <option value="Inativo">Inativo</option>
                 </select>
@@ -717,27 +1130,74 @@
             @if (modoVisualizacao === 'colaborador') {
               <div class="sst-form-group sst-col-span-2">
                 <label for="cert-colab">Colaborador</label>
-                <input type="text" id="cert-colab" list="lista-matriz-colaboradores" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.colaborador" name="colaborador" placeholder="Selecione o colaborador..." required>
+                <input
+                  type="text"
+                  id="cert-colab"
+                  list="lista-matriz-colaboradores"
+                  class="sst-search__input sst-input-full"
+                  [(ngModel)]="itemEmEdicao.colaborador"
+                  name="colaborador"
+                  placeholder="Selecione o colaborador..."
+                  required
+                />
               </div>
               <div class="sst-form-group">
                 <label for="cert-cargo">Cargo</label>
-                <input type="text" id="cert-cargo" list="lista-matriz-cargos" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.cargo" name="cargo" placeholder="Selecione o cargo..." required>
+                <input
+                  type="text"
+                  id="cert-cargo"
+                  list="lista-matriz-cargos"
+                  class="sst-search__input sst-input-full"
+                  [(ngModel)]="itemEmEdicao.cargo"
+                  name="cargo"
+                  placeholder="Selecione o cargo..."
+                  required
+                />
               </div>
               <div class="sst-form-group">
                 <label for="cert-treina">Treinamento</label>
-                <input type="text" id="cert-treina" list="lista-matriz-treinamentos" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.treinamento" name="treinamento" placeholder="Selecione o treinamento..." required>
+                <input
+                  type="text"
+                  id="cert-treina"
+                  list="lista-matriz-treinamentos"
+                  class="sst-search__input sst-input-full"
+                  [(ngModel)]="itemEmEdicao.treinamento"
+                  name="treinamento"
+                  placeholder="Selecione o treinamento..."
+                  required
+                />
               </div>
               <div class="sst-form-group">
                 <label for="cert-data">Certificação</label>
-                <input type="text" id="cert-data" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.certificacao" name="certificacao" required>
+                <input
+                  type="text"
+                  id="cert-data"
+                  class="sst-search__input sst-input-full"
+                  [(ngModel)]="itemEmEdicao.certificacao"
+                  name="certificacao"
+                  required
+                />
               </div>
               <div class="sst-form-group">
                 <label for="cert-validade">Validade</label>
-                <input type="text" id="cert-validade" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.validade" name="validade" required>
+                <input
+                  type="text"
+                  id="cert-validade"
+                  class="sst-search__input sst-input-full"
+                  [(ngModel)]="itemEmEdicao.validade"
+                  name="validade"
+                  required
+                />
               </div>
               <div class="sst-form-group sst-col-span-2">
                 <label for="cert-status">Status</label>
-                <select id="cert-status" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.status" name="status" required>
+                <select
+                  id="cert-status"
+                  class="sst-search__input sst-input-full"
+                  [(ngModel)]="itemEmEdicao.status"
+                  name="status"
+                  required
+                >
                   <option value="Ativa">Ativa</option>
                   <option value="Alerta">Alerta</option>
                   <option value="Vencida">Vencida</option>
@@ -746,46 +1206,123 @@
             } @else {
               <div class="sst-form-group sst-col-span-2">
                 <label for="cert-id">ID do Certificado</label>
-                <input type="text" id="cert-id" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.id" name="id" required>
+                <input
+                  type="text"
+                  id="cert-id"
+                  class="sst-search__input sst-input-full"
+                  [(ngModel)]="itemEmEdicao.id"
+                  name="id"
+                  required
+                />
               </div>
               <div class="sst-form-group sst-col-span-2">
                 <label for="cert-lista-treina">Treinamento</label>
-                <input type="text" id="cert-lista-treina" list="lista-matriz-treinamentos" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.treinamento" name="treinamento" placeholder="Selecione o treinamento..." required>
+                <input
+                  type="text"
+                  id="cert-lista-treina"
+                  list="lista-matriz-treinamentos"
+                  class="sst-search__input sst-input-full"
+                  [(ngModel)]="itemEmEdicao.treinamento"
+                  name="treinamento"
+                  placeholder="Selecione o treinamento..."
+                  required
+                />
               </div>
               <div class="sst-form-group sst-col-span-2">
                 <label for="cert-instituicao">Instituição Emissora</label>
-                <input type="text" id="cert-instituicao" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.instituicao" name="instituicao" required>
+                <input
+                  type="text"
+                  id="cert-instituicao"
+                  class="sst-search__input sst-input-full"
+                  [(ngModel)]="itemEmEdicao.instituicao"
+                  name="instituicao"
+                  required
+                />
               </div>
               <div class="sst-form-group">
                 <label for="cert-ch">Carga Horária</label>
-                <input type="text" id="cert-ch" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.cargaHoraria" name="cargaHoraria" required>
+                <input
+                  type="text"
+                  id="cert-ch"
+                  class="sst-search__input sst-input-full"
+                  [(ngModel)]="itemEmEdicao.cargaHoraria"
+                  name="cargaHoraria"
+                  required
+                />
               </div>
               <div class="sst-form-group">
                 <label for="cert-valpadrao">Validade Base</label>
-                <input type="text" id="cert-valpadrao" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.validadePadrao" name="validadePadrao" required>
+                <input
+                  type="text"
+                  id="cert-valpadrao"
+                  class="sst-search__input sst-input-full"
+                  [(ngModel)]="itemEmEdicao.validadePadrao"
+                  name="validadePadrao"
+                  required
+                />
               </div>
             }
           } @else if (cardSelecionado === 'Reciclagens') {
             @if (modoVisualizacao === 'colaborador') {
               <div class="sst-form-group sst-col-span-2">
                 <label for="rec-colab">Colaborador</label>
-                <input type="text" id="rec-colab" list="lista-matriz-colaboradores" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.colaborador" name="colaborador" placeholder="Selecione o colaborador..." required>
+                <input
+                  type="text"
+                  id="rec-colab"
+                  list="lista-matriz-colaboradores"
+                  class="sst-search__input sst-input-full"
+                  [(ngModel)]="itemEmEdicao.colaborador"
+                  name="colaborador"
+                  placeholder="Selecione o colaborador..."
+                  required
+                />
               </div>
               <div class="sst-form-group">
                 <label for="rec-cargo">Cargo</label>
-                <input type="text" id="rec-cargo" list="lista-matriz-cargos" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.cargo" name="cargo" placeholder="Selecione o cargo..." required>
+                <input
+                  type="text"
+                  id="rec-cargo"
+                  list="lista-matriz-cargos"
+                  class="sst-search__input sst-input-full"
+                  [(ngModel)]="itemEmEdicao.cargo"
+                  name="cargo"
+                  placeholder="Selecione o cargo..."
+                  required
+                />
               </div>
               <div class="sst-form-group">
                 <label for="rec-treina">Treinamento</label>
-                <input type="text" id="rec-treina" list="lista-matriz-treinamentos" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.treinamento" name="treinamento" placeholder="Selecione o treinamento..." required>
+                <input
+                  type="text"
+                  id="rec-treina"
+                  list="lista-matriz-treinamentos"
+                  class="sst-search__input sst-input-full"
+                  [(ngModel)]="itemEmEdicao.treinamento"
+                  name="treinamento"
+                  placeholder="Selecione o treinamento..."
+                  required
+                />
               </div>
               <div class="sst-form-group">
                 <label for="rec-prazo">Prazo Máximo</label>
-                <input type="text" id="rec-prazo" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.prazoMaximo" name="prazoMaximo" required>
+                <input
+                  type="text"
+                  id="rec-prazo"
+                  class="sst-search__input sst-input-full"
+                  [(ngModel)]="itemEmEdicao.prazoMaximo"
+                  name="prazoMaximo"
+                  required
+                />
               </div>
               <div class="sst-form-group">
                 <label for="rec-status">Status</label>
-                <select id="rec-status" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.status" name="status" required>
+                <select
+                  id="rec-status"
+                  class="sst-search__input sst-input-full"
+                  [(ngModel)]="itemEmEdicao.status"
+                  name="status"
+                  required
+                >
                   <option value="Vencido">Vencido</option>
                   <option value="Próximo do Vencimento">Próximo do Vencimento</option>
                   <option value="Pendente">Pendente</option>
@@ -795,27 +1332,70 @@
             } @else {
               <div class="sst-form-group">
                 <label for="rec-turma">Turma / Código</label>
-                <input type="text" id="rec-turma" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.turma" name="turma" required>
+                <input
+                  type="text"
+                  id="rec-turma"
+                  class="sst-search__input sst-input-full"
+                  [(ngModel)]="itemEmEdicao.turma"
+                  name="turma"
+                  required
+                />
               </div>
               <div class="sst-form-group">
                 <label for="rec-vagas">Vagas</label>
-                <input type="text" id="rec-vagas" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.vagas" name="vagas" required>
+                <input
+                  type="text"
+                  id="rec-vagas"
+                  class="sst-search__input sst-input-full"
+                  [(ngModel)]="itemEmEdicao.vagas"
+                  name="vagas"
+                  required
+                />
               </div>
               <div class="sst-form-group sst-col-span-2">
                 <label for="rec-lista-treina">Treinamento</label>
-                <input type="text" id="rec-lista-treina" list="lista-matriz-treinamentos" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.treinamento" name="treinamento" placeholder="Selecione o treinamento..." required>
+                <input
+                  type="text"
+                  id="rec-lista-treina"
+                  list="lista-matriz-treinamentos"
+                  class="sst-search__input sst-input-full"
+                  [(ngModel)]="itemEmEdicao.treinamento"
+                  name="treinamento"
+                  placeholder="Selecione o treinamento..."
+                  required
+                />
               </div>
               <div class="sst-form-group">
                 <label for="rec-instrutor">Instrutor / Responsável</label>
-                <input type="text" id="rec-instrutor" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.instrutor" name="instrutor" required>
+                <input
+                  type="text"
+                  id="rec-instrutor"
+                  class="sst-search__input sst-input-full"
+                  [(ngModel)]="itemEmEdicao.instrutor"
+                  name="instrutor"
+                  required
+                />
               </div>
               <div class="sst-form-group">
                 <label for="rec-data-agendada">Data Agendada</label>
-                <input type="text" id="rec-data-agendada" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.dataAgendada" name="dataAgendada" required>
+                <input
+                  type="text"
+                  id="rec-data-agendada"
+                  class="sst-search__input sst-input-full"
+                  [(ngModel)]="itemEmEdicao.dataAgendada"
+                  name="dataAgendada"
+                  required
+                />
               </div>
               <div class="sst-form-group sst-col-span-2">
                 <label for="rec-lista-status">Status</label>
-                <select id="rec-lista-status" class="sst-search__input sst-input-full" [(ngModel)]="itemEmEdicao.status" name="status" required>
+                <select
+                  id="rec-lista-status"
+                  class="sst-search__input sst-input-full"
+                  [(ngModel)]="itemEmEdicao.status"
+                  name="status"
+                  required
+                >
                   <option value="Inscrições Abertas">Inscrições Abertas</option>
                   <option value="Confirmada">Confirmada</option>
                   <option value="Planejada">Planejada</option>
@@ -826,8 +1406,16 @@
           }
 
           <footer class="sst-form-actions sst-col-span-2">
-            <button type="button" class="sst-btn sst-btn--outline" (click)="fecharModalEdicaoGeral()">Cancelar</button>
-            <button type="submit" class="sst-btn sst-btn--dark">Salvar Alterações</button>
+            <button
+              type="button"
+              class="sst-btn sst-btn--outline"
+              (click)="fecharModalEdicaoGeral()"
+            >
+              Cancelar
+            </button>
+            <button type="submit" class="sst-btn sst-btn--dark" [disabled]="salvando">
+              Salvar Alterações
+            </button>
           </footer>
         </form>
       </div>
@@ -857,5 +1445,4 @@
       <option [value]="setor"></option>
     }
   </datalist>
-
 </div>

@@ -1,4 +1,19 @@
 <div class="sst-layout">
+  @if (carregando) {
+    <p role="status">Carregando estoque...</p>
+  }
+  @if (erro) {
+    <p role="alert">{{ erro }}</p>
+  }
+  <button
+    type="button"
+    class="sst-btn-link"
+    (click)="carregar()"
+    [disabled]="carregando || salvando"
+  >
+    Atualizar lista
+  </button>
+  <p>Entregas e assinaturas fora do escopo: estoque não será abatido por esta tela.</p>
   <header class="sst-header">
     <hgroup class="sst-header__titles">
       <p class="sst-header__breadcrumb">SGSST / Administração</p>
@@ -61,6 +76,14 @@
                 <button type="button" class="sst-btn-link" (click)="abrirModalEdicao(epi)">
                   Editar
                 </button>
+                <button
+                  type="button"
+                  class="sst-btn-link"
+                  (click)="excluir(epi)"
+                  [disabled]="salvando"
+                >
+                  Excluir
+                </button>
               </td>
             </tr>
           } @empty {
@@ -114,7 +137,7 @@
             </tr>
           } @empty {
             <tr>
-              <td colspan="7" class="sst-text-center">Nenhuma entrega registrada.</td>
+              <td colspan="7" class="sst-text-center">Entregas não integradas nesta etapa.</td>
             </tr>
           }
         </tbody>
@@ -138,7 +161,7 @@
         </button>
       </header>
 
-      <form class="sst-form-grid" (submit)="$event.preventDefault(); salvarEdicao()">
+      <form class="sst-form-grid" #formEdicao="ngForm" (ngSubmit)="salvarEdicao(formEdicao)">
         <div class="sst-form-group sst-col-span-2">
           <label for="descricao-epi-edit">Descrição</label>
           <input
@@ -148,6 +171,7 @@
             class="sst-search__input sst-input-full"
             [(ngModel)]="epiEmEdicao.descricao"
             name="descricao"
+            maxlength="180"
             placeholder="Digite ou selecione o EPI..."
             required
           />
@@ -167,6 +191,8 @@
             class="sst-search__input sst-input-full"
             [(ngModel)]="epiEmEdicao.quantidade"
             name="qtd"
+            step="1"
+            max="2147483647"
             required
           />
         </div>
@@ -176,14 +202,12 @@
           <input
             type="text"
             id="ca-epi-edit"
-            maxlength="10"
-            pattern="[0-9]*"
+            maxlength="30"
             inputmode="numeric"
             class="sst-search__input sst-input-full"
             [(ngModel)]="epiEmEdicao.ca"
-            (input)="filtrarApenasNumerosCa($event)"
             name="ca"
-            placeholder="Apenas números (máx 10 dígitos)"
+            placeholder="Número do CA (máx 30 caracteres)"
             required
           />
         </div>
@@ -200,11 +224,24 @@
           />
         </div>
 
+        <div class="sst-form-group">
+          <label for="inclusao-epi-edit">Data de Inclusão</label
+          ><input
+            id="inclusao-epi-edit"
+            name="inclusao"
+            type="date"
+            class="sst-search__input sst-input-full"
+            [(ngModel)]="epiEmEdicao.inclusao"
+            required
+          />
+        </div>
         <footer class="sst-form-actions sst-col-span-2">
           <button type="button" class="sst-btn sst-btn--outline" (click)="fecharModalEdicao()">
             Cancelar
           </button>
-          <button type="submit" class="sst-btn sst-btn--dark">Salvar Alterações</button>
+          <button type="submit" class="sst-btn sst-btn--dark" [disabled]="salvando">
+            Salvar Alterações
+          </button>
         </footer>
       </form>
     </div>
@@ -215,7 +252,7 @@
   <div class="sst-modal-overlay" (click)="fecharModalEntrega()">
     <div class="sst-modal sst-card" (click)="$event.stopPropagation()">
       <header class="sst-card__toolbar">
-        <h3 class="sst-card__title">Registrar Entrega de EPI</h3>
+        <h3 class="sst-card__title">Entrega de EPI — fora do escopo</h3>
         <button
           type="button"
           class="sst-btn-link"
@@ -238,11 +275,6 @@
             placeholder="Digite ou selecione o nome..."
             required
           />
-          <datalist id="lista-colab-entrega">
-            <option value="Carlos Eduardo Silva"></option>
-            <option value="Maria Joana Oliveira"></option>
-            <option value="Roberto Alves"></option>
-          </datalist>
         </div>
 
         <div class="sst-form-group sst-col-span-2">

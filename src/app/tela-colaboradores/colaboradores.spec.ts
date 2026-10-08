@@ -1,3 +1,5 @@
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { ToastService } from '../service/toast.service';
@@ -7,7 +9,7 @@ describe('Colaboradores', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [Colaboradores],
-      providers: [provideRouter([])],
+      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
   });
 
@@ -15,8 +17,24 @@ describe('Colaboradores', () => {
     const fixture = TestBed.createComponent(Colaboradores);
     const component = fixture.componentInstance;
 
-    component.abrirModalDetalhes(component.colaboradores[0]);
+    const item = {
+      id: 1,
+      matricula: '001',
+      cpf: '12345678900',
+      nome: 'Pessoa',
+      email: 'p@a.com',
+      cargo: 'Cargo',
+      setor: 'Setor',
+      status: 'Ativo' as const,
+    };
+    component.abrirModalDetalhes(item);
+    TestBed.inject(HttpTestingController)
+      .expectOne('http://localhost:8080/api/colaboradores/1')
+      .flush(item);
     fixture.detectChanges();
+    TestBed.inject(HttpTestingController)
+      .expectOne('http://localhost:8080/api/colaboradores')
+      .flush([]);
 
     const overlay = fixture.nativeElement.querySelector('.sst-modal-overlay') as HTMLElement;
     const modal = overlay.querySelector('.sst-modal') as HTMLElement;
@@ -31,6 +49,9 @@ describe('Colaboradores', () => {
   it('exibe e-mail válido para todos os colaboradores', () => {
     const fixture = TestBed.createComponent(Colaboradores);
     fixture.detectChanges();
+    TestBed.inject(HttpTestingController)
+      .expectOne('http://localhost:8080/api/colaboradores')
+      .flush([]);
 
     const component = fixture.componentInstance;
     const cabecalhos = Array.from(
@@ -50,8 +71,24 @@ describe('Colaboradores', () => {
     const component = fixture.componentInstance;
     const toast = TestBed.inject(ToastService);
 
-    component.abrirModalDetalhes(component.colaboradores[0]);
+    const item = {
+      id: 1,
+      matricula: '001',
+      cpf: '12345678900',
+      nome: 'Pessoa',
+      email: 'p@a.com',
+      cargo: 'Cargo',
+      setor: 'Setor',
+      status: 'Ativo' as const,
+    };
+    component.abrirModalDetalhes(item);
+    TestBed.inject(HttpTestingController)
+      .expectOne('http://localhost:8080/api/colaboradores/1')
+      .flush(item);
     fixture.detectChanges();
+    TestBed.inject(HttpTestingController)
+      .expectOne('http://localhost:8080/api/colaboradores')
+      .flush([]);
     component.colaboradorEmEdicao!.email = 'email-invalido';
     fixture.detectChanges();
     await fixture.whenStable();
