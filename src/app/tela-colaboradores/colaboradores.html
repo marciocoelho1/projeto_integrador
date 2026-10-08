@@ -1,0 +1,279 @@
+<div class="sst-layout">
+  <header class="sst-header">
+    <hgroup class="sst-header__titles">
+      <p class="sst-header__breadcrumb">SGSST / Administração</p>
+      <h1 class="sst-header__main">Gestão de Colaboradores</h1>
+    </hgroup>
+
+    <button class="sst-btn sst-btn--dark" (click)="actionNovoColaborador()">
+      Cadastrar Novo Colaborador
+    </button>
+  </header>
+
+  <section class="sst-card" aria-labelledby="titulo-colaboradores">
+    <header class="sst-card__toolbar">
+      <h2 id="titulo-colaboradores" class="sst-card__title">Equipe e Matriz de SST</h2>
+      <search class="sst-search">
+        <input
+          type="text"
+          class="sst-search__input"
+          style="width: 380px"
+          placeholder="Buscar por nome, CPF/matrícula, cargo, setor ou status..."
+          [(ngModel)]="termoBusca"
+          aria-label="Buscar colaborador"
+        />
+      </search>
+    </header>
+
+    <table class="sst-table">
+      <thead>
+        <tr>
+          <th scope="col">Colaborador</th>
+          <th scope="col">E-mail</th>
+          <th scope="col">CPF / Matrícula</th>
+          <th scope="col">Cargo / Setor</th>
+          <th scope="col">Status</th>
+          <th scope="col" class="sst-text-right">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (colab of colaboradoresFiltrados; track colab.matricula) {
+          <tr>
+            <td>
+              <strong>{{ colab.nome }}</strong>
+              <span class="sst-table__subtext">Colaborador Essenza</span>
+            </td>
+            <td>{{ colab.email }}</td>
+            <td>{{ colab.matricula }}</td>
+            <td>
+              <strong>{{ colab.cargo }}</strong>
+              <span class="sst-table__subtext">{{ colab.setor }}</span>
+            </td>
+            <td>
+              <span
+                class="sst-badge"
+                [class.sst-badge--ativo]="colab.status === 'Ativo'"
+                [class.sst-badge--inativo]="colab.status === 'Inativo'"
+                [class.sst-badge--afastado]="colab.status === 'Afastado'"
+              >
+                {{ colab.status }}
+              </span>
+            </td>
+            <td class="sst-text-right">
+              <button type="button" class="sst-btn-link" (click)="abrirModalDetalhes(colab)">
+                Ver Detalhes / Editar
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td
+              colspan="6"
+              class="sst-text-center"
+              style="padding: 2.5rem 1rem; color: var(--cor-texto-secundario); font-style: italic"
+            >
+              Nenhum colaborador encontrado com o termo "{{ termoBusca }}".
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    <nav class="sst-pagination" aria-label="Paginação da lista de colaboradores">
+      <span class="sst-pagination__info">
+        Mostrando {{ colaboradoresFiltrados.length }} de {{ colaboradores.length }} registros
+      </span>
+      <menu class="sst-pagination__controls">
+        <li><button type="button" class="sst-btn-page" disabled>&laquo; Anterior</button></li>
+        <li>
+          <button type="button" class="sst-btn-page sst-btn-page--active" aria-current="page">
+            1
+          </button>
+        </li>
+        <li><button type="button" class="sst-btn-page" disabled>Próxima &raquo;</button></li>
+      </menu>
+    </nav>
+  </section>
+
+  @if (mostrarModalDetalhes) {
+    @if (colaboradorEmEdicao; as colab) {
+      <div class="sst-modal-overlay" (click)="fecharModalDetalhes()">
+        <div
+          class="sst-modal sst-card"
+          (click)="$event.stopPropagation()"
+          style="max-width: 720px; max-height: 90vh; overflow-y: auto"
+        >
+          <header class="sst-card__toolbar">
+            <h3 class="sst-card__title">Detalhes e Edição: {{ colab.nome }}</h3>
+            <button
+              type="button"
+              class="sst-btn-link"
+              (click)="fecharModalDetalhes()"
+              style="font-size: 1.5rem; text-decoration: none"
+            >
+              &times;
+            </button>
+          </header>
+
+          <form
+            #formularioEdicao="ngForm"
+            class="sst-form-grid"
+            (ngSubmit)="salvarEdicaoDetalhes(formularioEdicao)"
+          >
+            <div class="sst-form-group sst-col-span-2">
+              <label for="colab-edit-nome">Nome Completo</label>
+              <input
+                type="text"
+                id="colab-edit-nome"
+                class="sst-search__input sst-input-full"
+                [(ngModel)]="colab.nome"
+                name="nome"
+                required
+              />
+            </div>
+
+            <div class="sst-form-group sst-col-span-2">
+              <label for="colab-edit-email">E-mail</label>
+              <input
+                type="email"
+                id="colab-edit-email"
+                class="sst-search__input sst-input-full"
+                [(ngModel)]="colab.email"
+                name="email"
+                email
+                required
+              />
+            </div>
+
+            <div class="sst-form-group">
+              <label for="colab-edit-mat">CPF / Matrícula</label>
+              <input
+                type="text"
+                id="colab-edit-mat"
+                class="sst-search__input sst-input-full"
+                [(ngModel)]="colab.matricula"
+                name="matricula"
+                required
+              />
+            </div>
+
+            <div class="sst-form-group">
+              <label for="colab-edit-status">Status</label>
+              <select
+                id="colab-edit-status"
+                class="sst-search__input sst-input-full"
+                [(ngModel)]="colab.status"
+                name="status"
+                required
+              >
+                <option value="Ativo">Ativo</option>
+                <option value="Inativo">Inativo</option>
+                <option value="Afastado">Afastado</option>
+              </select>
+            </div>
+
+            <div class="sst-form-group">
+              <label for="colab-edit-cargo">Cargo</label>
+              <input
+                type="text"
+                id="colab-edit-cargo"
+                class="sst-search__input sst-input-full"
+                [(ngModel)]="colab.cargo"
+                name="cargo"
+                required
+              />
+            </div>
+
+            <div class="sst-form-group">
+              <label for="colab-edit-setor">Setor</label>
+              <input
+                type="text"
+                id="colab-edit-setor"
+                class="sst-search__input sst-input-full"
+                [(ngModel)]="colab.setor"
+                name="setor"
+                required
+              />
+            </div>
+
+            <div
+              class="sst-col-span-2"
+              style="margin-top: 0.5rem; border-top: 1px solid #e2e8f0; padding-top: 0.75rem"
+            >
+              <h4 style="margin: 0 0 0.5rem 0; font-size: 1rem">EPIs Vinculados</h4>
+              @if (obterEpis(colab.nome).length > 0) {
+                <ul style="padding-left: 1.25rem; margin: 0.5rem 0">
+                  @for (epi of obterEpis(colab.nome); track epi.nome) {
+                    <li>
+                      <strong>{{ epi.nome }}</strong> (CA: {{ epi.ca }}) - Entregue em:
+                      {{ epi.dataEntrega }}
+                    </li>
+                  }
+                </ul>
+              } @else {
+                <p
+                  style="color: var(--cor-texto-secundario); font-style: italic; margin: 0.25rem 0"
+                >
+                  Não há EPIs vinculados.
+                </p>
+              }
+            </div>
+
+            <div class="sst-col-span-2" style="border-top: 1px solid #e2e8f0; padding-top: 0.75rem">
+              <h4 style="margin: 0 0 0.5rem 0; font-size: 1rem">Treinamentos e Certificações</h4>
+              @if (obterTreinamentos(colab.nome).length > 0) {
+                <ul style="padding-left: 1.25rem; margin: 0.5rem 0">
+                  @for (t of obterTreinamentos(colab.nome); track t.treinamento) {
+                    <li>
+                      <strong>{{ t.treinamento }}</strong> - Validade: {{ t.validade }} ({{
+                        t.status
+                      }})
+                    </li>
+                  }
+                </ul>
+              } @else {
+                <p
+                  style="color: var(--cor-texto-secundario); font-style: italic; margin: 0.25rem 0"
+                >
+                  Não há Treinamentos vinculados.
+                </p>
+              }
+            </div>
+
+            <div class="sst-col-span-2" style="border-top: 1px solid #e2e8f0; padding-top: 0.75rem">
+              <h4 style="margin: 0 0 0.5rem 0; font-size: 1rem">Reciclagens</h4>
+              @if (obterReciclagens(colab.nome).length > 0) {
+                <ul style="padding-left: 1.25rem; margin: 0.5rem 0">
+                  @for (r of obterReciclagens(colab.nome); track r.treinamento) {
+                    <li>
+                      <strong>{{ r.treinamento }}</strong> - Prazo limite: {{ r.prazo }} ({{
+                        r.status
+                      }})
+                    </li>
+                  }
+                </ul>
+              } @else {
+                <p
+                  style="color: var(--cor-texto-secundario); font-style: italic; margin: 0.25rem 0"
+                >
+                  Não há Reciclagens vinculadas.
+                </p>
+              }
+            </div>
+
+            <footer class="sst-form-actions sst-col-span-2">
+              <button
+                type="button"
+                class="sst-btn sst-btn--outline"
+                (click)="fecharModalDetalhes()"
+              >
+                Cancelar
+              </button>
+              <button type="submit" class="sst-btn sst-btn--dark">Salvar Alterações</button>
+            </footer>
+          </form>
+        </div>
+      </div>
+    }
+  }
+</div>

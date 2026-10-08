@@ -1,0 +1,98 @@
+<main class="sst-layout">
+  <header class="sst-header">
+    <hgroup class="sst-header__titles">
+      <p class="sst-header__breadcrumb">SGSST / Área do Colaborador</p>
+      <h1 class="sst-header__main">Ajuda e Suporte</h1>
+    </hgroup>
+  </header>
+
+  <div class="ajuda-suporte-colaborador__content">
+    <!-- Nova Solicitação -->
+    <section class="sst-card sst-card--form ajuda-suporte-colaborador__form-card">
+      <header class="sst-card__toolbar">
+        <h2 class="sst-card__title">Nova solicitação</h2>
+      </header>
+
+      <form (ngSubmit)="handleSubmit()" class="ajuda-suporte-colaborador__form">
+        <div class="ajuda-suporte-colaborador__form-group">
+          <label for="ticketType">Tipo</label>
+          <select
+            id="ticketType"
+            name="type"
+            [(ngModel)]="ticketType"
+            class="sst-search__input sst-input-full"
+            required
+          >
+            <option value="Solicitar Ajuda">Solicitar Ajuda</option>
+            <option value="Reportar Erro">Reportar Erro</option>
+          </select>
+        </div>
+
+        <div class="ajuda-suporte-colaborador__form-group">
+          <label for="ticketDescription">Descrição</label>
+          <textarea
+            id="ticketDescription"
+            name="description"
+            [(ngModel)]="ticketDescription"
+            placeholder="Descreva sua dúvida ou problema"
+            rows="4"
+            class="sst-search__input sst-input-full ajuda-suporte-colaborador__description"
+            required
+          ></textarea>
+        </div>
+
+        <footer class="ajuda-suporte-colaborador__form-actions">
+          <button type="submit" class="sst-btn sst-btn--dark sst-input-full">
+            Enviar solicitação
+          </button>
+        </footer>
+      </form>
+    </section>
+
+    <!-- Solicitações Recentes -->
+    <section class="sst-card">
+      <header class="sst-card__toolbar">
+        <h2 class="sst-card__title">Solicitações recentes</h2>
+      </header>
+
+      <div class="sst-table-wrapper">
+        <table class="sst-table">
+          <thead>
+            <tr>
+              <th scope="col">Tipo</th>
+              <th scope="col">Descrição</th>
+              <th scope="col">Usuário</th>
+              <th scope="col">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (req of visibleRequests; track req.id) {
+              <tr>
+                <td>
+                  <strong>{{ req.type }}</strong>
+                </td>
+                <td>{{ req.description }}</td>
+                <td>
+                  <strong>{{ req.user }}</strong>
+                </td>
+                <td>
+                  <span
+                    class="sst-badge"
+                    [class.sst-badge--ativo]="req.status === 'Concluída'"
+                    [class.sst-badge--grupo]="req.status === 'Em andamento'"
+                  >
+                    {{ req.status }}
+                  </span>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="4" class="sst-text-center">Nenhuma solicitação encontrada.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</main>

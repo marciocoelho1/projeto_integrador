@@ -1,0 +1,68 @@
+<div class="recovery-container">
+  <main class="recovery-card">
+    
+    
+    <header class="card-header">
+      <div class="icon-badge">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+      </div>
+      <h1>Esqueceu sua senha?</h1>
+      <p>Sem problemas! Informe sua matrícula e e-mail cadastrado para redefinir o acesso.</p>
+    </header>
+
+    
+    <form (ngSubmit)="handleSubmit()" class="recovery-form">
+      
+      <div class="form-field">
+        <label for="matricula">Matrícula</label>
+        <div class="input-wrapper">
+          <input 
+            type="text" 
+            id="matricula" 
+            name="matricula" 
+            [(ngModel)]="matricula"
+            placeholder="Ex: 123456" 
+            required 
+          />
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label for="email">E-mail corporativo</label>
+        <div class="input-wrapper">
+          <input 
+            type="email" 
+            id="email" 
+            name="email" 
+            [(ngModel)]="email"
+            placeholder="nome@empresa.com" 
+            required 
+          />
+        </div>
+      </div>
+
+      <button type="submit" class="btn-submit">
+        Enviar instruções
+      </button>
+
+      <div class="form-actions">
+        <a routerLink="/login" class="link-back">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          Voltar ao login
+        </a>
+      </div>
+
+    </form>
+
+    <footer class="card-footer">
+      <small>Sistema de Gestão de SST &bull; Suporte ao Colaborador</small>
+    </footer>
+
+  </main>
+</div>

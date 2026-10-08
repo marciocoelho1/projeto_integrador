@@ -1,0 +1,162 @@
+<main class="sst-layout">
+  <header class="sst-header">
+    <hgroup class="sst-header__titles">
+      <p class="sst-header__breadcrumb">SGSST / Portal do Colaborador</p>
+      <h1 class="sst-header__main">Minha Área</h1>
+    </hgroup>
+  </header>
+
+  <!-- Grade de Resumos Superiores -->
+  <section
+    class="area-colaborador__summary-grid area-colaborador__section-spacing"
+    aria-label="Resumo de Status"
+  >
+    <article class="sst-card area-colaborador__summary-card">
+      <header class="area-colaborador__summary-header">
+        <h3>Certificações</h3>
+      </header>
+      <p class="sst-card-group__desc">Concluídas e registradas</p>
+      <span class="sst-card-group__count area-colaborador__summary-count">
+        {{ resumo.certificacoes }}
+      </span>
+    </article>
+
+    <article class="sst-card area-colaborador__summary-card">
+      <header class="area-colaborador__summary-header">
+        <h3>Reciclagens</h3>
+      </header>
+      <p class="sst-card-group__desc">Materiais pendentes</p>
+      <span class="sst-card-group__count area-colaborador__summary-count">
+        {{ resumo.reciclagens }}
+      </span>
+    </article>
+
+    <article class="sst-card area-colaborador__summary-card">
+      <header class="area-colaborador__summary-header">
+        <h3>EPIs Recebidos</h3>
+      </header>
+      <p class="sst-card-group__desc">Equipamentos em sua posse</p>
+      <span class="sst-card-group__count area-colaborador__summary-count">
+        {{ resumo.epis }}
+      </span>
+    </article>
+  </section>
+
+  <!-- Coluna dupla (Certificações e Reciclagens) -->
+  <div class="area-colaborador__details-grid area-colaborador__section-spacing">
+    <!-- Minhas Certificações -->
+    <section class="sst-card">
+      <header class="sst-card__toolbar">
+        <h2 class="sst-card__title">Minhas Certificações</h2>
+      </header>
+
+      <div class="sst-table-wrapper">
+        <table class="sst-table">
+          <thead>
+            <tr>
+              <th scope="col">Treinamento</th>
+              <th scope="col">Validade</th>
+              <th scope="col">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (cert of minhasCertificacoes; track cert.treinamento) {
+              <tr>
+                <td>
+                  <strong>{{ cert.treinamento }}</strong>
+                </td>
+                <td>{{ cert.validade }}</td>
+                <td>
+                  <span
+                    class="sst-badge"
+                    [class.sst-badge--inativo]="cert.status === 'Vencida'"
+                    [class.sst-badge--ativo]="cert.status === 'Ativa'"
+                  >
+                    {{ cert.status }}
+                  </span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Materiais de Reciclagem -->
+    <section class="sst-card">
+      <header class="sst-card__toolbar">
+        <h2 class="sst-card__title">Materiais de Reciclagem</h2>
+      </header>
+
+      <div class="area-colaborador__materials-list">
+        @for (mat of materiaisReciclagem; track mat.treinamento) {
+          <article class="area-colaborador__material">
+            <strong class="area-colaborador__material-title">
+              {{ mat.treinamento }}
+            </strong>
+            <p
+              class="area-colaborador__deadline"
+              role="status"
+              [attr.aria-label]="'Alerta: Prazo de conclusão: ' + mat.prazo"
+            >
+              <svg
+                class="area-colaborador__deadline-icon"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path d="M12 3 2 21h20L12 3Zm1 14h-2v2h2v-2Zm0-7h-2v5h2v-5Z" />
+              </svg>
+              <span>Prazo de conclusão: {{ mat.prazo }}</span>
+            </p>
+            <a [href]="mat.link" target="_blank" rel="noopener noreferrer" class="sst-btn-link">
+              Acessar material de estudo &rarr;
+            </a>
+          </article>
+        }
+      </div>
+    </section>
+  </div>
+
+  <!-- Seção Inferior: EPIs -->
+  <section class="sst-card">
+    <header class="sst-card__toolbar">
+      <h2 class="sst-card__title">Meus EPIs</h2>
+    </header>
+
+    <div class="sst-table-wrapper">
+      <table class="sst-table">
+        <thead>
+          <tr>
+            <th scope="col">ID</th>
+            <th scope="col">EPI</th>
+            <th scope="col">Quantidade</th>
+            <th scope="col">CA</th>
+            <th scope="col">Data de Entrega</th>
+            <th scope="col">Assinatura do Termo</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (epi of meusEpis; track epi.id) {
+            <tr>
+              <td>{{ epi.id }}</td>
+              <td>
+                <strong>{{ epi.nome }}</strong>
+              </td>
+              <td>{{ epi.quantidade }}</td>
+              <td>{{ epi.ca }}</td>
+              <td>{{ epi.dataEntrega }}</td>
+              <td>
+                <em>{{ epi.assinatura }}</em>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" class="sst-text-center">Nenhum EPI registrado no momento.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>

@@ -1,0 +1,138 @@
+<div class="app-layout">
+  <header class="mobile-header">
+    <div class="mobile-brand">SGSST</div>
+    <button class="btn-menu-toggle" (click)="toggleMenu()" aria-label="Abrir menu">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <line x1="3" y1="12" x2="21" y2="12"></line>
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <line x1="3" y1="18" x2="21" y2="18"></line>
+      </svg>
+    </button>
+  </header>
+
+  <div class="sidebar-overlay" [class.active]="menuAberto" (click)="fecharMenu()"></div>
+
+  <aside class="sidebar" [class.sidebar--open]="menuAberto">
+    <div class="sidebarbrand">
+      <h1 class="sidebartitle">Sistema de Gestão de SST</h1>
+      <p class="sidebarsubtitle">Essenza Supermercados Ltda.</p>
+    </div>
+
+    <nav class="sidebarnav">
+      <ul class="sidebarmenu">
+        @if (userRole === 'admin') {
+          <li>
+            <a
+              [routerLink]="['/dashboard']"
+              routerLinkActive="active"
+              class="sidebarlink"
+              (click)="fecharMenu()"
+              >Dashboard</a
+            >
+          </li>
+          <li>
+            <a
+              [routerLink]="['/matriz-treinamentos']"
+              routerLinkActive="active"
+              class="sidebarlink"
+              (click)="fecharMenu()"
+              >Matriz de Treinamentos</a
+            >
+          </li>
+          <li>
+            <a
+              [routerLink]="['/epis']"
+              routerLinkActive="active"
+              class="sidebarlink"
+              (click)="fecharMenu()"
+              >EPIs</a
+            >
+          </li>
+          <li>
+            <a
+              [routerLink]="['/colaboradores']"
+              routerLinkActive="active"
+              class="sidebarlink"
+              (click)="fecharMenu()"
+              >Colaboradores</a
+            >
+          </li>
+          <li>
+            <a
+              [routerLink]="['/cadastramentos']"
+              routerLinkActive="active"
+              class="sidebarlink"
+              (click)="fecharMenu()"
+              >Cadastramentos</a
+            >
+          </li>
+          <li>
+            <a
+              [routerLink]="['/ajuda-suporte']"
+              routerLinkActive="active"
+              class="sidebarlink"
+              (click)="fecharMenu()"
+              >Ajuda e Suporte</a
+            >
+          </li>
+          <li>
+            <a
+              [routerLink]="['/configuracoes']"
+              routerLinkActive="active"
+              class="sidebarlink"
+              (click)="fecharMenu()"
+              >Configurações</a
+            >
+          </li>
+        } @else if (userRole === 'colaborador') {
+          <li>
+            <a
+              [routerLink]="['/area-colaborador']"
+              routerLinkActive="active"
+              class="sidebarlink"
+              (click)="fecharMenu()"
+              >Área do Colaborador</a
+            >
+          </li>
+          <li>
+            <a
+              [routerLink]="['/ajuda-suporte-colaborador']"
+              routerLinkActive="active"
+              class="sidebarlink"
+              (click)="fecharMenu()"
+              >Ajuda e Suporte</a
+            >
+          </li>
+        }
+      </ul>
+    </nav>
+
+    <div class="sidebarfooter">
+      <a href="/login" class="sidebarlink sidebarlink--logout" (click)="sair($event)">Sair</a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="layout-header">
+      <div class="user-badge">
+        <span class="user-badge__role">{{
+          userRole === 'admin' ? 'Administrador TST' : 'Colaborador'
+        }}</span>
+        <strong class="user-badge__name">{{
+          userRole === 'admin' ? 'ADMINISTRADOR' : 'COLABORADOR'
+        }}</strong>
+      </div>
+    </header>
+    <router-outlet></router-outlet>
+  </main>
+</div>

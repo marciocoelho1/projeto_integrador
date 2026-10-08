@@ -1,0 +1,310 @@
+<div class="sst-layout">
+  <header class="sst-header">
+    <hgroup class="sst-header__titles">
+      <p class="sst-header__breadcrumb">SGSST / Administração</p>
+      <h1 class="sst-header__main">Configurações do Sistema</h1>
+    </hgroup>
+    
+    <button type="button" class="sst-btn sst-btn--dark" (click)="actionNovoUsuario()">
+      Cadastrar Novo Usuário
+    </button>
+  </header>
+
+  <nav class="sst-nav" role="tablist" aria-label="Guias de Configuração">
+    @for (guia of guiasNavegacao; track guia.id) {
+      <button
+        type="button"
+        role="tab"
+        class="sst-nav__item"
+        [class.sst-nav__item--active]="guiaAtual() === guia.id"
+        [attr.aria-selected]="guiaAtual() === guia.id"
+        (click)="navegarGuia(guia.id)"
+      >
+        {{ guia.titulo }}
+      </button>
+    }
+  </nav>
+
+  <section class="sst-content">
+    @switch (guiaAtual()) {
+      
+      
+      @case ('usuarios') {
+        <section class="sst-card" aria-labelledby="titulo-usuarios">
+          <header class="sst-card__toolbar">
+            <h2 id="titulo-usuarios" class="sst-card__title">Gestão de Usuários</h2>
+            <search class="sst-search">
+              <input 
+                type="text" 
+                class="sst-search__input" 
+                style="width: 380px;" 
+                placeholder="Buscar por nome, CPF/matrícula, grupo ou status..."
+                [value]="termoBusca()" 
+                (input)="termoBusca.set($any($event.target).value)" 
+                aria-label="Buscar usuário" 
+              />
+            </search>
+          </header>
+
+          <table class="sst-table">
+            <thead>
+              <tr>
+                <th scope="col">Usuário</th>
+                <th scope="col">CPF / Matrícula</th>
+                <th scope="col">Grupo de Acesso</th>
+                <th scope="col">Status</th>
+                <th scope="col" class="sst-text-right">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (usuario of usuariosFiltrados(); track usuario.id) {
+                <tr>
+                  <td>
+                    <strong>{{ usuario.nomeCompleto }}</strong>
+                    <span class="sst-table__subtext">{{ usuario.emailCorporativo }}</span>
+                  </td>
+                  <td>{{ usuario.cpf }}</td>
+                  <td><span class="sst-badge sst-badge--grupo">{{ getNomeGrupo(usuario.grupoId) }}</span></td>
+                  <td><span class="sst-badge" [class.sst-badge--ativo]="usuario.status === 'ativo'">{{ usuario.status | titlecase }}</span></td>
+                  <td class="sst-text-right"><button class="sst-btn-link" (click)="actionEditarUsuario(usuario)">Editar</button></td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="5" class="sst-text-center" style="padding: 2.5rem 1rem; color: var(--cor-texto-secundario); font-style: italic;">
+                    Nenhum usuário encontrado com o termo "{{ termoBusca() }}".
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </section>
+      }
+
+      
+      @case ('grupos') {
+        <div class="sst-grid">
+          @for (grupo of gruposSst(); track grupo.id) {
+            <article class="sst-card-group">
+              <header class="sst-card-group__header">
+                <h3>{{ grupo.nomenclatura }}</h3>
+                <span class="sst-card-group__count">{{ grupo.modulosLiberados.length }} módulos</span>
+              </header>
+              <p class="sst-card-group__desc">{{ grupo.finalidade }}</p>
+              <button class="sst-btn sst-btn--outline" (click)="irParaMatrizDoGrupo(grupo.id)">Ajustar Matriz</button>
+            </article>
+          }
+        </div>
+      }
+
+      
+      @case ('matriz') {
+        <section class="sst-card" aria-labelledby="titulo-matriz">
+          <header class="sst-card__toolbar">
+            <h2 id="titulo-matriz" class="sst-card__title">Matriz de Permissões</h2>
+            <select class="sst-select" [value]="grupoSelecionadoId()" (change)="grupoSelecionadoId.set($any($event.target).value)" aria-label="Selecione o grupo para editar a matriz">
+              @for (grupo of gruposSst(); track grupo.id) {
+                <option [value]="grupo.id">{{ grupo.nomenclatura }}</option>
+              }
+            </select>
+          </header>
+
+          <p class="sst-matrix-info" role="status">Você está editando as regras para: <strong>{{ grupoEmEdicao().nomenclatura }}</strong></p>
+
+          <table class="sst-table sst-table--matrix">
+            <thead>
+              <tr>
+                <th scope="col">Módulo do Sistema</th>
+                <th scope="col">Descrição do Nível de Acesso</th>
+                <th scope="col" class="sst-text-center">Permissão</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (mod of modulosDisponiveis; track mod.chave) {
+                <tr>
+                  <td><strong>{{ mod.titulo }}</strong></td>
+                  <td>{{ mod.detalhe }}</td>
+                  <td class="sst-text-center">
+                    <label class="sst-switch" [attr.for]="'mod-' + mod.chave">
+                      <input type="checkbox" 
+                             [id]="'mod-' + mod.chave"
+                             [checked]="grupoEmEdicao().modulosLiberados.includes(mod.chave)"
+                             (change)="alternarAcessoModulo(mod.chave)" 
+                             [attr.aria-label]="'Permitir acesso ao módulo ' + mod.titulo">
+                      <span class="sst-switch__slider"></span>
+                    </label>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </section>
+      }
+
+      
+      @case ('globais') {
+        <section class="sst-card sst-card--form" aria-labelledby="titulo-regras">
+          <header>
+            <h2 id="titulo-regras" class="sst-card__title">Regras de Negócio e Alertas</h2>
+            <p class="sst-card__subtitle">Configure o comportamento autônomo do sistema SST.</p>
+          </header>
+
+          <form class="sst-form" (submit)="$event.preventDefault(); gravarAlteracoesGlobais()">
+            <fieldset class="sst-form__list" style="border: none; padding: 0; margin: 0;">
+              <legend class="visually-hidden">Configurações de Alertas do Sistema</legend>
+              @for (regra of regrasAlertas(); track regra.codigo) {
+                <div class="sst-form__row">
+                  <div class="sst-form__text">
+                    <label [attr.for]="'regra-' + regra.codigo">
+                      <strong>{{ regra.nomeRegra }}</strong>
+                      <span>{{ regra.descricaoRegra }}</span>
+                    </label>
+                  </div>
+                  
+                  <label class="sst-switch" [attr.for]="'regra-' + regra.codigo">
+                    <input type="checkbox" 
+                           [id]="'regra-' + regra.codigo"
+                           [checked]="regra.isAtiva" 
+                           (change)="alternarRegra(regra.codigo)" 
+                           [attr.aria-label]="'Ativar regra ' + regra.nomeRegra">
+                    <span class="sst-switch__slider"></span>
+                  </label>
+                </div>
+              }
+            </fieldset>
+
+            <footer class="sst-form__actions">
+              <button type="submit" class="sst-btn sst-btn--dark sst-btn--large">Salvar Configurações</button>
+            </footer>
+          </form>
+        </section>
+      }
+
+      
+      @case ('logs') {
+        <section class="sst-card" aria-labelledby="titulo-logs">
+          <header class="sst-card__toolbar" style="flex-wrap: wrap; gap: 1rem;">
+            <h2 id="titulo-logs" class="sst-card__title">Histórico de Auditoria</h2>
+            
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+              <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                <label for="data-inicio" style="font-size: 0.75rem; font-weight: 600;">Data Início</label>
+                <input type="date" id="data-inicio" class="sst-search__input" 
+                       [value]="filtroLogDataInicio()" 
+                       (input)="filtroLogDataInicio.set($any($event.target).value)" />
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                <label for="data-fim" style="font-size: 0.75rem; font-weight: 600;">Data Fim</label>
+                <input type="date" id="data-fim" class="sst-search__input" 
+                       [value]="filtroLogDataFim()" 
+                       (input)="filtroLogDataFim.set($any($event.target).value)" />
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                <label style="font-size: 0.75rem; font-weight: 600;">Pesquisar</label>
+                <search class="sst-search">
+                  <input type="text" class="sst-search__input" style="width: 260px;" 
+                         placeholder="Usuário, módulo ou ação..."
+                         [value]="filtroLogTermo()" 
+                         (input)="filtroLogTermo.set($any($event.target).value)" />
+                </search>
+              </div>
+            </div>
+          </header>
+
+          <div class="sst-table-wrapper">
+            <table class="sst-table">
+              <thead>
+                <tr>
+                  <th scope="col">Data / Hora</th>
+                  <th scope="col">Usuário / Matrícula</th>
+                  <th scope="col">Módulo</th>
+                  <th scope="col">Ação</th>
+                  <th scope="col">Detalhes</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (log of logsFiltrados(); track log.id) {
+                  <tr>
+                    <td style="white-space: nowrap;"><strong>{{ log.dataHora | date:'dd/MM/yyyy HH:mm' }}</strong></td>
+                    <td>{{ log.usuario }}</td>
+                    <td>{{ log.modulo }}</td>
+                    <td>
+                      <span class="sst-badge" 
+                            [class.sst-badge--ativo]="log.acao === 'CRIACAO'"
+                            [class.sst-badge--grupo]="log.acao === 'ACESSO'"
+                            [style.background]="log.acao === 'EXCLUSAO' ? '#fef2f2' : ''"
+                            [style.color]="log.acao === 'EXCLUSAO' ? '#991b1b' : ''">
+                        {{ log.acao }}
+                      </span>
+                    </td>
+                    <td>{{ log.descricao }}</td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="5" class="sst-text-center" style="padding: 2.5rem 1rem; color: var(--cor-texto-secundario); font-style: italic;">
+                      Nenhum registro de log encontrado com os filtros atuais.
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </section>
+      }
+
+    }
+  </section>
+
+  @if (mostrarModalEdicaoUsuario()) {
+    @if (usuarioEmEdicao(); as usuario) {
+      <div class="sst-modal-overlay">
+        <div class="sst-modal sst-card" style="max-width: 600px;">
+          <header class="sst-card__toolbar">
+            <h3 class="sst-card__title">Editar Usuário</h3>
+            <button type="button" class="sst-btn-link" (click)="fecharModalEdicaoUsuario()" style="font-size: 1.5rem; text-decoration: none;">&times;</button>
+          </header>
+
+          <form class="sst-form-grid" (submit)="$event.preventDefault(); salvarEdicaoUsuario()">
+            <div class="sst-form-group sst-col-span-2">
+              <label for="usr-edit-nome">Nome Completo</label>
+              <input type="text" id="usr-edit-nome" class="sst-search__input sst-input-full" [(ngModel)]="usuario.nomeCompleto" name="nomeCompleto" required>
+            </div>
+
+            <div class="sst-form-group sst-col-span-2">
+              <label for="usr-edit-email">E-mail Corporativo</label>
+              <input type="email" id="usr-edit-email" class="sst-search__input sst-input-full" [(ngModel)]="usuario.emailCorporativo" name="emailCorporativo" required>
+            </div>
+
+            <div class="sst-form-group">
+              <label for="usr-edit-cpf">CPF / Matrícula</label>
+              <input type="text" id="usr-edit-cpf" class="sst-search__input sst-input-full" [(ngModel)]="usuario.cpf" name="cpf" required>
+            </div>
+
+            <div class="sst-form-group">
+              <label for="usr-edit-status">Status</label>
+              <select id="usr-edit-status" class="sst-search__input sst-input-full" [(ngModel)]="usuario.status" name="status" required>
+                <option value="ativo">Ativo</option>
+                <option value="inativo">Inativo</option>
+              </select>
+            </div>
+
+            <div class="sst-form-group sst-col-span-2">
+              <label for="usr-edit-grupo">Grupo de Acesso</label>
+              <select id="usr-edit-grupo" class="sst-search__input sst-input-full" [(ngModel)]="usuario.grupoId" name="grupoId" required>
+                @for (grupo of gruposSst(); track grupo.id) {
+                  <option [value]="grupo.id">{{ grupo.nomenclatura }}</option>
+                }
+              </select>
+            </div>
+
+            <footer class="sst-form-actions sst-col-span-2">
+              <button type="button" class="sst-btn sst-btn--outline" (click)="fecharModalEdicaoUsuario()">Cancelar</button>
+              <button type="submit" class="sst-btn sst-btn--dark">Salvar Alterações</button>
+            </footer>
+          </form>
+        </div>
+      </div>
+    }
+  }
+</div>

@@ -1,0 +1,156 @@
+:host {
+  display: block;
+}
+
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f4f5f7;
+  padding: 20px;
+  gap: 24px;
+
+  
+  .login-card {
+    background: transparent;
+    width: 100%;
+    max-width: 360px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+
+    header {
+      margin-bottom: 24px;
+
+      h2 {
+        font-size: 1.5rem;
+        color: #1a1a1a;
+        margin: 0 0 8px 0;
+      }
+
+      p {
+        font-size: 0.85rem;
+        color: #666;
+        margin: 0;
+      }
+    }
+
+    form {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+
+      label {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+        font-size: 0.8rem;
+        color: #333;
+        font-weight: 600;
+
+        input {
+          box-sizing: border-box;
+          width: 100%;
+          padding: 12px 14px;
+          border: 1px solid #ccc;
+          border-radius: 8px;
+          font-size: 0.9rem;
+          outline: none;
+
+          &:focus {
+            border-color: #000;
+          }
+        }
+      }
+
+      button {
+        width: 100%;
+        padding: 12px;
+        background-color: #000000;
+        color: #ffffff;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        margin-top: 8px;
+
+        &:disabled {
+          background-color: #000000;
+          opacity: 0.8;
+        }
+      }
+
+      .forgot-password {
+        font-size: 0.8rem;
+        color: #333;
+        text-decoration: underline;
+        margin-top: 4px;
+      }
+    }
+
+    footer {
+      margin-top: 24px;
+      
+      small {
+        font-size: 0.75rem;
+        color: #777;
+        line-height: 1.4;
+
+        a {
+          color: #000;
+          font-weight: 700;
+          text-decoration: none;
+        }
+      }
+    }
+  }
+
+  
+  .banner-card {
+    background-color: #e2e4e7;
+    border: 1px solid #d0d4dc;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 520px;
+    height: 380px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    figure {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      margin: 0;
+      padding: 20px;
+
+      img {
+        width: 100%;
+        max-width: 260px;
+        height: auto;
+        object-fit: contain;
+      }
+
+      figcaption {
+        font-size: 1.3rem;
+        color: #1a1a1a;
+        font-weight: 500;
+      }
+    }
+  }
+}
+
+
+@media (max-width: 768px) {
+  .login-container {
+    .banner-card {
+      display: none;
+    }
+  }
+}

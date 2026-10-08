@@ -1,0 +1,434 @@
+<div class="sst-layout">
+  <header class="sst-header">
+    <hgroup class="sst-header__titles">
+      <p class="sst-header__breadcrumb">SGSST / Operacional</p>
+      <h1 class="sst-header__main">Central de Cadastramentos</h1>
+    </hgroup>
+    <a routerLink="/importacao-massa" class="btn-importacao-massa"> Importação em Massa </a>
+  </header>
+
+  <nav class="sst-nav" role="tablist" aria-label="Abas de Cadastramento">
+    <button
+      type="button"
+      role="tab"
+      class="sst-nav__item"
+      [class.sst-nav__item--active]="abaAtual === 'colaborador'"
+      (click)="abaAtual = 'colaborador'"
+    >
+      Novo Colaborador
+    </button>
+    <button
+      type="button"
+      role="tab"
+      class="sst-nav__item"
+      [class.sst-nav__item--active]="abaAtual === 'treinamento'"
+      (click)="abaAtual = 'treinamento'"
+    >
+      Novo Treinamento
+    </button>
+    <button
+      type="button"
+      role="tab"
+      class="sst-nav__item"
+      [class.sst-nav__item--active]="abaAtual === 'epi'"
+      (click)="abaAtual = 'epi'"
+    >
+      Novo EPI
+    </button>
+    <button
+      type="button"
+      role="tab"
+      class="sst-nav__item"
+      [class.sst-nav__item--active]="abaAtual === 'lnt'"
+      (click)="abaAtual = 'lnt'"
+    >
+      Novo LNT / Cargo
+    </button>
+    <button
+      type="button"
+      role="tab"
+      class="sst-nav__item"
+      [class.sst-nav__item--active]="abaAtual === 'reciclagem'"
+      (click)="abaAtual = 'reciclagem'"
+    >
+      Nova Reciclagem
+    </button>
+  </nav>
+
+  <section class="sst-content">
+    @switch (abaAtual) {
+      @case ('colaborador') {
+        <section class="sst-card sst-card--form">
+          <header class="sst-card__toolbar">
+            <h2 class="sst-card__title">Cadastro de Colaborador</h2>
+          </header>
+
+          <form
+            #formularioColaborador="ngForm"
+            class="sst-form-grid"
+            (ngSubmit)="salvarColaborador(formularioColaborador)"
+          >
+            <div class="sst-form-group sst-col-span-2">
+              <label for="nome">Nome Completo</label>
+
+              <input
+                type="text"
+                id="nome"
+                class="sst-search__input sst-input-full"
+                autocomplete="off"
+                [(ngModel)]="novoColaborador.nome"
+                name="nome"
+                required
+              />
+            </div>
+
+            <div class="sst-form-group">
+              <label for="cpf">CPF</label>
+              <input
+                type="text"
+                id="cpf"
+                #cpfInput
+                class="sst-search__input sst-input-full"
+                autocomplete="off"
+                [(ngModel)]="novoColaborador.cpf"
+                name="cpf"
+                required
+              />
+            </div>
+
+            <div class="sst-form-group">
+              <label for="email">E-mail</label>
+              <input
+                type="email"
+                id="email"
+                class="sst-search__input sst-input-full"
+                autocomplete="email"
+                [(ngModel)]="novoColaborador.email"
+                name="email"
+                email
+                required
+              />
+            </div>
+
+            <div class="sst-form-group">
+              <label for="cargo">Cargo</label>
+              <select
+                id="cargo"
+                class="sst-search__input sst-input-full"
+                [(ngModel)]="novoColaborador.cargo"
+                name="cargo"
+                required
+              >
+                <option value="" disabled>Selecione...</option>
+                @for (cargo of cargosCadastrados; track cargo) {
+                  <option [value]="cargo">{{ cargo }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="sst-form-group">
+              <label for="setor">Setor</label>
+              <select
+                id="setor"
+                class="sst-search__input sst-input-full"
+                [(ngModel)]="novoColaborador.setor"
+                name="setor"
+                required
+              >
+                <option value="" disabled>Selecione...</option>
+                @for (setor of setoresCadastrados; track setor) {
+                  <option [value]="setor">{{ setor }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="sst-form-group">
+              <label for="grupo-acesso">Grupo de Acesso</label>
+              <select
+                id="grupo-acesso"
+                class="sst-search__input sst-input-full"
+                [(ngModel)]="novoColaborador.grupoAcessoId"
+                name="grupoAcessoId"
+                required
+              >
+                <option value="" disabled>Selecione...</option>
+                @for (grupo of gruposAcesso(); track grupo.id) {
+                  <option [value]="grupo.id">{{ grupo.nomenclatura }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="sst-form-group">
+              <label for="senhaPadrao">Senha de Acesso Inicial</label>
+
+              <input
+                type="text"
+                id="senhaPadrao"
+                class="sst-search__input sst-input-full"
+                [value]="cpfInput.value"
+                readonly
+                disabled
+                style="background-color: #f8fafc; color: #94a3b8; cursor: not-allowed"
+                title="A senha padrão inicial será o CPF do colaborador"
+              />
+            </div>
+
+            <footer class="sst-form-actions sst-col-span-2">
+              <button type="submit" class="sst-btn sst-btn--dark">Salvar Colaborador</button>
+            </footer>
+          </form>
+        </section>
+      }
+
+      @case ('treinamento') {
+        <section class="sst-card sst-card--form">
+          <header class="sst-card__toolbar">
+            <h2 class="sst-card__title">Cadastro de Matriz de Treinamento</h2>
+          </header>
+
+          <form class="sst-form-grid" (submit)="$event.preventDefault(); salvarTreinamento()">
+            <div class="sst-form-group sst-col-span-2">
+              <label for="desc-treinamento">Descrição do Treinamento</label>
+              <input
+                type="text"
+                id="desc-treinamento"
+                class="sst-search__input sst-input-full"
+                required
+              />
+            </div>
+
+            <div class="sst-form-group">
+              <label for="classificacao">Classificação</label>
+              <input
+                type="text"
+                id="classificacao"
+                list="lista-classificacao"
+                class="sst-search__input sst-input-full"
+                required
+              />
+              <datalist id="lista-classificacao">
+                <option value="Integração"></option>
+                <option value="Específico"></option>
+                <option value="Reciclagem"></option>
+              </datalist>
+            </div>
+
+            <div class="sst-form-group">
+              <label for="nr">NR Regulamentadora</label>
+              <input type="text" id="nr" list="lista-nr" class="sst-search__input sst-input-full" />
+              <datalist id="lista-nr">
+                <option value="NR-06 (EPI)"></option>
+                <option value="NR-11 (Movimentação de Materiais)"></option>
+                <option value="NR-12 (Máquinas e Equipamentos)"></option>
+                <option value="NR-17 (Ergonomia)"></option>
+              </datalist>
+            </div>
+
+            <div class="sst-form-group">
+              <label for="carga-horaria">Carga Horária</label>
+
+              <input
+                type="number"
+                id="carga-horaria"
+                class="sst-search__input sst-input-full"
+                placeholder="...h...min"
+                required
+              />
+            </div>
+
+            <div class="sst-form-group">
+              <label for="status">Status Padrão</label>
+              <input
+                type="text"
+                id="status"
+                list="lista-status"
+                class="sst-search__input sst-input-full"
+                required
+              />
+              <datalist id="lista-status">
+                <option value="Ativo"></option>
+                <option value="Inativo"></option>
+                <option value="Obrigatório"></option>
+              </datalist>
+            </div>
+
+            <footer class="sst-form-actions sst-col-span-2">
+              <button type="submit" class="sst-btn sst-btn--dark">Salvar Treinamento</button>
+            </footer>
+          </form>
+        </section>
+      }
+
+      @case ('epi') {
+        <section class="sst-card sst-card--form">
+          <header class="sst-card__toolbar">
+            <h2 class="sst-card__title">Cadastro de Novo EPI</h2>
+          </header>
+
+          <form class="sst-form-grid" (submit)="$event.preventDefault(); salvarEPI()">
+            <div class="sst-form-group sst-col-span-2">
+              <label for="desc-epi">Descrição do EPI</label>
+              <input type="text" id="desc-epi" class="sst-search__input sst-input-full" required />
+            </div>
+
+            <div class="sst-form-group">
+              <label for="quantidade">Quantidade (Estoque)</label>
+
+              <input
+                type="number"
+                step="0.01"
+                id="quantidade"
+                class="sst-search__input sst-input-full"
+                required
+              />
+            </div>
+
+            <div class="sst-form-group">
+              <label for="ca">Número do CA (Certificado de Aprovação)</label>
+              <input
+                type="number"
+                step="0.01"
+                id="ca"
+                class="sst-search__input sst-input-full"
+                required
+              />
+            </div>
+
+            <div class="sst-form-group">
+              <label for="data-inclusao">Data de Inclusão</label>
+
+              <input
+                type="date"
+                id="data-inclusao"
+                class="sst-search__input sst-input-full"
+                required
+              />
+            </div>
+
+            <div class="sst-form-group">
+              <label for="data-validade">Data de Validade (CA)</label>
+              <input
+                type="date"
+                id="data-validade"
+                class="sst-search__input sst-input-full"
+                required
+              />
+            </div>
+
+            <footer class="sst-form-actions sst-col-span-2">
+              <button type="submit" class="sst-btn sst-btn--dark">Salvar EPI</button>
+            </footer>
+          </form>
+        </section>
+      }
+
+      @case ('lnt') {
+        <section class="sst-card sst-card--form">
+          <header class="sst-card__toolbar">
+            <h2 class="sst-card__title">Cadastro de LNT / Cargo</h2>
+          </header>
+
+          <form class="sst-form-grid" (submit)="$event.preventDefault(); salvarLnt()">
+            <div class="sst-form-group">
+              <label for="nome-cargo">Nome do Cargo</label>
+              <input
+                type="text"
+                id="nome-cargo"
+                class="sst-search__input sst-input-full"
+                required
+              />
+            </div>
+
+            <div class="sst-form-group">
+              <label for="setor-cargo">Setor</label>
+              <input
+                type="text"
+                id="setor-cargo"
+                list="lista-setores-lnt"
+                class="sst-search__input sst-input-full"
+                required
+              />
+              <datalist id="lista-setores-lnt">
+                <option value="Frente de Loja"></option>
+                <option value="Estoque"></option>
+                <option value="Açougue"></option>
+                <option value="Administrativo"></option>
+                <option value="Padaria"></option>
+                <option value="Logística"></option>
+              </datalist>
+            </div>
+
+            <footer class="sst-form-actions sst-col-span-2">
+              <button type="submit" class="sst-btn sst-btn--dark">Salvar LNT / Cargo</button>
+            </footer>
+          </form>
+        </section>
+      }
+
+      @case ('reciclagem') {
+        <section class="sst-card sst-card--form">
+          <header class="sst-card__toolbar">
+            <h2 class="sst-card__title">Cadastro de Reciclagem</h2>
+          </header>
+
+          <form class="sst-form-grid" (submit)="$event.preventDefault(); salvarReciclagem()">
+            <div class="sst-form-group sst-col-span-2">
+              <label for="nome-reciclagem">Nome da Reciclagem</label>
+              <input
+                type="text"
+                id="nome-reciclagem"
+                class="sst-search__input sst-input-full"
+                required
+              />
+            </div>
+
+            <div class="sst-form-group">
+              <label for="nr-reciclagem">NR Referente</label>
+              <input
+                type="text"
+                id="nr-reciclagem"
+                list="lista-nr-reciclagem"
+                class="sst-search__input sst-input-full"
+                required
+              />
+              <datalist id="lista-nr-reciclagem">
+                <option value="NR-06 (EPI)"></option>
+                <option value="NR-11 (Movimentação de Materiais)"></option>
+                <option value="NR-12 (Máquinas e Equipamentos)"></option>
+                <option value="NR-17 (Ergonomia)"></option>
+                <option value="NR-35 (Trabalho em Altura)"></option>
+                <option value="NR-23 (Brigada de Incêndio)"></option>
+              </datalist>
+            </div>
+
+            <div class="sst-form-group">
+              <label for="carga-horaria-rec">Carga Horária</label>
+              <input
+                type="text"
+                id="carga-horaria-rec"
+                class="sst-search__input sst-input-full"
+                placeholder="Ex: 8h"
+                required
+              />
+            </div>
+
+            <div class="sst-form-group sst-col-span-2">
+              <label for="validade-rec">Validade (meses ou período)</label>
+              <input
+                type="text"
+                id="validade-rec"
+                class="sst-search__input sst-input-full"
+                placeholder="Ex: 12 meses"
+                required
+              />
+            </div>
+
+            <footer class="sst-form-actions sst-col-span-2">
+              <button type="submit" class="sst-btn sst-btn--dark">Salvar Reciclagem</button>
+            </footer>
+          </form>
+        </section>
+      }
+    }
+  </section>
+</div>

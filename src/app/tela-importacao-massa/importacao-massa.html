@@ -1,0 +1,109 @@
+<div class="sst-layout">
+  <header class="sst-header">
+    <hgroup class="sst-header__titles">
+      <p class="sst-header__breadcrumb">SGSST / Operacional / Cadastramentos</p>
+      <h1 class="sst-header__main">Importação em Massa</h1>
+    </hgroup>
+  </header>
+
+  <div class="sst-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 2rem;">
+    
+    
+    <section class="sst-card">
+      <header class="sst-card__toolbar">
+        <h2 class="sst-card__title">1. Baixar Planilha Padrão</h2>
+      </header>
+      <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 1.25rem;">
+        Selecione o tipo de importação e utilize nosso modelo com os cabeçalhos corretos para garantir que os dados sejam lidos perfeitamente.
+      </p>
+
+      <div class="sst-form-group" style="margin-bottom: 1.25rem;">
+        <label for="tipoImportacao" style="display: block; font-size: 0.85rem; font-weight: 600; color: #0f172a; margin-bottom: 0.4rem;">
+          Tipo de Importação <span style="color: #ef4444;">*</span>
+        </label>
+        <select 
+          id="tipoImportacao" 
+          class="sst-select-tipo" 
+          [ngModel]="tipoImportacao()" 
+          (ngModelChange)="tipoImportacao.set($event)"
+        >
+          <option value="" disabled selected>Selecione o tipo de importação...</option>
+          <option value="colaborador">Novo Colaborador</option>
+          <option value="treinamento">Novo Treinamento</option>
+          <option value="epi">Novo EPI</option>
+        </select>
+      </div>
+
+      <button 
+        class="sst-btn sst-btn--outline" 
+        [disabled]="!tipoImportacao()" 
+        (click)="baixarTemplate()"
+      >
+        Baixar Planilha Padrão (.CSV)
+      </button>
+    </section>
+
+    
+    <section class="sst-card">
+      <header class="sst-card__toolbar">
+        <h2 class="sst-card__title">2. Importar Arquivo</h2>
+      </header>
+      <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 1.5rem;">
+        Faça o upload do arquivo CSV, ou XLSX/XLS preenchido para pré-visualizar os dados antes de salvar no banco.
+      </p>
+      
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        
+        <label class="sst-btn sst-btn--dark" style="cursor: pointer; margin: 0;">
+          Selecionar CSV/XLSX/XLS
+          <input type="file" accept=".csv, .xlsx, .xls" style="display: none;" (change)="onFileChange($event)">
+        </label>
+        
+        @if (arquivoNome()) {
+          <span style="font-size: 0.85rem; font-weight: 600; color: #10b981;">
+            ✔️ {{ arquivoNome() }}
+          </span>
+        }
+      </div>
+    </section>
+  </div>
+
+  
+  @if (linhasPreview().length > 0) {
+    <section class="sst-card" aria-labelledby="titulo-previa">
+      
+      <header class="sst-card__toolbar" style="border-bottom: 1px solid #e2e8f0; padding-bottom: 1rem; margin-bottom: 1rem;">
+        <div>
+          <h2 id="titulo-previa" class="sst-card__title">Prévia da Importação</h2>
+          <p style="color: #64748b; font-size: 0.85rem; margin-top: 0.25rem;">
+            Verifique se as colunas estão alinhadas corretamente.
+          </p>
+        </div>
+        <button class="sst-btn sst-btn--dark" (click)="confirmarImportacao()" style="background-color: #10b981; border-color: #10b981;">
+          Confirmar Importação ({{ linhasPreview().length }} registros)
+        </button>
+      </header>
+
+      <div class="sst-table-wrapper" style="max-height: 400px; overflow-y: auto;">
+        <table class="sst-table">
+          <thead>
+            <tr>
+              @for (col of cabecalhos(); track $index) {
+                <th scope="col" style="position: sticky; top: 0; background: #f8fafc; z-index: 1;">{{ col }}</th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (linha of linhasPreview(); track $index) {
+              <tr>
+                @for (celula of linha; track $index) {
+                  <td>{{ celula }}</td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  }
+</div>

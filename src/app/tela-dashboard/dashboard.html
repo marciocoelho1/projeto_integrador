@@ -1,0 +1,127 @@
+
+<header class="sst-header">
+  <h2 class="sst-header__main">Dashboard</h2>
+  <button type="button" class="sst-btn sst-btn--dark" (click)="exportarRelatorio()">
+    Exportar
+  </button>
+</header>
+
+<section class="dashboard-wrapper">
+  
+  
+  <section class="sst-card alerts-card" aria-labelledby="titulo-alertas">
+    <header class="alerts-card__header">
+      <span class="alerts-card__icon" aria-hidden="true">⚠️</span>
+      <h3 id="titulo-alertas" class="sst-card__title">Atenção Requerida</h3>
+    </header>
+    <ul class="alerts-list">
+      @for (alerta of alertas; track alerta.mensagem) {
+        <li class="alert-item" [ngClass]="'alert-item--' + alerta.criticidade">
+          <strong>{{ alerta.tipo }}:</strong> {{ alerta.mensagem }}
+        </li>
+      }
+    </ul>
+  </section>
+
+  
+  <div class="charts-grid">
+    
+    
+    <article class="sst-card chart-card">
+      <header>
+        <h3 class="sst-card__title">Certificações de Colaboradores</h3>
+        <p class="sst-card__subtitle">Status das certificações registradas</p>
+      </header>
+      
+      <div class="chart-content-with-side">
+        <figure class="chart-placeholder bar-chart">
+          <div class="mock-bar-chart" role="img" aria-label="Gráfico de barras de certificações">
+            <div class="bar-col">
+              <div class="bar bar--active" style="height: 85%;">
+                <span class="bar-val">{{ certificacoes.ativas }}</span>
+              </div>
+              <span class="bar-lbl">Ativas</span>
+            </div>
+            <div class="bar-col">
+              <div class="bar bar--expired" style="height: 25%;">
+                <span class="bar-val">{{ certificacoes.vencidas }}</span>
+              </div>
+              <span class="bar-lbl">Vencidas</span>
+            </div>
+          </div>
+        </figure>
+
+        <aside class="side-info-panel">
+          <span class="side-info-panel__title">Resumo</span>
+          <div class="side-info-item">
+            <span class="dot dot--active"></span>
+            <div>
+              <p class="side-info-label">Ativas</p>
+              <strong class="side-info-val">{{ certificacoes.ativas }}</strong>
+            </div>
+          </div>
+          <div class="side-info-item">
+            <span class="dot dot--expired"></span>
+            <div>
+              <p class="side-info-label">Vencidas</p>
+              <strong class="side-info-val text-alert">{{ certificacoes.vencidas }}</strong>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </article>
+
+    
+    <article class="sst-card chart-card">
+      <header>
+        <h3 class="sst-card__title">Gestão de EPIs</h3>
+        <p class="sst-card__subtitle">Distribuição por situação do estoque</p>
+      </header>
+      
+      <figure class="chart-placeholder pie-chart">
+        <div class="mock-pie" role="img" aria-label="Gráfico de pizza mostrando a distribuição de EPIs">
+          <div class="mock-pie__center">
+            <strong>{{ epis.aEntregar + epis.emEstoque + epis.proximoVencimento }}</strong>
+            <span>Total</span>
+          </div>
+        </div>
+      </figure>
+
+      <ul class="pie-legend">
+        <li><span class="legend-dot bg-blue"></span> A Entregar: <strong>{{ epis.aEntregar }}</strong></li>
+        <li><span class="legend-dot bg-green"></span> Em Estoque: <strong>{{ epis.emEstoque }}</strong></li>
+        <li><span class="legend-dot bg-amber"></span> Próx. ao Vencimento: <strong>{{ epis.proximoVencimento }}</strong></li>
+      </ul>
+    </article>
+
+  </div>
+
+  
+  <article class="sst-card progress-card">
+    <header class="progress-card__header">
+      <div>
+        <h3 class="sst-card__title">Reciclagens a Fazer</h3>
+        <p class="sst-card__subtitle">Progresso de treinamentos e reciclagens obrigatórias</p>
+      </div>
+      <strong class="progress-card__value">{{ reciclagens.porcentagem }}%</strong>
+    </header>
+
+    <div class="progress-track">
+      <div 
+        class="progress-fill" 
+        [style.width.%]="reciclagens.porcentagem"
+        role="progressbar" 
+        [attr.aria-valuenow]="reciclagens.porcentagem" 
+        aria-valuemin="0" 
+        aria-valuemax="100">
+      </div>
+    </div>
+
+    <footer class="progress-card__footer">
+      <span>Concluídas: <strong>{{ reciclagens.concluidas }}</strong></span>
+      <span>Pendentes: <strong>{{ reciclagens.pendentes }}</strong></span>
+      <span>Total: <strong>{{ reciclagens.total }}</strong></span>
+    </footer>
+  </article>
+
+</section>

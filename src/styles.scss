@@ -1,0 +1,376 @@
+/* =======================================================
+   1. IMPORTAÇÃO DAS FONTES (Google Fonts)
+   ======================================================= */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+
+/* =======================================================
+   2. DESIGN TOKENS (Baseados no Painel SST)
+   ======================================================= */
+:root {
+  
+  --cor-fundo-app: #e2e8f0;          
+  --cor-fundo-card: #ffffff;
+  --cor-primaria: #0f172a;           
+  --cor-borda: #cbd5e1;
+  
+  
+  --cor-texto-principal: #1e293b;
+  --cor-texto-secundario: #64748b;
+  
+  
+  --cor-tabela-header: #d1d5db;      
+  --cor-alerta: #dc2626;             
+  --cor-link: #2563eb;               
+  --cor-link-hover: #1d4ed8;
+
+  
+  --fonte-titulos: 'JetBrains Mono', monospace;
+  --fonte-corpo: 'Inter', sans-serif;
+}
+
+/* =======================================================
+   3. RESET E CONFIGURAÇÕES BASE
+   ======================================================= */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100vh;
+}
+
+body {
+  font-family: var(--fonte-corpo);
+  color: var(--cor-texto-principal);
+  background-color: var(--cor-fundo-app);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+input, button, select, textarea, label {
+  font-family: var(--fonte-corpo);
+}
+
+/* =======================================================
+   4. TIPOGRAFIA GLOBAL
+   ======================================================= */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--fonte-titulos);
+  color: var(--cor-primaria);
+  font-weight: 700;
+  margin-top: 0;
+}
+
+p, span, li {
+  font-family: var(--fonte-corpo);
+  color: var(--cor-texto-principal);
+}
+
+/* =======================================================
+   5. CLASSES ESTRUTURAIS DE PÁGINA E CABEÇALHO
+   ======================================================= */
+.sst-layout {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.sst-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 2rem;
+
+  &__main {
+    font-size: 2.25rem;
+    color: var(--cor-primaria);
+    margin: 0;
+    letter-spacing: -0.02em; 
+  }
+
+  &__breadcrumb {
+    color: var(--cor-texto-secundario);
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* =======================================================
+   6. COMPONENTES GLOBAIS (Cards, Tabelas, Buscas e Botões)
+   ======================================================= */
+.sst-card {
+  background: var(--cor-fundo-card);
+  border-radius: 8px;
+  border: 1px solid var(--cor-borda);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  padding: 1.5rem;
+
+  &--form { max-width: 800px; }
+
+  &__toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+
+  &__title {
+    font-size: 1.25rem;
+    margin: 0;
+    color: var(--cor-primaria);
+  }
+
+  &__subtitle {
+    color: var(--cor-texto-secundario);
+    font-size: 0.9rem;
+    margin: 0.25rem 0 2rem;
+  }
+}
+
+.sst-search__input, .sst-select {
+  padding: 0.6rem 1rem;
+  border: 1px solid var(--cor-borda);
+  border-radius: 4px;
+  font-size: 0.9rem;
+  width: 280px;
+  outline: none;
+
+  &:focus { border-color: var(--cor-primaria); }
+}
+
+.sst-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th {
+    background-color: var(--cor-tabela-header);
+    color: var(--cor-primaria);
+    font-weight: 700;
+    text-align: left;
+    padding: 1rem;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--cor-borda);
+    font-size: 0.9rem;
+    vertical-align: middle;
+
+    strong {
+      display: block;
+      color: var(--cor-texto-principal);
+      font-weight: 600;
+    }
+  }
+
+  &__subtext {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--cor-texto-secundario);
+    margin-top: 0.25rem;
+  }
+}
+
+.sst-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #f1f5f9;
+  color: #475569;
+
+  &--ativo { background: #dcfce7; color: #166534; }
+  &--inativo { background: #fce8e6; color: #d93025; }
+  &--afastado { background: #fef7e0; color: #b07d00; }
+  &--grupo { background: #e0e7ff; color: #3730a3; }
+}
+
+.sst-btn {
+  padding: 0.65rem 1.25rem;
+  border-radius: 4px;
+  font-weight: 600;
+  font-family: var(--fonte-corpo);
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+
+  &--dark {
+    background: var(--cor-primaria);
+    color: #fff;
+    &:hover { background: #000; }
+  }
+
+  &--outline {
+    background: transparent;
+    border-color: var(--cor-primaria);
+    color: var(--cor-primaria);
+    &:hover { background: #f8fafc; }
+  }
+}
+
+.sst-btn-link {
+  background: none;
+  border: none;
+  color: var(--cor-link);
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  &:hover { color: var(--cor-link-hover); }
+}
+
+
+.sst-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 1.5rem;
+  margin-top: 1rem;
+
+  &__info {
+    font-size: 0.85rem;
+    color: var(--cor-texto-secundario);
+  }
+
+  &__controls {
+    display: flex;
+    gap: 0.5rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+}
+
+.sst-btn-page {
+  background: transparent;
+  border: 1px solid var(--cor-borda);
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  color: var(--cor-texto-principal);
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background-color: var(--cor-tabela-header);
+  }
+
+  &--active {
+    background-color: var(--cor-primaria);
+    color: #ffffff;
+    border-color: var(--cor-primaria);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+
+.sst-text-right { text-align: right; }
+.sst-text-center { text-align: center; }
+
+/* =========================================
+   ESTRUTURA DOS MODAIS (OVERLAY + CARD)
+   ========================================= */
+.sst-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 23, 42, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease-out forwards;
+}
+
+.sst-modal {
+  width: 100%;
+  max-width: 600px;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.5rem 2rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+
+/* =========================================
+   RESPONSIVIDADE GLOBAL (SGSST)
+   ========================================= */
+
+@media (max-width: 992px) {
+  
+  .sst-layout {
+    padding: 1rem 0;
+  }
+
+  .sst-header {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 1rem;
+  }
+
+  .sst-header__main {
+    font-size: 1.6rem !important;
+  }
+
+  
+  .sst-grid, 
+  .sst-form-grid, 
+  .cards-grid, 
+  .charts-grid,
+  .content-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .sst-col-span-2 {
+    grid-column: span 1 !important;
+  }
+
+  
+  .sst-search {
+    width: 100%;
+    flex-direction: column;
+    
+    .sst-search__input {
+      width: 100% !important;
+    }
+    
+    button {
+      width: 100%;
+    }
+  }
+
+  .sst-card__toolbar {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 1rem;
+  }
+}
+
+
+
+.sst-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 8px;
+  
+  
+  .sst-table {
+    min-width: 700px; 
+  }
+}

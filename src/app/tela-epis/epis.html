@@ -1,0 +1,306 @@
+<div class="sst-layout">
+  <header class="sst-header">
+    <hgroup class="sst-header__titles">
+      <p class="sst-header__breadcrumb">SGSST / Administração</p>
+      <h1 class="sst-header__main">Gestão de EPIs</h1>
+    </hgroup>
+
+    <div style="display: flex; gap: 1rem">
+      <button class="sst-btn sst-btn--outline" (click)="abrirModalEntrega()">
+        Registrar Entrega
+      </button>
+      <button class="sst-btn sst-btn--dark" (click)="actionNovoEPI()">Cadastrar EPI</button>
+    </div>
+  </header>
+
+  <section class="sst-card sst-card--margem-inferior" aria-labelledby="titulo-estoque-epis">
+    <header class="sst-card__toolbar">
+      <h2 id="titulo-estoque-epis" class="sst-card__title">Controle de Estoque de EPIs</h2>
+
+      <search class="sst-search" style="display: flex; gap: 1rem">
+        <input
+          type="text"
+          class="sst-search__input"
+          style="width: 320px"
+          placeholder="Buscar EPIs por nome, ID ou CA..."
+          [(ngModel)]="termoBusca"
+          aria-label="Buscar EPI"
+        />
+      </search>
+    </header>
+
+    <div class="sst-table-wrapper">
+      <table class="sst-table">
+        <thead>
+          <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Descrição</th>
+            <th scope="col">Quantidade</th>
+            <th scope="col">Data de Inclusão</th>
+            <th scope="col">Validade (CA)</th>
+            <th scope="col">CA</th>
+            <th scope="col" class="sst-text-right">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (epi of episFiltrados; track epi.id) {
+            <tr>
+              <td>
+                <strong>{{ epi.id }}</strong>
+              </td>
+              <td>{{ epi.descricao }}</td>
+              <td>
+                <strong [style.color]="epi.quantidade < 20 ? '#dc2626' : 'inherit'">
+                  {{ epi.quantidade }} un
+                </strong>
+              </td>
+              <td>{{ epi.inclusao }}</td>
+              <td>{{ epi.validade }}</td>
+              <td>{{ epi.ca }}</td>
+              <td class="sst-text-right">
+                <button type="button" class="sst-btn-link" (click)="abrirModalEdicao(epi)">
+                  Editar
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td
+                colspan="7"
+                class="sst-text-center"
+                style="padding: 2.5rem 1rem; color: var(--cor-texto-secundario); font-style: italic"
+              >
+                Nenhum EPI encontrado.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="sst-card" aria-labelledby="titulo-entregas">
+    <header class="sst-card__toolbar">
+      <h2 id="titulo-entregas" class="sst-card__title">Entregas Registradas</h2>
+    </header>
+
+    <div class="sst-table-wrapper">
+      <table class="sst-table">
+        <thead>
+          <tr>
+            <th scope="col">Colaborador</th>
+            <th scope="col">EPI</th>
+            <th scope="col">Quantidade</th>
+            <th scope="col">Validade (CA)</th>
+            <th scope="col">CA</th>
+            <th scope="col">Data</th>
+            <th scope="col">Assinatura</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (entrega of entregas; track $index) {
+            <tr>
+              <td>
+                <strong>{{ entrega.colaborador }}</strong>
+              </td>
+              <td>{{ entrega.epi }}</td>
+              <td>{{ entrega.quantidade || 1 }} un</td>
+              <td>{{ entrega.validadeCa || '-' }}</td>
+              <td>{{ entrega.numeroCa || '-' }}</td>
+              <td>{{ entrega.data }}</td>
+              <td>
+                <em>{{ entrega.assinatura }}</em>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7" class="sst-text-center">Nenhuma entrega registrada.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+@if (mostrarModalEdicao) {
+  <div class="sst-modal-overlay">
+    <div class="sst-modal sst-card" style="max-width: 600px">
+      <header class="sst-card__toolbar">
+        <h3 class="sst-card__title">Editar EPI: {{ epiEmEdicao.id }}</h3>
+        <button
+          type="button"
+          class="sst-btn-link"
+          (click)="fecharModalEdicao()"
+          style="font-size: 1.5rem; text-decoration: none"
+        >
+          &times;
+        </button>
+      </header>
+
+      <form class="sst-form-grid" (submit)="$event.preventDefault(); salvarEdicao()">
+        <div class="sst-form-group sst-col-span-2">
+          <label for="descricao-epi-edit">Descrição</label>
+          <input
+            type="text"
+            id="descricao-epi-edit"
+            list="lista-epis-cadastrados"
+            class="sst-search__input sst-input-full"
+            [(ngModel)]="epiEmEdicao.descricao"
+            name="descricao"
+            placeholder="Digite ou selecione o EPI..."
+            required
+          />
+          <datalist id="lista-epis-cadastrados">
+            @for (item of listaEpisCadastrados; track item) {
+              <option [value]="item"></option>
+            }
+          </datalist>
+        </div>
+
+        <div class="sst-form-group">
+          <label for="qtd-epi-edit">Quantidade em Estoque</label>
+          <input
+            type="number"
+            id="qtd-epi-edit"
+            min="0"
+            class="sst-search__input sst-input-full"
+            [(ngModel)]="epiEmEdicao.quantidade"
+            name="qtd"
+            required
+          />
+        </div>
+
+        <div class="sst-form-group">
+          <label for="ca-epi-edit">Número do CA</label>
+          <input
+            type="text"
+            id="ca-epi-edit"
+            maxlength="10"
+            pattern="[0-9]*"
+            inputmode="numeric"
+            class="sst-search__input sst-input-full"
+            [(ngModel)]="epiEmEdicao.ca"
+            (input)="filtrarApenasNumerosCa($event)"
+            name="ca"
+            placeholder="Apenas números (máx 10 dígitos)"
+            required
+          />
+        </div>
+
+        <div class="sst-form-group sst-col-span-2">
+          <label for="validade-epi-edit">Validade (CA)</label>
+          <input
+            type="date"
+            id="validade-epi-edit"
+            class="sst-search__input sst-input-full"
+            [(ngModel)]="epiEmEdicao.validade"
+            name="validade"
+            required
+          />
+        </div>
+
+        <footer class="sst-form-actions sst-col-span-2">
+          <button type="button" class="sst-btn sst-btn--outline" (click)="fecharModalEdicao()">
+            Cancelar
+          </button>
+          <button type="submit" class="sst-btn sst-btn--dark">Salvar Alterações</button>
+        </footer>
+      </form>
+    </div>
+  </div>
+}
+
+@if (mostrarModalEntrega) {
+  <div class="sst-modal-overlay" (click)="fecharModalEntrega()">
+    <div class="sst-modal sst-card" (click)="$event.stopPropagation()">
+      <header class="sst-card__toolbar">
+        <h3 class="sst-card__title">Registrar Entrega de EPI</h3>
+        <button
+          type="button"
+          class="sst-btn-link"
+          (click)="fecharModalEntrega()"
+          style="font-size: 1.5rem; text-decoration: none"
+        >
+          &times;
+        </button>
+      </header>
+
+      <form class="sst-form-grid" (submit)="$event.preventDefault(); salvarEntrega()">
+        <div class="sst-form-group sst-col-span-2">
+          <label>Colaborador</label>
+          <input
+            type="text"
+            list="lista-colab-entrega"
+            class="sst-search__input sst-input-full"
+            [(ngModel)]="novaEntrega.colaborador"
+            name="colab"
+            placeholder="Digite ou selecione o nome..."
+            required
+          />
+          <datalist id="lista-colab-entrega">
+            <option value="Carlos Eduardo Silva"></option>
+            <option value="Maria Joana Oliveira"></option>
+            <option value="Roberto Alves"></option>
+          </datalist>
+        </div>
+
+        <div class="sst-form-group sst-col-span-2">
+          <label>Equipamento (EPI)</label>
+          <select
+            class="sst-search__input sst-input-full"
+            [(ngModel)]="novaEntrega.epiId"
+            name="epiSelecionado"
+            required
+          >
+            <option value="" disabled selected>Selecione um EPI disponível...</option>
+            @for (epi of epis; track epi.id) {
+              <option [value]="epi.id" [disabled]="epi.quantidade === 0">
+                {{ epi.descricao }} (Estoque: {{ epi.quantidade }})
+              </option>
+            }
+          </select>
+        </div>
+
+        <div class="sst-form-group">
+          <label>Quantidade Entregue</label>
+          <input
+            type="number"
+            min="1"
+            class="sst-search__input sst-input-full"
+            [(ngModel)]="novaEntrega.quantidade"
+            name="qtdEntrega"
+            required
+          />
+        </div>
+
+        <div class="sst-form-group">
+          <label>Data da Entrega</label>
+          <input
+            type="date"
+            class="sst-search__input sst-input-full"
+            [(ngModel)]="novaEntrega.data"
+            name="dataEntrega"
+            required
+          />
+        </div>
+
+        <footer
+          class="sst-form-actions sst-col-span-2"
+          style="
+            border-top: 1px solid #e2e8f0;
+            padding-top: 1.5rem;
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+          "
+        >
+          <button type="button" class="sst-btn sst-btn--outline" (click)="fecharModalEntrega()">
+            Cancelar
+          </button>
+          <button type="submit" class="sst-btn sst-btn--dark">Confirmar Entrega</button>
+        </footer>
+      </form>
+    </div>
+  </div>
+}

@@ -1,0 +1,88 @@
+.area-colaborador {
+  &__summary-grid,
+  &__details-grid {
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  &__summary-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  &__details-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+  }
+
+  &__section-spacing {
+    margin-bottom: 2rem;
+  }
+
+  &__summary-card {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__summary-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+
+  &__summary-count {
+    padding: 0;
+    background: transparent;
+    font-size: 1.25rem;
+  }
+
+  &__materials-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  &__material {
+    padding: 1rem;
+    border: 1px solid var(--cor-borda);
+    border-radius: 6px;
+  }
+
+  &__material-title {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--cor-primaria);
+  }
+
+  &__deadline {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    width: fit-content;
+    margin: 0 0 0.75rem;
+    padding: 0.35rem 0.65rem;
+    border-radius: 999px;
+    background: #000;
+    color: #fde047;
+    font-size: 0.8rem;
+    font-weight: 700;
+
+    span {
+      color: inherit;
+    }
+  }
+
+  &__deadline-icon {
+    width: 1rem;
+    height: 1rem;
+    flex: 0 0 auto;
+    fill: currentColor;
+  }
+
+  @media (max-width: 992px) {
+    &__summary-grid,
+    &__details-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+}

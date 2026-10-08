@@ -1,0 +1,67 @@
+<div class="ajuda-container">
+  
+  <header class="ajuda-header">
+    <h2>Ajuda e suporte</h2>
+  </header>
+
+  
+  <div class="ajuda-content">
+    
+    
+    <section class="card-form">
+      <h3>Nova solicitação</h3>
+
+      <form (ngSubmit)="enviarSolicitacao()">
+        <div class="form-group">
+          <label for="tipo">Tipo</label>
+          <select id="tipo" [(ngModel)]="tipoSolicitacao" name="tipo">
+            <option value="Solicitar Ajuda">Solicitar Ajuda</option>
+            <option value="Reportar Erro">Reportar Erro</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="descricao">Descrição</label>
+          <textarea
+            id="descricao"
+            rows="5"
+            placeholder="Descreva sua dúvida ou problema"
+            [(ngModel)]="descricao"
+            name="descricao"
+          ></textarea>
+        </div>
+
+        <button type="submit" class="btn-submit">Enviar solicitação</button>
+      </form>
+    </section>
+
+    
+    <section class="card-table">
+      <h3>Solicitações recentes</h3>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Tipo</th>
+              <th>Descrição</th>
+              <th>Usuário</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of solicitacoes; track item.descricao) {
+              <tr>
+                <td>{{ item.tipo }}</td>
+                <td><strong>{{ item.descricao }}</strong></td>
+                <td><strong>{{ item.usuario }}</strong></td>
+                <td><strong>{{ item.status }}</strong></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+</div>

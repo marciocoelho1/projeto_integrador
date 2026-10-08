@@ -1,0 +1,189 @@
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f1f5f9;
+}
+
+.sidebar {
+  width: 260px;
+  background-color: #ffffff;
+  border-right: 1px solid #e2e8f0;
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebarbrand {
+  margin-bottom: 2rem;
+  padding-left: 0.5rem;
+}
+
+.sidebartitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.sidebarsubtitle {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin: 0.25rem 0 0 0;
+}
+
+.sidebarnav {
+  flex: 1;
+}
+
+.sidebarmenu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.sidebarlink {
+  display: block;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #475569;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.sidebarlink:hover {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+.sidebarlink.active {
+  background-color: #e2e8f0;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.sidebarfooter {
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.sidebarlink--logout {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.sidebar__link--logout:hover {
+  background-color: #fef2f2;
+  color: #991b1b;
+}
+
+.main-content {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+.layout-header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.user-badge {
+  background-color: #cbd5e1;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+
+  &__role {
+    font-size: 0.75rem;
+    color: #475569;
+  }
+
+  &__name {
+    font-size: 0.9rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    color: #0f172a;
+  }
+}
+
+
+
+.mobile-header {
+  display: none;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #ffffff;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+  
+  .mobile-brand {
+    font-weight: 800;
+    font-size: 1.2rem;
+    color: #0f172a;
+  }
+
+  .btn-menu-toggle {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 40;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+
+  &.active {
+    display: block;
+    opacity: 1;
+  }
+}
+
+
+@media (max-width: 992px) {
+  .app-layout {
+    flex-direction: column;
+  }
+
+  .mobile-header {
+    display: flex; 
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: -280px; 
+    height: 100vh;
+    width: 260px;
+    z-index: 50;
+    transition: left 0.3s ease;
+    box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+    
+    &--open {
+      left: 0; 
+    }
+  }
+
+  .main-content {
+    padding: 1.5rem 1rem;
+  }
+}

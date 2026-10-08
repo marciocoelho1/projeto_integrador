@@ -1,0 +1,51 @@
+.ajuda-suporte-colaborador {
+  &__content {
+    display: grid;
+    grid-template-columns: 360px minmax(0, 1fr);
+    gap: 1.5rem;
+    align-items: start;
+  }
+
+  &__form-card {
+    max-width: none;
+  }
+
+  &__form {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  &__form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+
+    label {
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+
+    select,
+    textarea {
+      width: 100%;
+      box-sizing: border-box;
+    }
+  }
+
+  &__description {
+    min-height: 100px;
+    resize: vertical;
+  }
+
+  &__form-actions {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  @media (max-width: 992px) {
+    &__content {
+      grid-template-columns: 1fr;
+    }
+  }
+}

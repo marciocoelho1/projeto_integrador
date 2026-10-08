@@ -1,0 +1,64 @@
+<main class="login-container">
+    
+    <section class="login-card">
+        <header>
+            <h2>Acesse sua conta</h2>
+            <p>Digite sua matrícula e senha para acessar a plataforma</p>
+        </header>
+
+        <form (ngSubmit)="entrar()" #loginForm="ngForm">
+
+            <label>
+                Matrícula
+                <input type="text"
+                name="email" 
+                [(ngModel)]="email"
+                placeholder="insira sua matrícula"
+                required />
+            </label>
+
+            <label>
+                Senha
+                <input type="password"
+                name="senha" 
+                [(ngModel)]="senha"
+                placeholder="insira sua senha"
+                required />
+            </label>
+
+            
+            @if (erroLogin) {
+              <div style="color: #dc2626; font-size: 0.85rem; font-weight: 600; margin-top: -8px;">
+                Matrícula ou senha incorretos.
+              </div>
+            }
+
+            
+            <button type="submit" [disabled]="loginForm.invalid">Entrar</button>
+
+            
+            <a 
+              routerLink="/recuperar-senha" 
+              (click)="irParaRecuperarSenha($event)" 
+              class="forgot-password" 
+              style="cursor: pointer;">
+              Recuperar Senha
+            </a>
+
+        </form>
+
+        <footer>
+            <small>Ao continuar, você concorda com nossos 
+                <a href="#">Termos de Serviço</a> e 
+                <a href="#">Política de Privacidade</a></small>
+        </footer>
+
+    </section>
+
+    <aside class="banner-card">
+        <figure>
+            <img src="logo_projeto.png" alt="Ícone de um capacete de segurança e prancheta de checklist" />
+            <figcaption>Sistema de Gestão de SST</figcaption>
+        </figure>
+    </aside>
+</main>
