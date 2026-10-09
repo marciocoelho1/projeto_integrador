@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface Epi {
   id: number;
@@ -25,7 +26,7 @@ export interface EntregaEpi {
   providedIn: 'root',
 })
 export class EpisService {
-  private apiUrl = 'http://localhost:8080/api/epis';
+  private apiUrl = `${environment.apiBaseUrl}/epis`;
   private apiEntregasUrl = 'http://localhost:3000/entregas-epis';
 
   constructor(private http: HttpClient) {}

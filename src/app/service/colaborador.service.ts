@@ -6,6 +6,7 @@ import {
   Colaborador,
   ColaboradorRequest
 } from '../models/colaborador.model';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -14,7 +15,7 @@ export class ColaboradorService {
   private readonly http = inject(HttpClient);
 
   private readonly apiUrl =
-    'http://localhost:8080/api/colaboradores';
+    `${environment.apiBaseUrl}/colaboradores`;
 
   listar(): Observable<Colaborador[]> {
     return this.http.get<Colaborador[]>(this.apiUrl);
