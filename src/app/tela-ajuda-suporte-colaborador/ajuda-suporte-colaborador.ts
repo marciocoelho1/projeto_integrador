@@ -1,14 +1,14 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AuthService } from '../auth.service';
+import { Chamado, ChamadoService } from '../service/chamado.service';
 import { ToastService } from '../service/toast.service';
+import { mensagemErroApi } from '../service/api-error';
 
 export interface SupportRequest {
   id: number;
   type: string;
   description: string;
-  ownerMatricula: string;
   user: string;
   status: string;
 }
@@ -20,59 +20,66 @@ export interface SupportRequest {
   templateUrl: './ajuda-suporte-colaborador.html',
   styleUrls: ['./ajuda-suporte-colaborador.scss'],
 })
-export class HelpSupportComponent {
-  private toast = inject(ToastService);
-  private authService = inject(AuthService);
-  private nextRequestId = 2;
+export class HelpSupportComponent implements OnInit {
+  private readonly chamados = inject(ChamadoService);
+  private readonly toast = inject(ToastService);
 
   ticketType: string = 'Solicitar Ajuda';
   ticketDescription: string = '';
 
-  readonly requests = signal<SupportRequest[]>([
-    {
-      id: 1,
-      type: 'Ajuda',
-      description: 'Dúvida sobre renovação de NR-10',
-      ownerMatricula: 'colaborador',
-      user: 'Colaborador',
-      status: 'Em andamento',
-    },
-  ]);
+  /** Somente os chamados do usuário da sessão (GET /api/chamados?meus=true). */
+  readonly requests = signal<SupportRequest[]>([]);
+  readonly carregando = signal(false);
 
-  get visibleRequests(): SupportRequest[] {
-    const currentUser = this.authService.getCurrentUser();
+  ngOnInit(): void {
+    this.carregar();
+  }
 
-    if (!currentUser) {
-      return [];
-    }
+  carregar(): void {
+    this.carregando.set(true);
 
-    return this.requests().filter((request) => request.ownerMatricula === currentUser.matricula);
+    this.chamados.listar({ meus: true }).subscribe({
+      next: (lista) => {
+        this.requests.set(lista.map(paraSupportRequest));
+        this.carregando.set(false);
+      },
+      error: (erro) => {
+        this.carregando.set(false);
+        this.toast.error(mensagemErroApi(erro));
+      },
+    });
   }
 
   handleSubmit(): void {
-    const currentUser = this.authService.getCurrentUser();
+    const descricao = this.ticketDescription.trim();
 
-    if (!currentUser) {
-      this.toast.error('Não foi possível identificar o usuário autenticado. Entre novamente.');
-      return;
-    }
-
-    if (!this.ticketDescription.trim()) {
+    if (!descricao) {
       this.toast.error('Preencha a descrição da solicitação.');
       return;
     }
 
-    const newRequest: SupportRequest = {
-      id: this.nextRequestId++,
-      type: this.ticketType.includes('Ajuda') ? 'Ajuda' : 'Erro',
-      description: this.ticketDescription.trim(),
-      ownerMatricula: currentUser.matricula,
-      user: currentUser.nomeExibicao,
-      status: 'Em andamento',
-    };
-
-    this.requests.update((requests) => [newRequest, ...requests]);
-    this.ticketDescription = '';
-    this.toast.success('Solicitação enviada com sucesso!');
+    this.chamados
+      .criar({
+        tipo: this.ticketType.includes('Ajuda') ? 'Ajuda' : 'Erro',
+        descricao,
+      })
+      .subscribe({
+        next: (criado) => {
+          this.requests.update((lista) => [paraSupportRequest(criado), ...lista]);
+          this.ticketDescription = '';
+          this.toast.success('Solicitação enviada com sucesso!');
+        },
+        error: (erro) => this.toast.error(mensagemErroApi(erro)),
+      });
   }
+}
+
+function paraSupportRequest(chamado: Chamado): SupportRequest {
+  return {
+    id: chamado.id,
+    type: chamado.tipo,
+    description: chamado.descricao,
+    user: chamado.solicitante,
+    status: chamado.status,
+  };
 }

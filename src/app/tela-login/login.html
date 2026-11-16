@@ -29,12 +29,14 @@
             
             @if (erroLogin) {
               <div style="color: #dc2626; font-size: 0.85rem; font-weight: 600; margin-top: -8px;">
-                Matrícula ou senha incorretos.
+                {{ mensagemErro }}
               </div>
             }
 
             
-            <button type="submit" [disabled]="loginForm.invalid">Entrar</button>
+            <button type="submit" [disabled]="loginForm.invalid || entrando">
+              {{ entrando ? 'Entrando...' : 'Entrar' }}
+            </button>
 
             
             <a 

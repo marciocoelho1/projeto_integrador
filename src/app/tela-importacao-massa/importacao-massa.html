@@ -79,8 +79,17 @@
             Verifique se as colunas estão alinhadas corretamente.
           </p>
         </div>
-        <button class="sst-btn sst-btn--dark" (click)="confirmarImportacao()" style="background-color: #10b981; border-color: #10b981;">
-          Confirmar Importação ({{ linhasPreview().length }} registros)
+        <button
+          class="sst-btn sst-btn--dark"
+          (click)="confirmarImportacao()"
+          [disabled]="importando()"
+          style="background-color: #10b981; border-color: #10b981;"
+        >
+          @if (importando()) {
+            Importando...
+          } @else {
+            Confirmar Importação ({{ linhasPreview().length }} registros)
+          }
         </button>
       </header>
 
@@ -104,6 +113,48 @@
           </tbody>
         </table>
       </div>
+    </section>
+  }
+
+  
+  @if (resultadoTotal() !== null) {
+    <section class="sst-card" aria-labelledby="titulo-resultado" style="margin-top: 2rem;">
+      <header class="sst-card__toolbar" style="border-bottom: 1px solid #e2e8f0; padding-bottom: 1rem; margin-bottom: 1rem;">
+        <div>
+          <h2 id="titulo-resultado" class="sst-card__title">Resultado da Importação</h2>
+          <p style="color: #64748b; font-size: 0.85rem; margin-top: 0.25rem;">
+            {{ resultadoImportados() }} importada(s) • {{ resultadoIgnorados() }} ignorada(s) • {{ resultadoTotal() }} linha(s) processada(s)
+          </p>
+        </div>
+      </header>
+
+      @if (erros().length === 0) {
+        <p style="color: #10b981; font-weight: 600;">
+          Todas as linhas foram importadas sem erros.
+        </p>
+      } @else {
+        <p style="color: #ef4444; font-weight: 600; margin-bottom: 0.75rem;">
+          {{ erros().length }} linha(s) não importada(s) — corrija a planilha e envie novamente:
+        </p>
+        <div class="sst-table-wrapper" style="max-height: 320px; overflow-y: auto;">
+          <table class="sst-table">
+            <thead>
+              <tr>
+                <th scope="col" style="position: sticky; top: 0; background: #f8fafc; z-index: 1; width: 90px;">Linha</th>
+                <th scope="col" style="position: sticky; top: 0; background: #f8fafc; z-index: 1;">Motivo</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (erro of erros(); track $index) {
+                <tr>
+                  <td>{{ erro.linha }}</td>
+                  <td>{{ erro.mensagem }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
     </section>
   }
 </div>

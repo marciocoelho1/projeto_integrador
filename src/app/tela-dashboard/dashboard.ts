@@ -1,71 +1,82 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import {
+  DashboardService,
+  ResumoCertificacoes,
+  ResumoColaboradores,
+  ResumoEpis,
+  ResumoTreinamentos,
+} from '../service/dashboard.service';
+import { RelatorioService } from '../service/relatorio.service';
+import { ToastService } from '../service/toast.service';
+
+const ZERO_COLABORADORES: ResumoColaboradores = { total: 0, ativos: 0, inativos: 0, afastados: 0 };
+const ZERO_CERTIFICACOES: ResumoCertificacoes = { total: 0, ativas: 0, vencidas: 0, vencendoEm30Dias: 0 };
+const ZERO_EPIS: ResumoEpis = {
+  emEstoque: 0,
+  proximoVencimento: 0,
+  vencidos: 0,
+  entreguesUltimos30Dias: 0,
+  totalTipos: 0,
+};
+const ZERO_TREINAMENTOS: ResumoTreinamentos = {
+  concluidos: 0,
+  pendentes: 0,
+  vencidos: 0,
+  total: 0,
+  porcentagem: 0,
+};
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   imports: [CommonModule],
   templateUrl: './dashboard.html',
-  styleUrls: ['./dashboard.scss']
+  styleUrls: ['./dashboard.scss'],
 })
-export class Dashboard {
-  
-  protected readonly alertas = [
-    { tipo: 'EPI', mensagem: '12 Botinas de Segurança vencem esta semana.', criticidade: 'alta' },
-    { tipo: 'Treinamento', mensagem: 'NR-35 pendente para 5 colaboradores da Logística.', criticidade: 'media' },
-    { tipo: 'Certificação', mensagem: 'Renovação do PPRA concluída.', criticidade: 'baixa' }
-  ];
+export class Dashboard implements OnInit {
+  private readonly dashboardService = inject(DashboardService);
+  private readonly relatorios = inject(RelatorioService);
+  private readonly toast = inject(ToastService);
 
-  
-  protected readonly certificacoes = {
-    ativas: 142,
-    vencidas: 18
-  };
+  protected readonly carregando = this.dashboardService.carregando;
+  protected readonly erro = this.dashboardService.erro;
 
-  
-  protected readonly epis = {
-    aEntregar: 25,
-    emEstoque: 140,
-    proximoVencimento: 12
-  };
+  protected readonly colaboradores = computed(() => this.dashboardService.indicadores()?.colaboradores ?? ZERO_COLABORADORES);
+  protected readonly certificacoes = computed(() => this.dashboardService.indicadores()?.certificacoes ?? ZERO_CERTIFICACOES);
+  protected readonly epis = computed(() => this.dashboardService.indicadores()?.epis ?? ZERO_EPIS);
+  protected readonly treinamentos = computed(() => this.dashboardService.indicadores()?.treinamentos ?? ZERO_TREINAMENTOS);
+  protected readonly alertas = computed(() => this.dashboardService.indicadores()?.alertas ?? []);
 
-  
-  protected readonly reciclagens = {
-    concluidas: 42,
-    pendentes: 18,
-    total: 60,
-    porcentagem: 70
-  };
+  protected readonly atualizadoEm = computed(() => {
+    const geradoEm = this.dashboardService.indicadores()?.geradoEm;
+    return geradoEm ? new Date(geradoEm).toLocaleString('pt-BR') : '';
+  });
+
+  /** Unidades com CA válido e fora da janela de alerta (o saldo menos o que vence e o que venceu). */
+  protected readonly episComCaValido = computed(() => {
+    const resumo = this.epis();
+    return Math.max(0, resumo.emEstoque - resumo.proximoVencimento - resumo.vencidos);
+  });
+
+  ngOnInit(): void {
+    this.dashboardService.carregar();
+  }
+
+  protected recarregar(): void {
+    this.dashboardService.carregar();
+  }
 
   protected exportarRelatorio(): void {
-    const totalCertificacoes = this.certificacoes.ativas + this.certificacoes.vencidas;
-    const totalEpis = this.epis.aEntregar + this.epis.emEstoque + this.epis.proximoVencimento;
+    this.relatorios.baixar('dashboard', 'relatorio_dashboard.csv').subscribe({
+      next: () => this.toast.success('Relatório do dashboard exportado em CSV.'),
+      error: () => this.toast.error('Não foi possível gerar o relatório agora.'),
+    });
+  }
 
-    const linhas = [
-      'Categoria,Metrica,Valor',
-      `Certificações,Ativas,${this.certificacoes.ativas}`,
-      `Certificações,Vencidas,${this.certificacoes.vencidas}`,
-      `Certificações,Total,${totalCertificacoes}`,
-      `EPIs,A Entregar,${this.epis.aEntregar}`,
-      `EPIs,Em Estoque,${this.epis.emEstoque}`,
-      `EPIs,Próximo ao Vencimento,${this.epis.proximoVencimento}`,
-      `EPIs,Total,${totalEpis}`,
-      `Reciclagens,Concluídas,${this.reciclagens.concluidas}`,
-      `Reciclagens,Pendentes,${this.reciclagens.pendentes}`,
-      `Reciclagens,Total,${this.reciclagens.total}`,
-      `Reciclagens,Porcentagem,${this.reciclagens.porcentagem}%`
-    ];
-
-    const csvContent = '\uFEFF' + linhas.join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-
-    link.setAttribute('href', url);
-    link.setAttribute('download', 'relatorio_dashboard.csv');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+  /** Altura da barra do gráfico: proporção do total, com mínimo para a barra não sumir. */
+  protected alturaBarra(valor: number): number {
+    const total = this.certificacoes().total;
+    return total <= 0 ? 4 : Math.max(4, Math.round((valor * 100) / total));
   }
 }

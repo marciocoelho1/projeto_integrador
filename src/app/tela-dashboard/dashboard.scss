@@ -31,6 +31,29 @@
   gap: 1.5rem;
 }
 
+/* Cabeçalho com a data do cálculo e as ações do relatório */
+.dashboard-atualizacao {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  color: var(--cor-texto-secundario, #64748b);
+}
+
+.dashboard-acoes {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.dashboard-erro {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--cor-borda, #e2e8f0);
+  border-left: 4px solid #dc2626;
+  border-radius: 6px;
+  background: #fef2f2;
+  color: #991b1b;
+  font-size: 0.9rem;
+}
+
 /* =========================================
    1. Seção de Alertas no Topo
    ========================================= */

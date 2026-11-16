@@ -45,6 +45,7 @@ export function validarEpi(d: EpiRequest): boolean {
     texto(d.ca, 30) &&
     inteiro(d.quantidade) &&
     dataIso(d.inclusao) &&
-    dataIso(d.validade)
+    dataIso(d.validade) &&
+    d.validade >= d.inclusao
   );
 }

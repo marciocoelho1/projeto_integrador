@@ -52,6 +52,10 @@ describe('Validação alinhada ao contrato e limites SQL', () => {
     ])
       expect(validarTreinamento(d)).toBe(false);
   });
+  it('rejeita validade anterior à inclusão e aceita validade igual', () => {
+    expect(validarEpi({ ...e, validade: '2026-10-07' })).toBe(false);
+    expect(validarEpi({ ...e, validade: e.inclusao })).toBe(true);
+  });
   it('rejeita CA excedido, quantidade fora do INTEGER e datas não ISO/impossíveis', () => {
     for (const d of [
       { ...e, ca: 'x'.repeat(31) },

@@ -1,10 +1,17 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { CommonModule, TitleCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuditService } from '../service/audit.service';
-import { type ChaveModulo, DadosReferenciaService } from '../service/dados-referencia.service';
+import { type ChaveModulo } from '../service/dados-referencia.service';
+import { AcessoService, type UsuarioApi } from '../service/acesso.service';
 import { ToastService } from '../service/toast.service';
+import { AuthService } from '../auth.service';
+import { mensagemErroApi } from '../service/api-error';
+import {
+  ConfiguracoesGlobaisService,
+  type ParametroSistema,
+} from '../service/configuracoes-globais.service';
 
 const ROTAS_SISTEMA = {
   novoUsuario: '/cadastramentos/novo-usuario',
@@ -18,24 +25,26 @@ type StatusUsuario = 'ativo' | 'inativo';
 
 interface UsuarioSst {
   id: string;
+  login: string;
   nomeCompleto: string;
   emailCorporativo: string;
   cpf: string;
   grupoId: string;
   status: StatusUsuario;
+  senha?: string;
+}
+
+interface GrupoSst {
+  id: string;
+  nomenclatura: string;
+  finalidade: string;
+  modulosLiberados: ChaveModulo[];
 }
 
 interface ModuloSistema {
   chave: ChaveModulo;
   titulo: string;
   detalhe: string;
-}
-
-interface RegraAlerta {
-  codigo: 'estoqueEpi' | 'vencimentoEpi' | 'treinamentoVencido';
-  nomeRegra: string;
-  descricaoRegra: string;
-  isAtiva: boolean;
 }
 
 type GuiaConfiguracao = 'usuarios' | 'grupos' | 'matriz' | 'globais' | 'logs';
@@ -48,15 +57,21 @@ type GuiaConfiguracao = 'usuarios' | 'grupos' | 'matriz' | 'globais' | 'logs';
   styleUrl: './configuracoes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class Configuracoes {
+export class Configuracoes implements OnInit {
   private readonly router = inject(Router);
+  private readonly toastService = inject(ToastService);
+  private readonly auditService = inject(AuditService);
+  private readonly acesso = inject(AcessoService);
+  private readonly auth = inject(AuthService);
+  private readonly globais = inject(ConfiguracoesGlobaisService);
+
   protected readonly rotas = ROTAS_SISTEMA;
-  private toastService = inject(ToastService);
-  private auditService = inject(AuditService);
-  private dadosReferencia = inject(DadosReferenciaService);
 
   protected mostrarModalEdicaoUsuario = signal<boolean>(false);
   protected usuarioEmEdicao = signal<UsuarioSst | null>(null);
+  protected modoNovoUsuario = signal<boolean>(false);
+  protected salvandoUsuario = signal<boolean>(false);
+  protected carregandoAcessos = signal<boolean>(false);
 
   protected readonly guiasNavegacao: { id: GuiaConfiguracao; titulo: string }[] = [
     { id: 'usuarios', titulo: 'Usuários do Sistema' },
@@ -68,99 +83,21 @@ export class Configuracoes {
 
   protected readonly guiaAtual = signal<GuiaConfiguracao>('usuarios');
 
-  protected readonly modulosDisponiveis: ModuloSistema[] = [
-    {
-      chave: 'sgst_dashboard',
-      titulo: 'Dashboard SST',
-      detalhe: 'Visão geral e indicadores de saúde e segurança.',
-    },
-    {
-      chave: 'sgst_colaboradores',
-      titulo: 'Gestão de Colaboradores',
-      detalhe: 'Acesso à lista e prontuários dos funcionários.',
-    },
-    {
-      chave: 'sgst_epis',
-      titulo: 'Controle de EPIs',
-      detalhe: 'Entrega, devolução e gestão de estoque de EPIs.',
-    },
-    {
-      chave: 'sgst_treinamentos',
-      titulo: 'Matriz de Treinamentos',
-      detalhe: 'Controle de NRs e capacitações.',
-    },
-    {
-      chave: 'sgst_relatorios',
-      titulo: 'Relatórios Gerenciais',
-      detalhe: 'Extração de dados e auditorias.',
-    },
-    {
-      chave: 'sgst_config',
-      titulo: 'Administração do Sistema',
-      detalhe: 'Controle total de parâmetros e acessos.',
-    },
-  ];
+  /** Carregado de GET /api/modulos. */
+  protected modulosDisponiveis: ModuloSistema[] = [];
 
-  protected readonly gruposSst = this.dadosReferencia.gruposAcesso;
+  /** Carregado de GET /api/grupos. */
+  protected readonly gruposSst = signal<GrupoSst[]>([]);
 
   protected filtroLogTermo = signal('');
   protected filtroLogDataInicio = signal('');
   protected filtroLogDataFim = signal('');
 
-  protected readonly logsFiltrados = computed(() => {
-    let logs = this.auditService.logs();
-    const termo = this.filtroLogTermo().trim().toLowerCase();
-    const dataInicio = this.filtroLogDataInicio();
-    const dataFim = this.filtroLogDataFim();
+  /** Os logs vêm de GET /api/auditoria (o servidor já aplica termo e intervalo de datas). */
+  protected readonly logsFiltrados = computed(() => this.auditService.logs());
 
-    if (termo) {
-      logs = logs.filter(
-        (l) =>
-          l.usuario.toLowerCase().includes(termo) ||
-          l.modulo.toLowerCase().includes(termo) ||
-          l.descricao.toLowerCase().includes(termo),
-      );
-    }
-
-    if (dataInicio) {
-      const inicio = new Date(dataInicio + 'T00:00:00').getTime();
-      logs = logs.filter((l) => new Date(l.dataHora).getTime() >= inicio);
-    }
-
-    if (dataFim) {
-      const fim = new Date(dataFim + 'T23:59:59').getTime();
-      logs = logs.filter((l) => new Date(l.dataHora).getTime() <= fim);
-    }
-
-    return logs;
-  });
-
-  protected readonly usuariosCadastrados = signal<UsuarioSst[]>([
-    {
-      id: 'c1',
-      nomeCompleto: 'Clara Aragão',
-      emailCorporativo: 'clara.aragao@essenza.com.br',
-      cpf: '123.456.789-00',
-      grupoId: 'admin_tst',
-      status: 'ativo',
-    },
-    {
-      id: 'c2',
-      nomeCompleto: 'Simão Ngombo',
-      emailCorporativo: 'simao.n@essenza.com.br',
-      cpf: '111.222.333-44',
-      grupoId: 'admin_tst',
-      status: 'ativo',
-    },
-    {
-      id: 'c3',
-      nomeCompleto: 'Marcio Coelho',
-      emailCorporativo: 'marcio.c@essenza.com.br',
-      cpf: '999.888.777-66',
-      grupoId: 'colaborador',
-      status: 'inativo',
-    },
-  ]);
+  /** Carregado de GET /api/usuarios. */
+  protected readonly usuariosCadastrados = signal<UsuarioSst[]>([]);
 
   protected readonly termoBusca = signal('');
 
@@ -183,32 +120,52 @@ export class Configuracoes {
     });
   });
 
-  protected readonly grupoSelecionadoId = signal<string>('admin_tst');
+  protected readonly grupoSelecionadoId = signal<string>('');
 
   protected readonly grupoEmEdicao = computed(
     () => this.gruposSst().find((g) => g.id === this.grupoSelecionadoId()) ?? this.gruposSst()[0],
   );
 
-  protected readonly regrasAlertas = signal<RegraAlerta[]>([
-    {
-      codigo: 'estoqueEpi',
-      nomeRegra: 'Ruptura de Estoque (EPI)',
-      descricaoRegra: 'Notificar quando luvas, botas, etc., atingirem estoque mínimo.',
-      isAtiva: true,
-    },
-    {
-      codigo: 'vencimentoEpi',
-      nomeRegra: 'Validade de CA',
-      descricaoRegra: 'Aviso de vencimento do Certificado de Aprovação (30 dias).',
-      isAtiva: true,
-    },
-    {
-      codigo: 'treinamentoVencido',
-      nomeRegra: 'Reciclagem de NRs',
-      descricaoRegra: 'Aviso sobre vencimento de NR-35, NR-10, etc.',
-      isAtiva: false,
-    },
-  ]);
+  /** Regras de alerta persistidas (GET /api/regras-alerta). */
+  protected readonly regrasAlertas = this.globais.regras;
+
+  /** Parâmetros globais de GET /api/parametros, em cópia editável enquanto a tela está aberta. */
+  protected readonly parametrosEmEdicao = signal<ParametroSistema[]>([]);
+
+  protected readonly erroGlobais = this.globais.erro;
+  protected readonly carregandoGlobais = this.globais.carregando;
+  protected readonly salvandoGlobais = this.globais.salvando;
+
+  constructor() {
+    // Carrega os logs da API ao abrir a guia e recarrega quando um filtro muda.
+    effect(() => {
+      if (this.guiaAtual() !== 'logs') {
+        return;
+      }
+
+      this.auditService.carregar({
+        termo: this.filtroLogTermo(),
+        inicio: this.filtroLogDataInicio(),
+        fim: this.filtroLogDataFim(),
+      });
+    });
+
+    // A cópia editável dos parâmetros acompanha o que veio da API (na carga e a cada gravação).
+    effect(() => {
+      const parametros = this.globais.parametros();
+
+      if (parametros.length > 0) {
+        this.parametrosEmEdicao.set(parametros.map((parametro) => ({ ...parametro })));
+      }
+    });
+  }
+
+  ngOnInit(): void {
+    this.carregarModulos();
+    this.carregarGrupos();
+    this.carregarUsuarios();
+    this.globais.carregar();
+  }
 
   protected navegarGuia(guia: GuiaConfiguracao): void {
     this.guiaAtual.set(guia);
@@ -223,64 +180,253 @@ export class Configuracoes {
     this.guiaAtual.set('matriz');
   }
 
+  /** Recalcula a matriz do grupo na API (PUT /api/grupos/{id}/modulos). */
   protected alternarAcessoModulo(chave: ChaveModulo): void {
+    const grupo = this.grupoEmEdicao();
+
+    if (!grupo) {
+      return;
+    }
+
+    const modulos = grupo.modulosLiberados.includes(chave)
+      ? grupo.modulosLiberados.filter((c) => c !== chave)
+      : [...grupo.modulosLiberados, chave];
+
     this.gruposSst.update((lista) =>
-      lista.map((grupo) => {
-        if (grupo.id !== this.grupoSelecionadoId()) return grupo;
-
-        const possui = grupo.modulosLiberados.includes(chave);
-        const modulosLiberados = possui
-          ? grupo.modulosLiberados.filter((c) => c !== chave)
-          : [...grupo.modulosLiberados, chave];
-
-        return { ...grupo, modulosLiberados };
-      }),
+      lista.map((g) => (g.id === grupo.id ? { ...g, modulosLiberados: modulos } : g)),
     );
+
+    this.acesso.definirModulos(Number(grupo.id), modulos).subscribe({
+      next: (resposta) =>
+        this.gruposSst.update((lista) =>
+          lista.map((g) =>
+            g.id === grupo.id
+              ? { ...g, modulosLiberados: resposta.modulos as ChaveModulo[] }
+              : g,
+          ),
+        ),
+      error: (erro) => {
+        this.toastService.error(mensagemErroApi(erro));
+        this.carregarGrupos();
+      },
+    });
   }
 
-  protected alternarRegra(codigo: RegraAlerta['codigo']): void {
+  /** Liga/desliga a regra na tela e grava em PUT /api/regras-alerta/{codigo}. */
+  protected alternarRegra(codigo: string): void {
+    const regra = this.regrasAlertas().find((atual) => atual.codigo === codigo);
+
+    if (!regra) {
+      return;
+    }
+
+    const isAtiva = !regra.isAtiva;
+
     this.regrasAlertas.update((lista) =>
-      lista.map((regra) =>
-        regra.codigo === codigo ? { ...regra, isAtiva: !regra.isAtiva } : regra,
-      ),
+      lista.map((atual) => (atual.codigo === codigo ? { ...atual, isAtiva } : atual)),
+    );
+
+    this.globais.definirAtiva(codigo, isAtiva).subscribe({
+      error: (erro) => {
+        this.toastService.error(mensagemErroApi(erro));
+        this.globais.carregar();
+      },
+    });
+  }
+
+  protected alterarParametro(chave: string, valor: string): void {
+    this.parametrosEmEdicao.update((lista) =>
+      lista.map((parametro) => (parametro.chave === chave ? { ...parametro, valor } : parametro)),
     );
   }
 
+  /**
+   * Grava em PUT /api/parametros/{chave} só o que mudou em relação ao valor que veio do servidor,
+   * para o botão "Salvar Configurações" não regravar tudo a cada clique.
+   */
   protected gravarAlteracoesGlobais(): void {
-    console.log('Salvando preferências SST...', this.regrasAlertas());
+    const originais = this.globais.parametros();
+    const alterados = this.parametrosEmEdicao().filter(
+      (parametro) =>
+        parametro.valor !==
+        (originais.find((original) => original.chave === parametro.chave)?.valor ?? ''),
+    );
+
+    if (alterados.length === 0) {
+      this.toastService.warning('Nenhuma alteração de parâmetro para salvar.');
+      return;
+    }
+
+    this.globais.salvarValores(alterados).subscribe({
+      next: () => this.toastService.success('Parâmetros atualizados.'),
+      error: (erro) => this.toastService.error(mensagemErroApi(erro)),
+    });
   }
 
   actionNovoUsuario(): void {
-    console.log('Botão Novo Usuário clicado! Redirecionando...');
-    this.router.navigate(['/cadastramentos'], { queryParams: { aba: 'colaborador' } });
+    this.modoNovoUsuario.set(true);
+    this.usuarioEmEdicao.set({
+      id: '',
+      login: '',
+      nomeCompleto: '',
+      emailCorporativo: '',
+      cpf: '',
+      grupoId: this.gruposSst()[0]?.id ?? '',
+      status: 'ativo',
+      senha: '',
+    });
+    this.mostrarModalEdicaoUsuario.set(true);
   }
 
   protected actionEditarUsuario(usuario: UsuarioSst): void {
-    this.usuarioEmEdicao.set({ ...usuario });
+    this.modoNovoUsuario.set(false);
+    this.usuarioEmEdicao.set({ ...usuario, senha: '' });
     this.mostrarModalEdicaoUsuario.set(true);
   }
 
   protected fecharModalEdicaoUsuario(): void {
     this.mostrarModalEdicaoUsuario.set(false);
+    this.modoNovoUsuario.set(false);
     this.usuarioEmEdicao.set(null);
   }
 
   protected salvarEdicaoUsuario(): void {
-    const usuarioAtualizado = this.usuarioEmEdicao();
-    if (!usuarioAtualizado) return;
+    const usuario = this.usuarioEmEdicao();
 
-    this.usuariosCadastrados.update((lista) =>
-      lista.map((u) => (u.id === usuarioAtualizado.id ? { ...usuarioAtualizado } : u)),
-    );
-    this.toastService.success(
-      `Usuário "${usuarioAtualizado.nomeCompleto}" atualizado com sucesso!`,
-    );
-    this.auditService.registrarAcao(
-      'Administrador',
-      'Configurações',
-      'EDICAO',
-      `Atualizou usuário ${usuarioAtualizado.nomeCompleto}`,
-    );
-    this.fecharModalEdicaoUsuario();
+    if (!usuario || this.salvandoUsuario()) {
+      return;
+    }
+
+    const novo = this.modoNovoUsuario();
+    const senha = (usuario.senha ?? '').trim();
+
+    if (!usuario.nomeCompleto.trim() || !usuario.login.trim()) {
+      this.toastService.error('Informe o nome completo e o usuário de acesso.');
+      return;
+    }
+
+    if (usuario.cpf.replace(/\D/g, '').length !== 11) {
+      this.toastService.error('O CPF deve conter 11 dígitos.');
+      return;
+    }
+
+    if (novo && (senha.length < 6 || senha.length > 72)) {
+      this.toastService.error('Informe uma senha de 6 a 72 caracteres.');
+      return;
+    }
+
+    if (!novo && senha && (senha.length < 6 || senha.length > 72)) {
+      this.toastService.error('A nova senha deve ter de 6 a 72 caracteres.');
+      return;
+    }
+
+    if (!usuario.grupoId) {
+      this.toastService.error('Selecione o grupo de acesso.');
+      return;
+    }
+
+    const dados = {
+      nomeCompleto: usuario.nomeCompleto.trim(),
+      login: usuario.login.trim(),
+      email: usuario.emailCorporativo.trim(),
+      cpf: usuario.cpf,
+      grupoId: Number(usuario.grupoId),
+      status: (usuario.status === 'ativo' ? 'Ativo' : 'Inativo') as 'Ativo' | 'Inativo',
+      ...(senha ? { senha } : {}),
+    };
+
+    this.salvandoUsuario.set(true);
+
+    const requisicao = novo
+      ? this.acesso.criarUsuario(dados)
+      : this.acesso.atualizarUsuario(Number(usuario.id), dados);
+
+    requisicao.subscribe({
+      next: (salvo) => {
+        this.salvandoUsuario.set(false);
+        this.usuariosCadastrados.update((lista) =>
+          novo
+            ? [...lista, this.paraUsuarioSst(salvo)]
+            : lista.map((u) =>
+                u.id === String(salvo.id) ? this.paraUsuarioSst(salvo) : u,
+              ),
+        );
+        this.toastService.success(
+          novo
+            ? `Usuário "${salvo.nomeCompleto}" cadastrado com sucesso!`
+            : `Usuário "${salvo.nomeCompleto}" atualizado com sucesso!`,
+        );
+        this.auditService.registrarAcao(
+          this.auth.getCurrentUser()?.nomeExibicao ?? 'Administrador',
+          'Configurações',
+          novo ? 'CRIACAO' : 'EDICAO',
+          `${novo ? 'Cadastrou' : 'Atualizou'} usuário ${salvo.nomeCompleto}`,
+        );
+        this.fecharModalEdicaoUsuario();
+      },
+      error: (erro) => {
+        this.salvandoUsuario.set(false);
+        this.toastService.error(mensagemErroApi(erro));
+      },
+    });
+  }
+
+  private carregarModulos(): void {
+    this.acesso.listarModulos().subscribe({
+      next: (modulos) =>
+        (this.modulosDisponiveis = modulos.map((modulo) => ({
+          chave: modulo.chave as ChaveModulo,
+          titulo: modulo.titulo,
+          detalhe: modulo.detalhe,
+        }))),
+      error: (erro) => this.toastService.error(mensagemErroApi(erro)),
+    });
+  }
+
+  private carregarGrupos(): void {
+    this.acesso.listarGrupos().subscribe({
+      next: (grupos) => {
+        const mapeados: GrupoSst[] = grupos.map((grupo) => ({
+          id: String(grupo.id),
+          nomenclatura: grupo.nomenclatura,
+          finalidade: grupo.finalidade,
+          modulosLiberados: grupo.modulos as ChaveModulo[],
+        }));
+
+        this.gruposSst.set(mapeados);
+
+        if (!this.grupoSelecionadoId() && mapeados.length > 0) {
+          this.grupoSelecionadoId.set(mapeados[0].id);
+        }
+      },
+      error: (erro) => this.toastService.error(mensagemErroApi(erro)),
+    });
+  }
+
+  protected carregarUsuarios(): void {
+    this.carregandoAcessos.set(true);
+
+    this.acesso.listarUsuarios().subscribe({
+      next: (usuarios) => {
+        this.usuariosCadastrados.set(usuarios.map((u) => this.paraUsuarioSst(u)));
+        this.carregandoAcessos.set(false);
+      },
+      error: (erro) => {
+        this.carregandoAcessos.set(false);
+        this.toastService.error(mensagemErroApi(erro));
+      },
+    });
+  }
+
+  private paraUsuarioSst(usuario: UsuarioApi): UsuarioSst {
+    return {
+      id: String(usuario.id),
+      login: usuario.login,
+      nomeCompleto: usuario.nomeCompleto,
+      emailCorporativo: usuario.email,
+      cpf: usuario.cpf,
+      grupoId: String(usuario.grupoId),
+      status: usuario.status === 'Ativo' ? 'ativo' : 'inativo',
+    };
   }
 }

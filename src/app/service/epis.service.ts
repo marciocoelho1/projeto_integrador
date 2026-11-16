@@ -14,11 +14,27 @@ export interface Epi {
 
 export type EpiRequest = Omit<Epi, 'id'>;
 
+/** Entrega de EPI como a API devolve, com os campos de exibição já resolvidos. */
 export interface EntregaEpi {
-  id?: number | string;
+  id: number;
+  colaboradorId: number;
   colaborador: string;
+  matricula: string;
+  epiId: number;
   epi: string;
-  data: string;
+  ca: string;
+  quantidade: number;
+  dataEntrega: string;
+  assinatura: string;
+  registradoEm?: string;
+}
+
+/** Corpo do POST /api/entregas-epis: o que a tela precisa informar para registrar a entrega. */
+export interface EntregaEpiRequest {
+  colaboradorId: number;
+  epiId: number;
+  quantidade: number;
+  dataEntrega: string;
   assinatura: string;
 }
 
@@ -27,7 +43,7 @@ export interface EntregaEpi {
 })
 export class EpisService {
   private apiUrl = `${environment.apiBaseUrl}/epis`;
-  private apiEntregasUrl = 'http://localhost:3000/entregas-epis';
+  private apiEntregasUrl = `${environment.apiBaseUrl}/entregas-epis`;
 
   constructor(private http: HttpClient) {}
 
@@ -56,14 +72,20 @@ export class EpisService {
   }
 
   /* =======================================================
-     MÉTODOS - REGISTRO DE ENTREGAS DE EPIs
+     MÉTODOS - ENTREGAS DE EPIs (com baixa e estorno de estoque)
      ======================================================= */
 
-  obterEntregas(): Observable<EntregaEpi[]> {
-    return this.http.get<EntregaEpi[]>(this.apiEntregasUrl);
+  /** Lista as entregas; com colaboradorId devolve só as entregas daquele colaborador. */
+  obterEntregas(colaboradorId?: number): Observable<EntregaEpi[]> {
+    const params = colaboradorId == null ? undefined : { colaboradorId: String(colaboradorId) };
+    return this.http.get<EntregaEpi[]>(this.apiEntregasUrl, { params });
   }
 
-  registrarEntrega(entrega: EntregaEpi): Observable<EntregaEpi> {
+  registrarEntrega(entrega: EntregaEpiRequest): Observable<EntregaEpi> {
     return this.http.post<EntregaEpi>(this.apiEntregasUrl, entrega);
+  }
+
+  excluirEntrega(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiEntregasUrl}/${id}`);
   }
 }

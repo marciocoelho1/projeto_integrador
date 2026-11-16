@@ -1,4 +1,6 @@
 import { TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { Router } from '@angular/router';
 import { AuthService } from '../auth.service';
 import { LayoutPadrao } from './layout-padrao';
@@ -26,7 +28,11 @@ describe('LayoutPadrao', () => {
 
     TestBed.configureTestingModule({
       imports: [LayoutPadrao],
-      providers: [{ provide: Router, useValue: router }],
+      providers: [
+        { provide: Router, useValue: router },
+        provideHttpClient(),
+        provideHttpClientTesting(),
+      ],
     });
 
     const authService = TestBed.inject(AuthService);

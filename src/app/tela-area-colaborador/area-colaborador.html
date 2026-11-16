@@ -152,7 +152,9 @@
             </tr>
           } @empty {
             <tr>
-              <td colspan="6" class="sst-text-center">Nenhum EPI registrado no momento.</td>
+              <td colspan="6" class="sst-text-center">
+                {{ avisoEpis || 'Nenhum EPI registrado no momento.' }}
+              </td>
             </tr>
           }
         </tbody>

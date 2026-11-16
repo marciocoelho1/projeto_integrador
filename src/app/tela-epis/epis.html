@@ -8,12 +8,12 @@
   <button
     type="button"
     class="sst-btn-link"
-    (click)="carregar()"
-    [disabled]="carregando || salvando"
+    (click)="atualizarListas()"
+    [disabled]="carregando || carregandoEntregas || salvando"
   >
     Atualizar lista
   </button>
-  <p>Entregas e assinaturas fora do escopo: estoque não será abatido por esta tela.</p>
+  <p>Registre a entrega para abater o estoque do EPI; exclua uma entrega para estornar a quantidade.</p>
   <header class="sst-header">
     <hgroup class="sst-header__titles">
       <p class="sst-header__breadcrumb">SGSST / Administração</p>
@@ -114,30 +114,41 @@
             <th scope="col">Colaborador</th>
             <th scope="col">EPI</th>
             <th scope="col">Quantidade</th>
-            <th scope="col">Validade (CA)</th>
             <th scope="col">CA</th>
-            <th scope="col">Data</th>
+            <th scope="col">Data da Entrega</th>
             <th scope="col">Assinatura</th>
+            <th scope="col" class="sst-text-right">Ações</th>
           </tr>
         </thead>
         <tbody>
-          @for (entrega of entregas; track $index) {
+          @for (entrega of entregas; track entrega.id) {
             <tr>
               <td>
                 <strong>{{ entrega.colaborador }}</strong>
               </td>
               <td>{{ entrega.epi }}</td>
-              <td>{{ entrega.quantidade || 1 }} un</td>
-              <td>{{ entrega.validadeCa || '-' }}</td>
-              <td>{{ entrega.numeroCa || '-' }}</td>
-              <td>{{ entrega.data }}</td>
+              <td>{{ entrega.quantidade }} un</td>
+              <td>{{ entrega.ca || '-' }}</td>
+              <td>{{ entrega.dataEntrega }}</td>
               <td>
                 <em>{{ entrega.assinatura }}</em>
+              </td>
+              <td class="sst-text-right">
+                <button
+                  type="button"
+                  class="sst-btn-link"
+                  (click)="excluirEntrega(entrega)"
+                  [disabled]="salvando"
+                >
+                  Excluir
+                </button>
               </td>
             </tr>
           } @empty {
             <tr>
-              <td colspan="7" class="sst-text-center">Entregas não integradas nesta etapa.</td>
+              <td colspan="7" class="sst-text-center">
+                Nenhuma entrega registrada. Registre uma entrega ou clique em "Atualizar lista".
+              </td>
             </tr>
           }
         </tbody>
@@ -252,7 +263,7 @@
   <div class="sst-modal-overlay" (click)="fecharModalEntrega()">
     <div class="sst-modal sst-card" (click)="$event.stopPropagation()">
       <header class="sst-card__toolbar">
-        <h3 class="sst-card__title">Entrega de EPI — fora do escopo</h3>
+        <h3 class="sst-card__title">Registrar Entrega de EPI</h3>
         <button
           type="button"
           class="sst-btn-link"
@@ -275,6 +286,11 @@
             placeholder="Digite ou selecione o nome..."
             required
           />
+          <datalist id="lista-colab-entrega">
+            @for (colaborador of listaColaboradoresCadastrados; track colaborador) {
+              <option [value]="colaborador"></option>
+            }
+          </datalist>
         </div>
 
         <div class="sst-form-group sst-col-span-2">
@@ -317,6 +333,10 @@
           />
         </div>
 
+        @if (erro) {
+          <p role="alert" class="sst-col-span-2">{{ erro }}</p>
+        }
+
         <footer
           class="sst-form-actions sst-col-span-2"
           style="
@@ -330,7 +350,9 @@
           <button type="button" class="sst-btn sst-btn--outline" (click)="fecharModalEntrega()">
             Cancelar
           </button>
-          <button type="submit" class="sst-btn sst-btn--dark">Confirmar Entrega</button>
+          <button type="submit" class="sst-btn sst-btn--dark" [disabled]="salvando">
+            Confirmar Entrega
+          </button>
         </footer>
       </form>
     </div>

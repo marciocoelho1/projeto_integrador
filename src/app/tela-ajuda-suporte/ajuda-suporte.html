@@ -50,12 +50,27 @@
             </tr>
           </thead>
           <tbody>
-            @for (item of solicitacoes; track item.descricao) {
+            @for (item of solicitacoes(); track item.id) {
               <tr>
                 <td>{{ item.tipo }}</td>
                 <td><strong>{{ item.descricao }}</strong></td>
-                <td><strong>{{ item.usuario }}</strong></td>
-                <td><strong>{{ item.status }}</strong></td>
+                <td><strong>{{ item.solicitante }}</strong></td>
+                <td>
+                  <select
+                    class="status-select"
+                    [ngModel]="item.status"
+                    (ngModelChange)="mudarStatus(item, $event)"
+                    [name]="'status-' + item.id"
+                  >
+                    @for (status of statusOpcoes; track status) {
+                      <option [value]="status">{{ status }}</option>
+                    }
+                  </select>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="4">Nenhuma solicitação encontrada.</td>
               </tr>
             }
           </tbody>

@@ -146,6 +146,11 @@
           <header>
             <h2 id="titulo-regras" class="sst-card__title">Regras de Negócio e Alertas</h2>
             <p class="sst-card__subtitle">Configure o comportamento autônomo do sistema SST.</p>
+            @if (erroGlobais()) {
+              <p class="sst-card__subtitle" role="alert">{{ erroGlobais() }}</p>
+            } @else if (carregandoGlobais()) {
+              <p class="sst-card__subtitle">Carregando configurações…</p>
+            }
           </header>
 
           <form class="sst-form" (submit)="$event.preventDefault(); gravarAlteracoesGlobais()">
@@ -168,6 +173,29 @@
                            [attr.aria-label]="'Ativar regra ' + regra.nomeRegra">
                     <span class="sst-switch__slider"></span>
                   </label>
+                </div>
+              }
+            </fieldset>
+
+            <fieldset class="sst-form__list" style="border: none; padding: 0; margin: 0;">
+              <legend class="visually-hidden">Parâmetros Globais do Sistema</legend>
+              @for (parametro of parametrosEmEdicao(); track parametro.chave) {
+                <div class="sst-form__row">
+                  <div class="sst-form__text">
+                    <label [attr.for]="'parametro-' + parametro.chave">
+                      <strong>{{ parametro.chave }}</strong>
+                      <span>{{ parametro.descricao }}</span>
+                    </label>
+                  </div>
+
+                  <input
+                    type="number"
+                    min="0"
+                    class="sst-search__input"
+                    [id]="'parametro-' + parametro.chave"
+                    [value]="parametro.valor"
+                    (input)="alterarParametro(parametro.chave, $any($event.target).value)"
+                  />
                 </div>
               }
             </fieldset>
@@ -261,7 +289,7 @@
       <div class="sst-modal-overlay">
         <div class="sst-modal sst-card" style="max-width: 600px;">
           <header class="sst-card__toolbar">
-            <h3 class="sst-card__title">Editar Usuário</h3>
+            <h3 class="sst-card__title">{{ modoNovoUsuario() ? 'Novo Usuário' : 'Editar Usuário' }}</h3>
             <button type="button" class="sst-btn-link" (click)="fecharModalEdicaoUsuario()" style="font-size: 1.5rem; text-decoration: none;">&times;</button>
           </header>
 
@@ -274,6 +302,18 @@
             <div class="sst-form-group sst-col-span-2">
               <label for="usr-edit-email">E-mail Corporativo</label>
               <input type="email" id="usr-edit-email" class="sst-search__input sst-input-full" [(ngModel)]="usuario.emailCorporativo" name="emailCorporativo" required>
+            </div>
+
+            <div class="sst-form-group">
+              <label for="usr-edit-login">Usuário de Acesso</label>
+              <input type="text" id="usr-edit-login" class="sst-search__input sst-input-full" [(ngModel)]="usuario.login" name="login" required>
+            </div>
+
+            <div class="sst-form-group">
+              <label for="usr-edit-senha">
+                {{ modoNovoUsuario() ? 'Senha' : 'Nova Senha (opcional)' }}
+              </label>
+              <input type="password" id="usr-edit-senha" class="sst-search__input sst-input-full" [(ngModel)]="usuario.senha" name="senha" [required]="modoNovoUsuario()" minlength="6" maxlength="72">
             </div>
 
             <div class="sst-form-group">
@@ -300,7 +340,9 @@
 
             <footer class="sst-form-actions sst-col-span-2">
               <button type="button" class="sst-btn sst-btn--outline" (click)="fecharModalEdicaoUsuario()">Cancelar</button>
-              <button type="submit" class="sst-btn sst-btn--dark">Salvar Alterações</button>
+              <button type="submit" class="sst-btn sst-btn--dark" [disabled]="salvandoUsuario()">
+                {{ salvandoUsuario() ? 'Salvando...' : (modoNovoUsuario() ? 'Cadastrar Usuário' : 'Salvar Alterações') }}
+              </button>
             </footer>
           </form>
         </div>

@@ -129,14 +129,61 @@ describe('Telas CRUD reais', () => {
     expect(req.request.body).toEqual(c.novoEpi);
     req.flush(epi);
   });
-  it('não abate estoque para entregas fora do escopo', () => {
-    const c = TestBed.createComponent(Epis).componentInstance;
-    (c as any).epis = [epi];
+  it('registra a entrega na API, abate o estoque e recarrega estoque e entregas', () => {
+    const c: any = TestBed.createComponent(Epis).componentInstance;
+    const http = TestBed.inject(HttpTestingController);
+    c.epis = [epi];
     c.abrirModalEntrega();
+    http.expectOne('http://localhost:8080/api/colaboradores').flush([colab]);
+    c.novaEntrega = { colaborador: 'Teste', epiId: '7', data: '2026-06-01', quantidade: 2 };
     c.salvarEntrega();
-    expect(c.epis[0].quantidade).toBe(2);
-    expect(c.entregas).toEqual([]);
     expect(TestBed.inject(ToastService).toasts().at(-1)?.tipo).not.toBe('sucesso');
+
+    const post = http.expectOne('http://localhost:8080/api/entregas-epis');
+    expect(post.request.method).toBe('POST');
+    expect(post.request.body).toEqual({
+      colaboradorId: 7,
+      epiId: 7,
+      quantidade: 2,
+      dataEntrega: '2026-06-01',
+      assinatura: 'Teste',
+    });
+    post.flush({ id: 1, epi: 'Luva nova', ca: '0001', dataEntrega: '2026-06-01', assinatura: 'Teste' });
+
+    http.expectOne('http://localhost:8080/api/epis').flush([{ ...epi, quantidade: 0 }]);
+    http
+      .expectOne('http://localhost:8080/api/entregas-epis')
+      .flush([
+        {
+          id: 1,
+          colaboradorId: 7,
+          colaborador: 'Teste',
+          matricula: '001',
+          epiId: 7,
+          epi: 'Luva nova',
+          ca: '0001',
+          quantidade: 2,
+          dataEntrega: '2026-06-01',
+          assinatura: 'Teste',
+        },
+      ]);
+
+    expect(c.epis[0].quantidade).toBe(0);
+    expect(c.entregas.length).toBe(1);
+    expect(TestBed.inject(ToastService).toasts().at(-1)?.tipo).toBe('sucesso');
+  });
+
+  it('não chama a API de entrega quando o colaborador informado não está cadastrado', () => {
+    const c: any = TestBed.createComponent(Epis).componentInstance;
+    const http = TestBed.inject(HttpTestingController);
+    c.epis = [epi];
+    c.abrirModalEntrega();
+    http.expectOne('http://localhost:8080/api/colaboradores').flush([colab]);
+    c.novaEntrega = { colaborador: 'Ninguém', epiId: '7', data: '2026-06-01', quantidade: 2 };
+    c.salvarEntrega();
+    http.expectNone('http://localhost:8080/api/entregas-epis');
+    expect(TestBed.inject(ToastService).toasts().at(-1)?.tipo).toBe('erro');
+    expect(c.epis[0].quantidade).toBe(2);
   });
   for (const [component, resource, field, row] of [
     [Colaboradores, 'colaboradores', 'colaboradores', colab],

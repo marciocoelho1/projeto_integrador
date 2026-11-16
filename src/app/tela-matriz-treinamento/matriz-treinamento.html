@@ -15,8 +15,8 @@
   </button>
   @if (cardSelecionado !== 'Treinamentos' || modoVisualizacao !== 'lista') {
     <p role="status">
-      Matrizes, cargos, vínculos, certificações e reciclagens fora do escopo. Apenas o catálogo de
-      treinamentos está integrado.
+      Dados carregados da API: matriz LNT por cargo, vínculos colaborador × treinamento, certificações,
+      reciclagens derivadas da validade e a matriz cruzada por NR.
     </p>
   }
 
@@ -623,46 +623,84 @@
         <form class="sst-form-grid" (submit)="$event.preventDefault(); salvarVinculoCertificacao()">
           <div class="sst-form-group sst-col-span-2">
             <label for="colab-modal-cert">Colaborador</label>
-            <select id="colab-modal-cert" class="sst-search__input sst-input-full" required>
-              <option value="" disabled selected>Selecione um colaborador...</option>
-              <option value="Carlos Eduardo Silva">Carlos Eduardo Silva</option>
-              <option value="Maria Joana Oliveira">Maria Joana Oliveira</option>
-              <option value="Roberto Alves">Roberto Alves</option>
-              <option value="Ana Paula Souza">Ana Paula Souza</option>
-              <option value="Fernando Costa">Fernando Costa</option>
-              <option value="Lucas Fontes">Lucas Fontes</option>
-              <option value="Juliana Mendes">Juliana Mendes</option>
+            <select
+              id="colab-modal-cert"
+              name="colaboradorId"
+              class="sst-search__input sst-input-full"
+              [(ngModel)]="certificacaoEmCadastro.colaboradorId"
+              required
+            >
+              <option [ngValue]="null" disabled>Selecione um colaborador...</option>
+              @for (colab of colaboradores; track colab.id) {
+                <option [ngValue]="colab.id">{{ colab.nome }}</option>
+              }
             </select>
           </div>
 
           <div class="sst-form-group sst-col-span-2">
             <label for="treina-modal-cert">Treinamento</label>
-            <select id="treina-modal-cert" class="sst-search__input sst-input-full" required>
-              <option value="" disabled selected>Selecione um treinamento...</option>
-              <option value="NR-06 Uso Adequado e Guarda de EPIs">
-                NR-06 Uso Adequado e Guarda de EPIs
-              </option>
-              <option value="NR-11 Operação Segura de Empilhadeira">
-                NR-11 Operação Segura de Empilhadeira
-              </option>
-              <option value="NR-12 Segurança em Máquinas">NR-12 Segurança em Máquinas</option>
-              <option value="NR-17 Ergonomia para Checkout">NR-17 Ergonomia para Checkout</option>
-              <option value="NR-35 Trabalho em Altura">NR-35 Trabalho em Altura</option>
-              <option value="NR-23 e Brigada de Incêndio">NR-23 e Brigada de Incêndio</option>
-              <option value="Boas Práticas de Manipulação de Alimentos">
-                Boas Práticas de Manipulação de Alimentos
-              </option>
+            <select
+              id="treina-modal-cert"
+              name="treinamentoId"
+              class="sst-search__input sst-input-full"
+              [(ngModel)]="certificacaoEmCadastro.treinamentoId"
+              required
+            >
+              <option [ngValue]="null" disabled>Selecione um treinamento...</option>
+              @for (treina of treinamentosDisponiveis; track treina.id) {
+                <option [ngValue]="treina.id">{{ treina.nome }}</option>
+              }
             </select>
           </div>
 
           <div class="sst-form-group">
+            <label for="inst-modal-cert">Instituição Emissora</label>
+            <input
+              type="text"
+              id="inst-modal-cert"
+              name="instituicao"
+              class="sst-search__input sst-input-full"
+              [(ngModel)]="certificacaoEmCadastro.instituicao"
+              maxlength="150"
+              required
+            />
+          </div>
+
+          <div class="sst-form-group">
+            <label for="ch-modal-cert">Carga Horária</label>
+            <input
+              type="text"
+              id="ch-modal-cert"
+              name="cargaHoraria"
+              class="sst-search__input sst-input-full"
+              [(ngModel)]="certificacaoEmCadastro.cargaHoraria"
+              maxlength="30"
+              required
+            />
+          </div>
+
+          <div class="sst-form-group">
             <label for="dt-cert">Data da Certificação</label>
-            <input type="date" id="dt-cert" class="sst-search__input sst-input-full" required />
+            <input
+              type="date"
+              id="dt-cert"
+              name="emitidaEm"
+              class="sst-search__input sst-input-full"
+              [(ngModel)]="certificacaoEmCadastro.emitidaEm"
+              required
+            />
           </div>
 
           <div class="sst-form-group">
             <label for="dt-val-cert">Validade</label>
-            <input type="date" id="dt-val-cert" class="sst-search__input sst-input-full" required />
+            <input
+              type="date"
+              id="dt-val-cert"
+              name="validade"
+              class="sst-search__input sst-input-full"
+              [(ngModel)]="certificacaoEmCadastro.validade"
+              required
+            />
           </div>
 
           <footer class="sst-form-actions sst-col-span-2">
@@ -692,55 +730,73 @@
 
         <form class="sst-form-grid" (submit)="$event.preventDefault(); salvarVinculoReciclagem()">
           <div class="sst-form-group sst-col-span-2">
-            <label for="colab-modal-rec">Colaborador</label>
-            <input
-              type="text"
-              id="colab-modal-rec"
-              list="lista-colab-rec"
-              class="sst-search__input sst-input-full"
-              placeholder="Digite ou selecione o colaborador..."
-              required
-            />
-            <datalist id="lista-colab-rec">
-              <option value="Carlos Eduardo Silva"></option>
-              <option value="Maria Joana Oliveira"></option>
-              <option value="Roberto Alves"></option>
-              <option value="Ana Paula Souza"></option>
-              <option value="Fernando Costa"></option>
-              <option value="Lucas Fontes"></option>
-              <option value="Juliana Mendes"></option>
-            </datalist>
-          </div>
-
-          <div class="sst-form-group sst-col-span-2">
             <label for="treina-modal-rec">Treinamento de Reciclagem</label>
-            <input
-              type="text"
+            <select
               id="treina-modal-rec"
-              list="lista-treina-rec"
+              name="treinamentoId"
               class="sst-search__input sst-input-full"
-              placeholder="Digite ou selecione o treinamento..."
+              [(ngModel)]="turmaEmCadastro.treinamentoId"
               required
-            />
-            <datalist id="lista-treina-rec">
-              <option value="NR-06 Uso Adequado e Guarda de EPIs"></option>
-              <option value="NR-11 Operação Segura de Empilhadeira"></option>
-              <option value="NR-12 Segurança em Máquinas"></option>
-              <option value="NR-17 Ergonomia para Checkout"></option>
-              <option value="NR-35 Trabalho em Altura"></option>
-              <option value="NR-23 e Brigada de Incêndio"></option>
-              <option value="Boas Práticas de Manipulação de Alimentos"></option>
-            </datalist>
+            >
+              <option [ngValue]="null" disabled>Selecione o treinamento...</option>
+              @for (treina of treinamentosDisponiveis; track treina.id) {
+                <option [ngValue]="treina.id">{{ treina.nome }}</option>
+              }
+            </select>
           </div>
 
           <div class="sst-form-group sst-col-span-2">
-            <label for="dt-limite-rec">Data Limite</label>
+            <label for="instrutor-modal-rec">Instrutor / Responsável</label>
+            <input
+              type="text"
+              id="instrutor-modal-rec"
+              name="instrutor"
+              class="sst-search__input sst-input-full"
+              [(ngModel)]="turmaEmCadastro.instrutor"
+              maxlength="150"
+              required
+            />
+          </div>
+
+          <div class="sst-form-group">
+            <label for="dt-limite-rec">Data Agendada</label>
             <input
               type="date"
               id="dt-limite-rec"
+              name="dataAgendada"
               class="sst-search__input sst-input-full"
+              [(ngModel)]="turmaEmCadastro.dataAgendada"
               required
             />
+          </div>
+
+          <div class="sst-form-group">
+            <label for="vagas-modal-rec">Vagas</label>
+            <input
+              type="number"
+              id="vagas-modal-rec"
+              name="vagas"
+              class="sst-search__input sst-input-full"
+              [(ngModel)]="turmaEmCadastro.vagas"
+              min="0"
+              step="1"
+              required
+            />
+          </div>
+
+          <div class="sst-form-group sst-col-span-2">
+            <label for="status-modal-rec">Status da Turma</label>
+            <select
+              id="status-modal-rec"
+              name="status"
+              class="sst-search__input sst-input-full"
+              [(ngModel)]="turmaEmCadastro.status"
+              required
+            >
+              <option value="Agendada">Agendada</option>
+              <option value="Concluída">Concluída</option>
+              <option value="Cancelada">Cancelada</option>
+            </select>
           </div>
 
           <footer class="sst-form-actions sst-col-span-2">
@@ -1016,12 +1072,11 @@
               <div class="sst-form-group">
                 <label for="treina-data">Conclusão</label>
                 <input
-                  type="text"
+                  type="date"
                   id="treina-data"
                   class="sst-search__input sst-input-full"
                   [(ngModel)]="itemEmEdicao.dataConclusao"
                   name="dataConclusao"
-                  required
                 />
               </div>
               <div class="sst-form-group">
@@ -1181,7 +1236,7 @@
               <div class="sst-form-group">
                 <label for="cert-validade">Validade</label>
                 <input
-                  type="text"
+                  type="date"
                   id="cert-validade"
                   class="sst-search__input sst-input-full"
                   [(ngModel)]="itemEmEdicao.validade"
@@ -1253,7 +1308,7 @@
               <div class="sst-form-group">
                 <label for="cert-valpadrao">Validade Base</label>
                 <input
-                  type="text"
+                  type="date"
                   id="cert-valpadrao"
                   class="sst-search__input sst-input-full"
                   [(ngModel)]="itemEmEdicao.validadePadrao"
@@ -1379,7 +1434,7 @@
               <div class="sst-form-group">
                 <label for="rec-data-agendada">Data Agendada</label>
                 <input
-                  type="text"
+                  type="date"
                   id="rec-data-agendada"
                   class="sst-search__input sst-input-full"
                   [(ngModel)]="itemEmEdicao.dataAgendada"
