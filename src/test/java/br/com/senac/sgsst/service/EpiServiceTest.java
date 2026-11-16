@@ -38,6 +38,18 @@ class EpiServiceTest {
     when(repository.findById(1)).thenReturn(Optional.of(entity));
     service.excluir(1); verify(repository).delete(entity); verify(repository).flush();
   }
+  @Test void rejeitaCaDuplicado() {
+    when(repository.existsByCa("123")).thenReturn(true);
+    assertThrows(ConflitoException.class, () -> service.criar(request));
+    verify(repository, never()).saveAndFlush(any());
+  }
+  @Test void atualizacaoNaoPermiteCaDeOutroRegistro() {
+    var entity = new Epi();
+    when(repository.findById(1)).thenReturn(Optional.of(entity));
+    when(repository.existsByCaAndIdNot("123", 1)).thenReturn(true);
+    assertThrows(ConflitoException.class, () -> service.atualizar(1, request));
+    verify(repository, never()).saveAndFlush(any());
+  }
   @Test void inexistenteEmTodasOperacoes() {
     assertThrows(RecursoNaoEncontradoException.class, () -> service.buscarPorId(1));
     assertThrows(RecursoNaoEncontradoException.class, () -> service.atualizar(1, request));

@@ -21,10 +21,10 @@ public class Colaborador {
   @Column(nullable = false, length = 150)
   private String nome;
 
-  @Column(nullable = false, length = 14)
+  @Column(nullable = false, unique = true, length = 14)
   private String cpf;
 
-  @Column(nullable = false, length = 180)
+  @Column(nullable = false, unique = true, length = 180)
   private String email;
 
   @Column(nullable = false, length = 120)

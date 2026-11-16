@@ -26,4 +26,10 @@ class ColaboradorControllerTest extends CrudControllerContractTest {
       .content(payload().replace("\"email\": \"ana@example.test\"", "\"email\": \"invalido\"")))
       .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isBadRequest());
   }
+  @org.junit.jupiter.api.Test void cpfSem11DigitosRetorna400() throws Exception {
+    mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(endpoint())
+      .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+      .content(payload().replace("\"cpf\": \"12345678901\"", "\"cpf\": \"123\"")))
+      .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isBadRequest());
+  }
 }

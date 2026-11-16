@@ -29,6 +29,27 @@ public class ApiExceptionHandler {
     return erro(HttpStatus.CONFLICT, exception.getMessage());
   }
 
+  @ExceptionHandler(RequisicaoInvalidaException.class)
+  public ResponseEntity<Map<String, Object>> requisicaoInvalidaDeRegra(
+    RequisicaoInvalidaException exception
+  ) {
+    return erro(HttpStatus.BAD_REQUEST, exception.getMessage());
+  }
+
+  @ExceptionHandler(CredencialInvalidaException.class)
+  public ResponseEntity<Map<String, Object>> credencialInvalida(
+    CredencialInvalidaException exception
+  ) {
+    return erro(HttpStatus.UNAUTHORIZED, exception.getMessage());
+  }
+
+  @ExceptionHandler(AcessoNegadoException.class)
+  public ResponseEntity<Map<String, Object>> acessoNegado(
+    AcessoNegadoException exception
+  ) {
+    return erro(HttpStatus.FORBIDDEN, exception.getMessage());
+  }
+
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ResponseEntity<Map<String, Object>> validacao(
     MethodArgumentNotValidException exception

@@ -12,4 +12,11 @@ public record EpiRequest(
     descricao = descricao == null ? null : descricao.trim();
     ca = ca == null ? null : ca.trim();
   }
+
+  @AssertTrue(message = "A validade deve ser igual ou posterior à inclusão.")
+  public boolean isValidadePosteriorAInclusao() {
+    return inclusao == null
+      || validade == null
+      || !validade.isBefore(inclusao);
+  }
 }

@@ -3,6 +3,7 @@ package br.com.senac.sgsst.service;
 import br.com.senac.sgsst.dto.EpiRequest;
 import br.com.senac.sgsst.dto.EpiResponse;
 import br.com.senac.sgsst.entity.Epi;
+import br.com.senac.sgsst.exception.ConflitoException;
 import br.com.senac.sgsst.exception.RecursoNaoEncontradoException;
 import br.com.senac.sgsst.repository.EpiRepository;
 import org.springframework.data.domain.Sort;
@@ -24,6 +25,9 @@ public class EpiService {
 
   @Transactional
   public EpiResponse criar(EpiRequest request) {
+    if (repository.existsByCa(request.ca())) {
+      throw new ConflitoException("Já existe um EPI com este CA.");
+    }
     var entity = new Epi();
     preencher(entity, request);
     return EpiResponse.from(repository.saveAndFlush(entity));
@@ -32,6 +36,9 @@ public class EpiService {
   @Transactional
   public EpiResponse atualizar(Integer id, EpiRequest request) {
     var entity = encontrar(id);
+    if (repository.existsByCaAndIdNot(request.ca(), id)) {
+      throw new ConflitoException("Já existe outro EPI com este CA.");
+    }
     preencher(entity, request);
     return EpiResponse.from(repository.saveAndFlush(entity));
   }

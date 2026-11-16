@@ -25,6 +25,16 @@ class ColaboradorServiceTest {
     assertThrows(br.com.senac.sgsst.exception.ConflitoException.class, () -> service.criar(request));
     verify(repository, never()).saveAndFlush(any());
   }
+  @Test void rejeitaCpfDuplicado() {
+    when(repository.existsByCpf("12345678901")).thenReturn(true);
+    assertThrows(br.com.senac.sgsst.exception.ConflitoException.class, () -> service.criar(request));
+    verify(repository, never()).saveAndFlush(any());
+  }
+  @Test void rejeitaEmailDuplicado() {
+    when(repository.existsByEmail("ana@example.test")).thenReturn(true);
+    assertThrows(br.com.senac.sgsst.exception.ConflitoException.class, () -> service.criar(request));
+    verify(repository, never()).saveAndFlush(any());
+  }
   @Test void listaOrdenada() {
     var entity = new Colaborador(); entity.setNome("Segurança");
     when(repository.findAll(org.springframework.data.domain.Sort.by("nome", "id"))).thenReturn(java.util.List.of(entity));
@@ -61,6 +71,18 @@ class ColaboradorServiceTest {
   @Test void atualizacaoNaoPermiteMatriculaDeOutroRegistro() {
     when(repository.findById(1)).thenReturn(java.util.Optional.of(new Colaborador()));
     when(repository.existsByMatriculaAndIdNot("TR01", 1)).thenReturn(true);
+    assertThrows(br.com.senac.sgsst.exception.ConflitoException.class, () -> service.atualizar(1, request));
+    verify(repository, never()).saveAndFlush(any());
+  }
+  @Test void atualizacaoNaoPermiteCpfDeOutroRegistro() {
+    when(repository.findById(1)).thenReturn(java.util.Optional.of(new Colaborador()));
+    when(repository.existsByCpfAndIdNot("12345678901", 1)).thenReturn(true);
+    assertThrows(br.com.senac.sgsst.exception.ConflitoException.class, () -> service.atualizar(1, request));
+    verify(repository, never()).saveAndFlush(any());
+  }
+  @Test void atualizacaoNaoPermiteEmailDeOutroRegistro() {
+    when(repository.findById(1)).thenReturn(java.util.Optional.of(new Colaborador()));
+    when(repository.existsByEmailAndIdNot("ana@example.test", 1)).thenReturn(true);
     assertThrows(br.com.senac.sgsst.exception.ConflitoException.class, () -> service.atualizar(1, request));
     verify(repository, never()).saveAndFlush(any());
   }

@@ -47,6 +47,17 @@ class RequestValidationTest {
     var request = new EpiRequest("a".repeat(181), "a".repeat(31), null, null, -1);
     assertEquals(5, validator.validate(request).size());
   }
+  @Test void epiRejeitaValidadeAnteriorAInclusao() {
+    var request = new EpiRequest("Capacete", "123", date, date.minusDays(1), 0);
+    var violacoes = validator.validate(request);
+    assertEquals(1, violacoes.size());
+    assertEquals("validadePosteriorAInclusao", violacoes.iterator().next().getPropertyPath().toString());
+  }
+  @Test void colaboradorNormalizaEmailParaMinusculo() {
+    var request = new ColaboradorRequest("M01", "Ana", "12345678901", " Ana.Silva@Essenza.COM.BR ", "Técnica", "Produção", "Ativo");
+    assertTrue(validator.validate(request).isEmpty());
+    assertEquals("ana.silva@essenza.com.br", request.email());
+  }
   @Test void epiRejeitaQuantidadeNula() {
     assertFalse(validator.validate(new EpiRequest("Capacete", "123", date, date, null)).isEmpty());
   }

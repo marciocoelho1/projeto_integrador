@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
+import java.util.Locale;
+
 public record ColaboradorRequest(
 
   @NotBlank(message = "Informe a matrícula.")
@@ -49,7 +51,7 @@ public record ColaboradorRequest(
     cpf = cpf == null
       ? null
       : cpf.replaceAll("[.\\-\\s]", "");
-    email = limpar(email);
+    email = minusculo(limpar(email));
     cargo = limpar(cargo);
     setor = limpar(setor);
     status = limpar(status);
@@ -57,5 +59,9 @@ public record ColaboradorRequest(
 
   private static String limpar(String valor) {
     return valor == null ? null : valor.trim();
+  }
+
+  private static String minusculo(String valor) {
+    return valor == null ? null : valor.toLowerCase(Locale.ROOT);
   }
 }

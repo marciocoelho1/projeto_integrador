@@ -14,7 +14,7 @@ public class Epi {
   private String descricao;
   public String getDescricao() { return descricao; }
   public void setDescricao(String value) { this.descricao = value; }
-  @Column(name = "ca", nullable = false, length = 30)
+  @Column(name = "ca", nullable = false, unique = true, length = 30)
   private String ca;
   public String getCa() { return ca; }
   public void setCa(String value) { this.ca = value; }

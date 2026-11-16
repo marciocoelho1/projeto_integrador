@@ -41,6 +41,18 @@ public class ColaboradorService {
       );
     }
 
+    if (repository.existsByCpf(request.cpf())) {
+      throw new ConflitoException(
+        "Já existe um colaborador com este CPF."
+      );
+    }
+
+    if (repository.existsByEmail(request.email())) {
+      throw new ConflitoException(
+        "Já existe um colaborador com este e-mail."
+      );
+    }
+
     Colaborador colaborador = new Colaborador();
     preencher(colaborador, request);
 
@@ -62,6 +74,24 @@ public class ColaboradorService {
     )) {
       throw new ConflitoException(
         "Já existe outro colaborador com esta matrícula."
+      );
+    }
+
+    if (repository.existsByCpfAndIdNot(
+      request.cpf(),
+      id
+    )) {
+      throw new ConflitoException(
+        "Já existe outro colaborador com este CPF."
+      );
+    }
+
+    if (repository.existsByEmailAndIdNot(
+      request.email(),
+      id
+    )) {
+      throw new ConflitoException(
+        "Já existe outro colaborador com este e-mail."
       );
     }
 

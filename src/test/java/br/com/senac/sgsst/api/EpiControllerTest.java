@@ -27,6 +27,13 @@ class EpiControllerTest extends CrudControllerContractTest {
       .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isBadRequest());
   }
 
+  @org.junit.jupiter.api.Test void validadeAnteriorAInclusaoRetorna400() throws Exception {
+    mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(endpoint())
+      .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+      .content(payload().replace("\"validade\": \"2027-01-01\"", "\"validade\": \"2025-12-31\"")))
+      .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isBadRequest());
+  }
+
   @org.junit.jupiter.api.Test void dataInvalidaRetorna400() throws Exception {
     mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(endpoint())
       .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
