@@ -1,0 +1,10 @@
+# Proprietários do código (CODEOWNERS)
+#
+# Toda alteração na branch protegida `main` precisa da aprovação do proprietário
+# abaixo. Com a opção "Exigir revisão dos proprietários do código" ligada na regra
+# de proteção da `main`, a aprovação obrigatória tem que ser a dele — as aprovações
+# dos demais colaboradores não satisfazem a exigência.
+#
+# O padrão `*` cobre todos os arquivos do repositório.
+
+* @marciocoelho1
