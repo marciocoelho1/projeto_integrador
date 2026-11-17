@@ -1,29 +1,6 @@
 /* =========================================
-   Aba Ativa no Sistema (Dashboard)
+   Dashboard — painel combinado (KPIs + bento)
    ========================================= */
-.sst-tabs-nav {
-  display: flex;
-  gap: 0.5rem;
-  border-bottom: 2px solid var(--cor-borda, #e2e8f0);
-  margin-bottom: 1.5rem;
-}
-
-.sst-tab-btn {
-  background: transparent;
-  border: none;
-  padding: 0.75rem 1.25rem;
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--cor-texto-secundario, #64748b);
-  cursor: pointer;
-  border-bottom: 3px solid transparent;
-  margin-bottom: -2px;
-
-  &--active {
-    color: var(--cor-primaria, #1e293b);
-    border-bottom-color: var(--cor-primaria, #1e293b);
-  }
-}
 
 .dashboard-wrapper {
   display: flex;
@@ -31,11 +8,11 @@
   gap: 1.5rem;
 }
 
-/* Cabeçalho com a data do cálculo e as ações do relatório */
+/* Cabeçalho com o resumo do cálculo e as ações do relatório */
 .dashboard-atualizacao {
   margin: 0.25rem 0 0;
   font-size: 0.875rem;
-  color: var(--cor-texto-secundario, #64748b);
+  color: var(--cor-texto-secundario);
 }
 
 .dashboard-acoes {
@@ -46,8 +23,8 @@
 .dashboard-erro {
   margin: 0 0 1rem;
   padding: 0.75rem 1rem;
-  border: 1px solid var(--cor-borda, #e2e8f0);
-  border-left: 4px solid #dc2626;
+  border: 1px solid var(--cor-borda);
+  border-left: 4px solid var(--cor-alerta);
   border-radius: 6px;
   background: #fef2f2;
   color: #991b1b;
@@ -55,288 +32,651 @@
 }
 
 /* =========================================
-   1. Seção de Alertas no Topo
+   1. Indicadores principais
    ========================================= */
-.alerts-card {
-  &__header {
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+/* Base compartilhada dos cards do painel (indicadores e "precisa de atenção") */
+.kpi-card,
+.attention-card {
+  background: var(--cor-fundo-card);
+  border: 1px solid var(--cor-borda);
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.kpi-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1.25rem 1.4rem;
+  border-top: 3px solid var(--cor-primaria);
+
+  &--blue {
+    border-top-color: var(--cor-link);
+  }
+
+  &--red {
+    border-top-color: var(--cor-alerta);
+  }
+
+  &--amber {
+    border-top-color: #f59e0b;
+  }
+
+  &--slate {
+    border-top-color: var(--cor-primaria);
+  }
+
+  &__label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--cor-texto-secundario);
+  }
+
+  &__value {
+    margin: 0;
+    font-family: var(--fonte-titulos);
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--cor-primaria);
+
+    small {
+      font-family: var(--fonte-corpo);
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--cor-texto-secundario);
+    }
+
+    &--destaque {
+      margin: 0.15rem 0;
+      font-size: 2.5rem;
+    }
+  }
+
+  &__hint {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--cor-texto-secundario);
+
+    strong {
+      color: var(--cor-texto-principal);
+    }
+  }
+}
+
+/* =========================================
+   2. Painel bento
+   ========================================= */
+
+.bento-combo {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-areas:
+    'atencao atencao atencao heat heat heat'
+    'comp comp setor setor epi epi'
+    'entregas entregas ultimas ultimas atividade atividade';
+  gap: 1.25rem;
+}
+
+.bento-atencao {
+  grid-area: atencao;
+}
+.bento-comp {
+  grid-area: comp;
+}
+.bento-heat {
+  grid-area: heat;
+}
+.bento-setor {
+  grid-area: setor;
+}
+.bento-epi-list {
+  grid-area: epi;
+}
+.bento-entregas {
+  grid-area: entregas;
+}
+.bento-ultimas {
+  grid-area: ultimas;
+}
+.bento-atividade {
+  grid-area: atividade;
+}
+
+.card-vazio {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--cor-texto-secundario);
+}
+
+/* Cabeçalho dos cards: título/subtítulo à esquerda, chip ou link à direita */
+.chart-head,
+.card-head-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.9rem;
+
+  .sst-card__subtitle {
+    margin: 0.15rem 0 0;
+  }
+}
+
+/* =========================================
+   3. Card "Precisa de atenção"
+   ========================================= */
+
+.attention-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem;
+
+  &__head {
     display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
+    align-items: flex-start;
+    gap: 0.75rem;
+
+    h3 {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+
+    p {
+      margin: 0.2rem 0 0;
+      font-size: 0.85rem;
+      color: var(--cor-texto-secundario);
+    }
   }
 
   &__icon {
     font-size: 1.25rem;
+    line-height: 1;
   }
 }
 
-.alerts-list {
+/* Listas do painel: atenção, últimas entregas, estoque crítico e feed de auditoria */
+.attention-list,
+.list,
+.activity-row {
   list-style: none;
-  padding: 0;
   margin: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 0.75rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
 }
 
-.alert-item {
-  padding: 0.75rem;
+.attention-list {
+  gap: 0.6rem;
+}
+
+.attention-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 0.85rem;
+  background: #f8fafc;
+  border-left: 4px solid var(--cor-borda);
   border-radius: 6px;
-  font-size: 0.85rem;
-  border-left: 4px solid transparent;
 
   &--alta {
-    background-color: #fef2f2;
-    border-color: var(--cor-alerta, #ef4444);
-    color: #991b1b;
+    background: #fef2f2;
+    border-left-color: var(--cor-alerta);
   }
-  
+
   &--media {
-    background-color: #fffbeb;
-    border-color: #f59e0b;
-    color: #92400e;
+    background: #fffbeb;
+    border-left-color: #f59e0b;
   }
 
   &--baixa {
-    background-color: #f0fdf4;
-    border-color: #22c55e;
+    background: #f0fdf4;
+    border-left-color: #22c55e;
+  }
+
+  &--vazio {
+    font-size: 0.85rem;
+    color: var(--cor-texto-secundario);
+    border-left-style: dashed;
+  }
+}
+
+/* Texto em duas linhas: título em cima, detalhe em baixo */
+.attention-item__body,
+.list__main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+
+  strong {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--cor-texto-principal);
+  }
+
+  small {
+    font-size: 0.75rem;
+    color: var(--cor-texto-secundario);
+  }
+}
+
+.attention-item__body {
+  flex: 1;
+}
+
+/* =========================================
+   4. Chips de status
+   ========================================= */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+  background: #f1f5f9;
+  color: #475569;
+
+  &--red {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+  &--amber {
+    background: #fef3c7;
+    color: #92400e;
+  }
+  &--green {
+    background: #dcfce7;
     color: #166534;
   }
+  &--slate {
+    background: #f1f5f9;
+    color: #475569;
+  }
 }
 
 /* =========================================
-   2. Grade de Gráficos (Proporção 2:1)
+   5. Barra empilhada e legendas
    ========================================= */
-.charts-grid {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 1.5rem;
 
-  @media (max-width: 992px) {
-    grid-template-columns: 1fr;
-  }
-}
-
-.chart-card {
-  min-height: 300px;
+.stack {
   display: flex;
-  flex-direction: column;
-}
+  height: 12px;
+  margin-top: 0.85rem;
+  background: #f1f5f9;
+  border-radius: 999px;
+  overflow: hidden;
 
-.chart-placeholder {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 180px;
-  margin-top: 1rem;
-  border: 1px dashed var(--cor-borda, #e2e8f0);
-  border-radius: 8px;
-  background-color: #f8fafc;
-}
-
-
-.chart-content-with-side {
-  display: flex;
-  gap: 1.25rem;
-  align-items: stretch;
-
-  @media (max-width: 640px) {
-    flex-direction: column;
-  }
-}
-
-.mock-bar-chart {
-  width: 100%;
-  height: 150px;
-  display: flex;
-  justify-content: space-around;
-  align-items: flex-end;
-  padding-bottom: 0.5rem;
-
-  .bar-col {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  i {
+    display: block;
     height: 100%;
-    justify-content: flex-end;
-    width: 50px;
-  }
-
-  .bar {
-    width: 100%;
-    border-radius: 4px 4px 0 0;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    padding-top: 0.2rem;
-
-    &--active { background-color: #10b981; }
-    &--expired { background-color: var(--cor-alerta, #ef4444); }
-  }
-
-  .bar-val {
-    color: #ffffff;
-    font-size: 0.75rem;
-    font-weight: bold;
-  }
-
-  .bar-lbl {
-    margin-top: 0.5rem;
-    font-size: 0.8rem;
-    color: var(--cor-texto-secundario, #64748b);
   }
 }
 
-.side-info-panel {
-  width: 180px;
-  margin-top: 1rem;
-  padding: 1rem;
-  background-color: var(--cor-fundo-app, #f8fafc);
-  border: 1px solid var(--cor-borda, #e2e8f0);
-  border-radius: 8px;
+.legend,
+.heat-legend {
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
-
-  &__title {
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    color: var(--cor-texto-secundario, #64748b);
-  }
-}
-
-.side-info-item {
-  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem;
-}
+  gap: 0.9rem;
+  color: var(--cor-texto-secundario);
 
-.side-info-label {
-  font-size: 0.8rem;
-  margin: 0;
-  color: var(--cor-texto-secundario, #64748b);
-}
-
-.side-info-val {
-  font-size: 1.1rem;
-  color: var(--cor-primaria, #1e293b);
-}
-
-.text-alert {
-  color: var(--cor-alerta, #ef4444);
-}
-
-.dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-
-  &--active { background-color: #10b981; }
-  &--expired { background-color: var(--cor-alerta, #ef4444); }
-}
-
-
-.mock-pie {
-  width: 140px;
-  height: 140px;
-  border-radius: 50%;
-  background: conic-gradient(#3b82f6 0% 25%, #10b981 25% 75%, #f59e0b 75% 100%);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  &__center {
-    width: 85px;
-    height: 85px;
-    background-color: #ffffff;
-    border-radius: 50%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+  span {
+    display: inline-flex;
     align-items: center;
+    gap: 0.35rem;
+  }
 
-    strong {
-      font-size: 1.2rem;
-      color: var(--cor-primaria, #1e293b);
-    }
-
-    span {
-      font-size: 0.7rem;
-      color: var(--cor-texto-secundario, #64748b);
-    }
+  i {
+    display: inline-block;
+    flex: 0 0 auto;
   }
 }
 
-.pie-legend {
-  list-style: none;
-  padding: 0;
-  margin-top: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  font-size: 0.85rem;
-  color: var(--cor-texto-principal, #334155);
+.legend {
+  margin-top: 0.55rem;
+  font-size: 0.78rem;
 
-  li {
+  i {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+}
+
+.heat-legend {
+  margin-top: 0.75rem;
+  font-size: 0.75rem;
+
+  i {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+  }
+}
+
+/* Cores das séries: verde = em dia, âmbar = a vencer, vermelho = vencido, cinza = pendente */
+.seg-ok {
+  background: #16a34a;
+}
+.seg-warn {
+  background: #f59e0b;
+}
+.seg-bad {
+  background: var(--cor-alerta);
+}
+.seg-pend {
+  background: #cbd5e1;
+}
+.dot-ok {
+  background: #16a34a;
+}
+.dot-warn {
+  background: #f59e0b;
+}
+.dot-bad {
+  background: var(--cor-alerta);
+}
+.dot-pend {
+  background: #cbd5e1;
+}
+
+/* =========================================
+   6. Listas curtas
+   ========================================= */
+
+.list {
+  gap: 0.5rem;
+
+  b {
+    font-family: var(--fonte-titulos);
+    font-size: 0.85rem;
+    color: var(--cor-primaria);
+  }
+
+  &--compacta {
+    margin-top: 0.85rem;
+  }
+
+  &__item {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.6rem 0.75rem;
+    background: #ffffff;
+    border: 1px solid var(--cor-borda);
+    border-radius: 6px;
+
+    &--vazio {
+      justify-content: flex-start;
+      font-size: 0.82rem;
+      color: var(--cor-texto-secundario);
+    }
+  }
+
+  &__mais {
+    margin: 0.6rem 0 0;
+    font-size: 0.78rem;
+    color: var(--cor-texto-secundario);
   }
 }
 
-.legend-dot {
+/* =========================================
+   7. Heatmap de pendências por NR e setor
+   ========================================= */
+
+.heat-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.heatmap {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 2px;
+  font-size: 0.8rem;
+
+  th {
+    font-family: var(--fonte-corpo);
+    font-weight: 700;
+    text-align: center;
+    white-space: nowrap;
+    padding: 0.45rem 0.6rem;
+    color: var(--cor-primaria);
+  }
+
+  thead th {
+    font-size: 0.75rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    border-bottom: 2px solid var(--cor-borda);
+  }
+
+  thead th:first-child,
+  tbody th {
+    text-align: left;
+  }
+
+  tbody th {
+    font-weight: 600;
+    color: var(--cor-texto-principal);
+  }
+
+  td {
+    text-align: center;
+    font-weight: 700;
+    padding: 0.45rem 0.6rem;
+    border-radius: 4px;
+  }
+
+  .heat-total {
+    background: #f1f5f9;
+    color: var(--cor-primaria);
+  }
+
+  .heat-linha-total th,
+  .heat-linha-total td {
+    background: var(--cor-primaria);
+    color: #ffffff;
+  }
+}
+
+/* Escala do heatmap (0 = em dia, 1 = uma pendência, 2 = duas ou mais) */
+.heatmap .heat-0 {
+  background: #bbf7d0;
+  color: #14532d;
+}
+.heatmap .heat-1 {
+  background: #fde68a;
+  color: #78350f;
+}
+.heatmap .heat-2 {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* =========================================
+   8. Barras horizontais (colaboradores por setor)
+   ========================================= */
+
+.hbars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.hbars .hbar {
+  display: grid;
+  grid-template-columns: 110px 1fr 2rem;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.hbars .hbar__label {
+  font-size: 0.78rem;
+  color: var(--cor-texto-principal);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.hbars .hbar__track {
+  height: 10px;
+  background: #f1f5f9;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.hbars .hbar__fill {
+  display: block;
+  height: 100%;
+  background: var(--cor-link);
+  border-radius: 999px;
+}
+
+.hbars .hbar__val {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-align: right;
+  color: var(--cor-primaria);
+}
+
+/* =========================================
+   9. Barras verticais (entregas de EPI)
+   ========================================= */
+
+.bar-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+  height: 190px;
+}
+
+.bar-chart .bar-col {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.bar-chart .bar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  width: 100%;
+  max-width: 44px;
+  min-height: 4px;
+  padding-top: 0.25rem;
+  background: var(--cor-link);
+  border-radius: 4px 4px 0 0;
+
+  span {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #ffffff;
+  }
+}
+
+.bar-chart .bar-lbl {
+  margin-top: 0.35rem;
+  font-size: 0.72rem;
+  color: var(--cor-texto-secundario);
+}
+
+/* =========================================
+   10. Atividade recente (feed de auditoria)
+   ========================================= */
+
+.activity-row {
+  gap: 0.7rem;
+}
+
+.activity-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+
+  p {
+    margin: 0;
+    font-size: 0.83rem;
+    color: var(--cor-texto-principal);
+  }
+
+  small {
+    font-size: 0.72rem;
+    color: var(--cor-texto-secundario);
+  }
+
+  &--vazio {
+    font-size: 0.82rem;
+    color: var(--cor-texto-secundario);
+  }
+}
+
+.feed__dot {
+  flex: 0 0 auto;
   width: 8px;
   height: 8px;
+  margin-top: 0.35rem;
   border-radius: 50%;
-  display: inline-block;
-  margin-right: 0.5rem;
+  background: var(--cor-borda);
 
-  &.bg-blue { background-color: #3b82f6; }
-  &.bg-green { background-color: #10b981; }
-  &.bg-amber { background-color: #f59e0b; }
+  &--blue {
+    background: var(--cor-link);
+  }
+  &--green {
+    background: #16a34a;
+  }
+  &--red {
+    background: var(--cor-alerta);
+  }
+  &--amber {
+    background: #f59e0b;
+  }
 }
 
 /* =========================================
-   3. Barra de Carregamento (Último Gráfico)
+   11. Responsividade
    ========================================= */
-.progress-card {
-  &__header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
+
+@media (max-width: 1100px) {
+  .kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  &__value {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: var(--cor-primaria, #1e293b);
+  .bento-combo {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas: 'atencao heat' 'comp setor' 'epi entregas' 'ultimas atividade';
+  }
+}
+
+@media (max-width: 700px) {
+  .kpi-grid {
+    grid-template-columns: 1fr;
   }
 
-  .progress-track {
-    width: 100%;
-    height: 16px;
-    background-color: var(--cor-fundo-app, #f8fafc);
-    border: 1px solid var(--cor-borda, #e2e8f0);
-    border-radius: 8px;
-    overflow: hidden;
-    padding: 2px;
+  .bento-combo {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'atencao' 'comp' 'heat' 'setor' 'epi' 'entregas' 'ultimas' 'atividade';
   }
 
-  .progress-fill {
-    height: 100%;
-    background-color: var(--cor-primaria, #3b82f6);
-    border-radius: 6px;
-    transition: width 0.4s ease;
-  }
-
-  &__footer {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 0.85rem;
-    font-size: 0.85rem;
-    color: var(--cor-texto-secundario, #64748b);
+  .attention-item {
+    flex-wrap: wrap;
   }
 }
