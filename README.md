@@ -14,6 +14,8 @@ A base local utiliza **Spring Boot e PostgreSQL**, com código Java em `src/main
 
 O login é real: `POST /api/auth/login` devolve um token de sessão que o frontend envia em `Authorization: Bearer <token>`, e as demais rotas de `/api/**` respondem 401 sem ele (ficam livres `health`, `auth/login`, `auth/bootstrap` e a recuperação de senha). As senhas são gravadas com BCrypt e a sessão fica na tabela `sessoes`, válida por 8 horas.
 
+O frontend também tem um **modo demonstração** (`npm run demo`) que responde toda a API na memória do navegador, com dados de exemplo, para as telas serem apresentadas sem Java e sem PostgreSQL — veja [Modo demonstração](#modo-demonstração-visualizar-o-frontend-sem-o-banco-de-dados). Não confundir com o perfil `demo` do backend: aquele popula o banco PostgreSQL de verdade.
+
 ### Escopo da Integração
 
 | Recurso | Operações implementadas | URL da API local |
@@ -83,6 +85,7 @@ projeto_integrador/
 ├── src/
 │   ├── app/
 │   │   ├── componentes/             # Componentes compartilhados, como toast
+│   │   ├── demo/                    # API em memória do modo demonstração (dados de exemplo)
 │   │   ├── layout-padrao/           # Layout, navegação e menu lateral
 │   │   ├── service/                 # Serviços de dados e funcionalidades
 │   │   ├── tela-login/              # Autenticação contra a API
@@ -104,6 +107,7 @@ projeto_integrador/
 │   │   ├── java/br/com/senac/sgsst/ # Aplicação Spring Boot e camadas da API
 │   │   └── resources/              # Configuração do backend
 │   ├── sql/                         # Script do esquema PostgreSQL
+│   ├── environments/                # Configuração de API: desenvolvimento, produção e demo
 │   ├── test/java/                   # Testes do backend
 │   ├── main.ts                      # Inicialização do Angular
 │   └── styles.scss                  # Estilos e tokens globais
@@ -122,11 +126,13 @@ projeto_integrador/
 - **Node.js 24**, a partir da versão **24.15.0**.
 - **npm**; o `package.json` declara a versão **11.16.0**.
 - **Git** para clonar o repositório.
-- **Java 17, Maven e PostgreSQL** para executar o backend e os CRUDs integrados.
+- **Java 17, Maven e PostgreSQL** apenas para executar o backend e os CRUDs integrados. O modo demonstração descrito abaixo não precisa de nenhum deles.
 
 Os scripts utilizam o Angular CLI instalado no projeto, sem necessidade de instalação global.
 
-### Passo a Passo
+### Modo demonstração (visualizar o frontend sem o banco de dados)
+
+Para apresentar ou revisar as telas sem subir Java e PostgreSQL, o frontend tem um modo demonstração: o build `demo` usa `src/environments/environment.demo.ts` e registra o `demoApiInterceptor`, que responde **todas** as chamadas de `/api/**` a partir de dados de exemplo guardados na memória do navegador (código em `src/app/demo/`).
 
 1. Clone o repositório e entre na pasta:
 
@@ -141,13 +147,61 @@ Os scripts utilizam o Angular CLI instalado no projeto, sem necessidade de insta
    npm ci
    ```
 
-3. Inicie o servidor de desenvolvimento:
+3. Suba o frontend no modo demonstração (não precisa de backend):
+
+   ```bash
+   npm run demo
+   ```
+
+4. Acesse [http://localhost:4200/login](http://localhost:4200/login) e entre com uma das contas:
+
+   | Perfil | Usuário | Senha | Rota inicial |
+   | :--- | :--- | :--- | :--- |
+   | Administrador | `admin` | `123456` | `/dashboard` |
+   | Colaborador | `colaborador` | `123456` | `/area-colaborador` |
+
+O que funciona nesse modo: login e sessão, todas as listagens, inclusão, edição e exclusão, mudança de status dos chamados, importação em massa e exportação dos relatórios em CSV. Os números do dashboard são calculados a partir dos mesmos dados de exemplo, como o backend faz no banco.
+
+O que muda em relação ao backend real:
+
+- Nada é persistido: recarregar a página devolve os dados de exemplo ao estado inicial.
+- Nenhuma requisição sai para a rede — nem para `localhost:8080`, nem para a API publicada. O console registra `[demo] rota não atendida: ...` caso alguma rota usada pela tela ainda não exista no modo demonstração.
+- Os dados são fictícios (16 colaboradores, 8 EPIs, 8 treinamentos, 24 vínculos, 12 certificações, 5 chamados em andamento e 6 meses de entregas).
+
+Para gerar um build estático do modo demonstração (útil para publicar em qualquer host estático ou abrir em outro computador):
+
+```bash
+npm run build:demo
+# o resultado fica em dist/frontend_angular/browser
+python3 -m http.server 4200 --directory dist/frontend_angular/browser
+```
+
+### Passo a Passo com o backend local
+
+Use estes passos quando precisar do banco de verdade (Java 17, Maven e PostgreSQL instalados):
+
+1. Clone o repositório e entre na pasta:
+
+   ```bash
+   git clone https://github.com/marciocoelho1/projeto_integrador.git
+   cd projeto_integrador
+   ```
+
+2. Instale as dependências a partir do arquivo de versões:
+
+   ```bash
+   npm ci
+   ```
+
+3. Suba a API (`mvn spring-boot:run` na raiz) — instruções de banco e Flyway em [Backend Local](#backend-local).
+
+4. Inicie o servidor de desenvolvimento do frontend, que aponta para `http://localhost:8080/api`:
 
    ```bash
    npm start
    ```
 
-4. Acesse [http://localhost:4200/login](http://localhost:4200/login) e utilize uma das contas demonstrativas abaixo.
+5. Acesse [http://localhost:4200/login](http://localhost:4200/login) e utilize uma das contas demonstrativas abaixo.
 
 ### Backend Local
 
@@ -242,7 +296,9 @@ As duas contas são criadas pelo perfil `demo` (migração `V901`) na tabela `us
 
 | Comando | Finalidade |
 | :--- | :--- |
-| `npm start` | Executar o frontend em desenvolvimento |
+| `npm run demo` | Executar o frontend no modo demonstração, sem backend e sem banco |
+| `npm run build:demo` | Gerar o build estático do modo demonstração |
+| `npm start` | Executar o frontend em desenvolvimento, consumindo a API em `localhost:8080` |
 | `npm run build` | Gerar o build do frontend |
 | `npm run watch` | Recompilar o frontend ao alterar arquivos |
 | `npm test` | Executar os testes do frontend |

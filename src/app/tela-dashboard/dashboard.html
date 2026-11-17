@@ -1,24 +1,24 @@
 <header class="sst-header">
   <div>
     <h2 class="sst-header__main">Dashboard</h2>
-    <p class="dashboard-atualizacao">
-      {{ colaboradores().ativos }} de {{ colaboradores().total }} colaborador(es) ativo(s)
-      @if (atualizadoEm()) {
-        · atualizado em {{ atualizadoEm() }}
-      }
-    </p>
+    <p class="dashboard-atualizacao">{{ resumo() }}</p>
   </div>
   <div class="dashboard-acoes">
     <button
       type="button"
-      class="sst-btn"
+      class="sst-btn sst-btn--outline"
       data-acao="recarregar"
       (click)="recarregar()"
       [disabled]="carregando()"
     >
       Atualizar
     </button>
-    <button type="button" class="sst-btn sst-btn--dark" data-acao="exportar" (click)="exportarRelatorio()">
+    <button
+      type="button"
+      class="sst-btn sst-btn--dark"
+      data-acao="exportar"
+      (click)="exportarRelatorio()"
+    >
       Exportar
     </button>
   </div>
@@ -26,138 +26,323 @@
 
 @if (erro()) {
   <p class="dashboard-erro" role="alert">{{ erro() }}</p>
-} @else if (carregando() && !atualizadoEm()) {
+} @else if (carregando() && !dados()) {
   <p class="dashboard-atualizacao">Carregando indicadores…</p>
 }
 
 <section class="dashboard-wrapper">
-
-  <section class="sst-card alerts-card" aria-labelledby="titulo-alertas">
-    <header class="alerts-card__header">
-      <span class="alerts-card__icon" aria-hidden="true">⚠️</span>
-      <h3 id="titulo-alertas" class="sst-card__title">Atenção Requerida</h3>
-    </header>
-    <ul class="alerts-list">
-      @for (alerta of alertas(); track alerta.tipo + alerta.mensagem) {
-        <li class="alert-item" [ngClass]="'alert-item--' + alerta.criticidade">
-          <strong>{{ alerta.tipo }}:</strong> {{ alerta.mensagem }}
-        </li>
-      }
-    </ul>
+  <!-- Indicadores principais -->
+  <section class="kpi-grid" aria-label="Indicadores principais">
+    @for (kpi of kpis(); track kpi.chave) {
+      <article class="kpi-card" [ngClass]="'kpi-card--' + kpi.cor" [attr.data-kpi]="kpi.chave">
+        <span class="kpi-card__label">{{ kpi.rotulo }}</span>
+        <p class="kpi-card__value">
+          {{ kpi.valor }} <small>{{ kpi.sufixo }}</small>
+        </p>
+        @if (kpi.dica.length) {
+          <p class="kpi-card__hint">
+            @for (parte of kpi.dica; track parte.texto; let ultimo = $last) {
+              <strong>{{ parte.valor }}</strong> {{ parte.texto }}
+              @if (!ultimo) {
+                <span> · </span>
+              }
+            }
+          </p>
+        }
+      </article>
+    }
   </section>
 
-  <div class="charts-grid">
-
-    <article class="sst-card chart-card">
-      <header>
-        <h3 class="sst-card__title">Certificações de Colaboradores</h3>
-        <p class="sst-card__subtitle">
-          Status das certificações registradas ({{ certificacoes().total }} no total)
-        </p>
-      </header>
-
-      <div class="chart-content-with-side">
-        <figure class="chart-placeholder bar-chart">
-          <div class="mock-bar-chart" role="img" aria-label="Gráfico de barras de certificações">
-            <div class="bar-col">
-              <div class="bar bar--active" [style.height.%]="alturaBarra(certificacoes().ativas)">
-                <span class="bar-val">{{ certificacoes().ativas }}</span>
-              </div>
-              <span class="bar-lbl">Ativas</span>
-            </div>
-            <div class="bar-col">
-              <div class="bar bar--expired" [style.height.%]="alturaBarra(certificacoes().vencidas)">
-                <span class="bar-val">{{ certificacoes().vencidas }}</span>
-              </div>
-              <span class="bar-lbl">Vencidas</span>
-            </div>
-          </div>
-        </figure>
-
-        <aside class="side-info-panel">
-          <span class="side-info-panel__title">Resumo</span>
-          <div class="side-info-item">
-            <span class="dot dot--active"></span>
-            <div>
-              <p class="side-info-label">Ativas</p>
-              <strong class="side-info-val">{{ certificacoes().ativas }}</strong>
-            </div>
-          </div>
-          <div class="side-info-item">
-            <span class="dot dot--expired"></span>
-            <div>
-              <p class="side-info-label">Vencidas</p>
-              <strong class="side-info-val text-alert">{{ certificacoes().vencidas }}</strong>
-            </div>
-          </div>
-          <div class="side-info-item">
-            <span class="dot dot--warning"></span>
-            <div>
-              <p class="side-info-label">Vencem em 30 dias</p>
-              <strong class="side-info-val">{{ certificacoes().vencendoEm30Dias }}</strong>
-            </div>
-          </div>
-        </aside>
-      </div>
-    </article>
-
-    <article class="sst-card chart-card">
-      <header>
-        <h3 class="sst-card__title">Gestão de EPIs</h3>
-        <p class="sst-card__subtitle">Unidades em estoque por situação do CA</p>
-      </header>
-
-      <figure class="chart-placeholder pie-chart">
-        <div class="mock-pie" role="img" aria-label="Gráfico de pizza mostrando a distribuição de EPIs">
-          <div class="mock-pie__center">
-            <strong>{{ epis().emEstoque }}</strong>
-            <span>Em estoque</span>
-          </div>
+  <section class="bento-combo" aria-label="Painel de indicadores">
+    <!-- 1. Precisa de atenção -->
+    <article class="attention-card bento-atencao">
+      <header class="attention-card__head">
+        <span class="attention-card__icon" aria-hidden="true">⚠️</span>
+        <div>
+          <h3>Precisa de atenção</h3>
+          @if (totalPendencias() > 0) {
+            <p>
+              {{ totalPendencias() }}
+              {{ totalPendencias() === 1 ? 'pendência aberta' : 'pendências abertas' }} que exigem
+              decisão
+            </p>
+          } @else {
+            <p>Nenhuma pendência aberta no momento</p>
+          }
         </div>
-      </figure>
+      </header>
 
-      <ul class="pie-legend">
-        <li><span class="legend-dot bg-green"></span> CA válido: <strong>{{ episComCaValido() }}</strong></li>
-        <li>
-          <span class="legend-dot bg-amber"></span> CA a vencer em 30 dias:
-          <strong>{{ epis().proximoVencimento }}</strong>
-        </li>
-        <li><span class="legend-dot bg-blue"></span> CA vencido: <strong>{{ epis().vencidos }}</strong></li>
-        <li>
-          <span class="legend-dot bg-blue"></span> Entregues nos últimos 30 dias:
-          <strong>{{ epis().entreguesUltimos30Dias }}</strong>
-        </li>
+      <ul class="attention-list">
+        @for (pendencia of pendencias(); track pendencia.id) {
+          <li class="attention-item" [ngClass]="'attention-item--' + pendencia.criticidade">
+            <span class="chip" [ngClass]="'chip--' + pendencia.chip">{{ pendencia.rotulo }}</span>
+            <div class="attention-item__body">
+              <strong>{{ pendencia.mensagem }}</strong>
+              <small>{{ pendencia.tipo }}</small>
+            </div>
+            @if (pendencia.rota) {
+              <a class="sst-btn-link" [routerLink]="pendencia.rota">{{ pendencia.acao }}</a>
+            }
+          </li>
+        } @empty {
+          <li class="attention-item attention-item--vazio">
+            Nenhuma pendência registrada pelos indicadores.
+          </li>
+        }
       </ul>
     </article>
 
-  </div>
+    <!-- 2. Conformidade de treinamentos -->
+    <article class="sst-card bento-comp">
+      <header class="chart-head">
+        <div>
+          <h3 class="sst-card__title">Conformidade de treinamentos</h3>
+          <p class="sst-card__subtitle">Vínculos com validade em dia</p>
+        </div>
+        @if (conformidade().vencidos > 0) {
+          <span class="chip chip--red">
+            {{ conformidade().vencidos }}
+            {{ conformidade().vencidos === 1 ? 'vencido' : 'vencidos' }}
+          </span>
+        } @else {
+          <span class="chip chip--green">Sem vencidos</span>
+        }
+      </header>
 
-  <article class="sst-card progress-card">
-    <header class="progress-card__header">
-      <div>
-        <h3 class="sst-card__title">Reciclagens a Fazer</h3>
-        <p class="sst-card__subtitle">Progresso dos treinamentos registrados por colaborador</p>
-      </div>
-      <strong class="progress-card__value">{{ treinamentos().porcentagem }}%</strong>
-    </header>
+      <p class="kpi-card__value kpi-card__value--destaque">{{ conformidade().porcentagem }}%</p>
+      <p class="kpi-card__hint">
+        <strong>{{ conformidade().emDia }}</strong> de {{ conformidade().total }} vínculos em dia
+        @if (conformidade().pendentes > 0) {
+          · <strong>{{ conformidade().pendentes }}</strong> sem conclusão
+        }
+      </p>
 
-    <div class="progress-track">
       <div
-        class="progress-fill"
-        [style.width.%]="treinamentos().porcentagem"
-        role="progressbar"
-        [attr.aria-valuenow]="treinamentos().porcentagem"
-        aria-valuemin="0"
-        aria-valuemax="100">
+        class="stack"
+        role="img"
+        [attr.aria-label]="conformidade().porcentagem + '% dos vínculos em dia'"
+      >
+        <i class="seg-ok" [style.width.%]="conformidade().porcentagem"></i>
+        <i class="seg-warn" [style.width.%]="conformidade().fatiaAVencer"></i>
+        <i class="seg-bad" [style.width.%]="conformidade().fatiaVencidos"></i>
+        <i class="seg-pend" [style.width.%]="conformidade().fatiaPendentes"></i>
       </div>
-    </div>
+      <div class="legend">
+        <span><i class="dot-ok"></i>{{ conformidade().emDia }} em dia</span>
+        <span><i class="dot-warn"></i>{{ conformidade().aVencer }} a vencer</span>
+        <span><i class="dot-bad"></i>{{ conformidade().vencidos }} vencido(s)</span>
+        @if (conformidade().pendentes > 0) {
+          <span><i class="dot-pend"></i>{{ conformidade().pendentes }} sem conclusão</span>
+        }
+      </div>
 
-    <footer class="progress-card__footer">
-      <span>Concluídos: <strong>{{ treinamentos().concluidos }}</strong></span>
-      <span>Pendentes: <strong>{{ treinamentos().pendentes }}</strong></span>
-      <span>Vencidos: <strong>{{ treinamentos().vencidos }}</strong></span>
-      <span>Total: <strong>{{ treinamentos().total }}</strong></span>
-    </footer>
-  </article>
+      <ul class="list list--compacta">
+        @for (nr of conformidade().porNr; track nr.nr) {
+          <li class="list__item">
+            <div class="list__main">
+              <strong>{{ nr.nr }}</strong>
+              <small>
+                {{ nr.emDia }} em dia · {{ nr.vencidos }}
+                {{ nr.vencidos === 1 ? 'vencido' : 'vencidos' }}
+              </small>
+            </div>
+            <b class="num">{{ nr.porcentagem }}%</b>
+          </li>
+        } @empty {
+          <li class="list__item list__item--vazio">Nenhum vínculo de NR registrado.</li>
+        }
+      </ul>
+    </article>
 
+    <!-- 3. Pendências por NR e setor -->
+    <article class="sst-card bento-heat">
+      <header class="chart-head">
+        <div>
+          <h3 class="sst-card__title">Pendências por NR e setor</h3>
+          <p class="sst-card__subtitle">
+            Vínculos vencidos ou a vencer em {{ janelaAlertaDias }} dias
+          </p>
+        </div>
+        @if (heat().total > 0) {
+          <span class="chip chip--red">
+            {{ heat().total }} {{ heat().total === 1 ? 'pendência' : 'pendências' }}
+          </span>
+        } @else {
+          <span class="chip chip--green">Sem pendências</span>
+        }
+      </header>
+
+      @if (heat().nrs.length === 0) {
+        <p class="card-vazio">Nenhum vínculo com NR registrado até agora.</p>
+      } @else {
+        <div class="heat-wrapper">
+          <table class="heatmap" aria-label="Pendências de treinamento por NR e setor">
+            <thead>
+              <tr>
+                <th scope="col">Setor</th>
+                @for (nr of heat().nrs; track nr) {
+                  <th scope="col">{{ nr }}</th>
+                }
+                <th scope="col" class="heat-total">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (linha of heat().linhas; track linha.setor) {
+                <tr>
+                  <th scope="row">{{ linha.setor }}</th>
+                  @for (celula of linha.celulas; track celula.nr) {
+                    <td [ngClass]="'heat-' + celula.nivel">{{ celula.valor }}</td>
+                  }
+                  <td class="heat-total">{{ linha.total }}</td>
+                </tr>
+              }
+              <tr class="heat-linha-total">
+                <th scope="row">Total</th>
+                @for (total of heat().totaisPorNr; track $index) {
+                  <td>{{ total }}</td>
+                }
+                <td class="heat-total">{{ heat().total }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="heat-legend">
+          <i class="heat-0" style="background: #bbf7d0"></i><span>0 em dia</span>
+          <i class="heat-1" style="background: #fde68a"></i><span>1 pendência</span>
+          <i class="heat-2" style="background: #fee2e2"></i><span>2 ou mais</span>
+        </div>
+      }
+    </article>
+
+    <!-- 4. Colaboradores por setor -->
+    <article class="sst-card bento-setor">
+      <header class="card-head-row">
+        <div>
+          <h3 class="sst-card__title">Colaboradores por setor</h3>
+          <p class="sst-card__subtitle">Onde está o quadro</p>
+        </div>
+        <a class="sst-btn-link" routerLink="/colaboradores">Ver todos</a>
+      </header>
+
+      <div class="hbars" role="img" [attr.aria-label]="rotuloSetores()">
+        @for (barra of porSetor(); track barra.setor) {
+          <div class="hbar">
+            <span class="hbar__label">{{ barra.setor }}</span>
+            <span class="hbar__track">
+              <span class="hbar__fill" [style.width.%]="barra.largura"></span>
+            </span>
+            <span class="hbar__val">{{ barra.total }}</span>
+          </div>
+        } @empty {
+          <p class="card-vazio">Nenhum colaborador cadastrado.</p>
+        }
+      </div>
+    </article>
+
+    <!-- 5. EPIs em estoque crítico -->
+    <article class="sst-card bento-epi-list">
+      <header class="card-head-row">
+        <div>
+          <h3 class="sst-card__title">EPIs em estoque crítico</h3>
+          <p class="sst-card__subtitle">No limite ou abaixo do mínimo de {{ estoqueMinimo }} un.</p>
+        </div>
+        <a class="sst-btn-link" routerLink="/epis">Repor</a>
+      </header>
+
+      <ul class="list list--compacta">
+        @for (epi of episCriticos().itens; track epi.id) {
+          <li class="list__item">
+            <div class="list__main">
+              <strong>{{ epi.descricao }}</strong>
+              <small>CA {{ epi.ca }} · {{ epi.quantidade }} un.</small>
+            </div>
+            <span class="chip" [ngClass]="'chip--' + epi.chip">{{ epi.situacao }}</span>
+          </li>
+        } @empty {
+          <li class="list__item list__item--vazio">Nenhum EPI no nível crítico.</li>
+        }
+      </ul>
+
+      @if (episCriticos().restantes > 0) {
+        <p class="list__mais">+ {{ episCriticos().restantes }} tipo(s) em nível crítico</p>
+      }
+    </article>
+
+    <!-- 6. Entregas de EPI -->
+    <article class="sst-card bento-entregas">
+      <header class="card-head-row">
+        <div>
+          <h3 class="sst-card__title">Entregas de EPI</h3>
+          <p class="sst-card__subtitle">
+            {{ entregasPorMes().total }} unidade(s) nos últimos 6 meses
+          </p>
+        </div>
+        <a class="sst-btn-link" routerLink="/epis">Ver entregas</a>
+      </header>
+
+      <div class="bar-chart" role="img" [attr.aria-label]="'Entregas por mês: ' + rotuloEntregas()">
+        @for (mes of entregasPorMes().meses; track mes.rotulo) {
+          <div class="bar-col">
+            <div class="bar" [style.height.%]="mes.altura">
+              <span>{{ mes.valor }}</span>
+            </div>
+            <span class="bar-lbl">{{ mes.rotulo }}</span>
+          </div>
+        }
+      </div>
+    </article>
+
+    <!-- 7. Últimas entregas -->
+    <article class="sst-card bento-ultimas">
+      <header class="card-head-row">
+        <div>
+          <h3 class="sst-card__title">Últimas entregas</h3>
+          <p class="sst-card__subtitle">Últimos termos de entrega registrados</p>
+        </div>
+        <a class="sst-btn-link" routerLink="/epis">Ver todas</a>
+      </header>
+
+      <ul class="list list--compacta">
+        @for (entrega of ultimasEntregas(); track entrega.id) {
+          <li class="list__item">
+            <div class="list__main">
+              <strong>{{ entrega.colaborador }}</strong>
+              <small>{{ entrega.epi }} · {{ entrega.quantidade }} un. · {{ entrega.data }}</small>
+            </div>
+            <span class="chip" [ngClass]="entrega.assinado ? 'chip--green' : 'chip--amber'">
+              {{ entrega.assinado ? 'Assinado' : 'Sem assinatura' }}
+            </span>
+          </li>
+        } @empty {
+          <li class="list__item list__item--vazio">Nenhuma entrega de EPI registrada.</li>
+        }
+      </ul>
+    </article>
+
+    <!-- 8. Atividade recente -->
+    <article class="sst-card bento-atividade">
+      <header class="card-head-row">
+        <div>
+          <h3 class="sst-card__title">Atividade recente</h3>
+          <p class="sst-card__subtitle">Últimos eventos de auditoria</p>
+        </div>
+        <a class="sst-btn-link" routerLink="/configuracoes">Ver log</a>
+      </header>
+
+      <ul class="activity-row">
+        @for (evento of atividade(); track evento.id) {
+          <li class="activity-item">
+            <span class="feed__dot" [ngClass]="evento.cor"></span>
+            <div>
+              <p>{{ evento.descricao }}</p>
+              <small>{{ evento.quando }}</small>
+            </div>
+          </li>
+        } @empty {
+          <li class="activity-item activity-item--vazio">Nenhum evento de auditoria registrado.</li>
+        }
+      </ul>
+    </article>
+  </section>
 </section>
