@@ -292,6 +292,39 @@ As duas contas são criadas pelo perfil `demo` (migração `V901`) na tabela `us
 
 ---
 
+## Como Contribuir (fluxo de pull request)
+
+A branch `main` é protegida: **não** é possível enviar commit direto para ela. Todo trabalho entra por pull request, e nenhum PR é mesclado sem a aprovação do mantenedor do repositório (o `CODEOWNERS` do projeto aponta apenas para ele).
+
+1. Faça o fork ou clone o repositório e crie uma branch com um nome descritivo:
+
+   ```bash
+   git clone https://github.com/marciocoelho1/projeto_integrador.git
+   cd projeto_integrador
+   git checkout -b feat/nome-da-sua-alteracao
+   ```
+
+2. Faça as alterações, rode os testes e envie a branch:
+
+   ```bash
+   npm ci
+   npm test
+   git add .
+   git commit -m "frontend: descricao curta do que mudou"
+   git push -u origin feat/nome-da-sua-alteracao
+   ```
+
+3. Abra o pull request para `main` pelo link que o `git push` devolve ou em **Pull requests → New pull request**.
+4. Peça a aprovação do mantenedor. Depois do aceite, o próprio autor do PR pode concluir o merge (ou o mantenedor faz isso).
+
+O que a regra da `main` exige, hoje:
+
+- Pull request aberto e **1 aprovação válida** — que precisa vir do proprietário do código.
+- Aprovações são descartadas se novos commits forem enviados ao PR depois do aceite.
+- Sem force push e sem exclusão da branch.
+
+---
+
 ## Comandos Úteis
 
 | Comando | Finalidade |
