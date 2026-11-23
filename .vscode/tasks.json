@@ -37,6 +37,28 @@
           }
         }
       }
+    },
+    {
+      "label": "flutter: run web",
+      "type": "shell",
+      "command": "flutter run -d chrome --web-port=4200",
+      "options": { "cwd": "mobile" },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "flutter: analyze",
+      "type": "shell",
+      "command": "flutter analyze",
+      "options": { "cwd": "mobile" },
+      "problemMatcher": []
+    },
+    {
+      "label": "flutter: test",
+      "type": "shell",
+      "command": "flutter test",
+      "options": { "cwd": "mobile" },
+      "problemMatcher": []
     }
   ]
 }

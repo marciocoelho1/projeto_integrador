@@ -52,3 +52,11 @@ AGENTS.md
 /target/
 /application-local.properties
 /.env
+
+# Flutter
+.dart_tool/
+.flutter-plugins-dependencies
+**/build/
+/coverage/
+*.iml
+/mobile/windows/flutter/ephemeral/
