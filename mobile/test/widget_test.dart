@@ -1,30 +1,42 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:app_sgsst/main.dart';
+import 'package:app_sgsst/config/api_config.dart';
+import 'package:app_sgsst/models/indicador.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  test('ApiConfig devolve uma URL com esquema http', () {
+    expect(ApiConfig.baseUrl, startsWith('http'));
+  });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  test('Indicadores.fromJson le o contrato do backend', () {
+    final json = {
+      'colaboradores': {'total': 10, 'ativos': 8, 'inativos': 1, 'afastados': 1},
+      'certificacoes': {'total': 5, 'ativas': 4, 'vencidas': 1, 'vencendoEm30Dias': 2},
+      'epis': {
+        'emEstoque': 50,
+        'proximoVencimento': 3,
+        'vencidos': 2,
+        'entreguesUltimos30Dias': 7,
+        'totalTipos': 4,
+      },
+      'treinamentos': {
+        'concluidos': 6,
+        'pendentes': 4,
+        'vencidos': 1,
+        'total': 10,
+        'porcentagem': 50,
+      },
+      'alertas': [
+        {'tipo': 'EPI', 'mensagem': 'Estoque critico', 'criticidade': 'alta'},
+      ],
+      'geradoEm': '2026-11-23T20:00:00-03:00',
+    };
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    final d = Indicadores.fromJson(json);
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(d.colaboradores.ativos, 8);
+    expect(d.treinamentos.porcentagem, 50);
+    expect(d.epis.totalTipos, 4);
+    expect(d.alertas.single.tipo, 'EPI');
+    expect(d.alertas.single.criticidade, 'alta');
   });
 }
