@@ -50,13 +50,20 @@ Thumbs.db
 AGENTS.md
 
 /target/
+
+# Configuracao local com credenciais do banco (nunca versionar).
+# O padrao **/ cobre tambem src/main/resources/, nao so a raiz.
 /application-local.properties
-/.env
+**/application-local.properties
+**/application-local.yml
+**/application-local.yaml
+.env
+**/.env
+**/.env.local
 
 # Flutter
 .dart_tool/
 .flutter-plugins-dependencies
 **/build/
-/coverage/
 *.iml
 /mobile/windows/flutter/ephemeral/
