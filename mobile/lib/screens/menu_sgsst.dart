@@ -18,7 +18,11 @@ class ItemMenuSgsst {
 
   final String titulo;
   final IconData icone;
-  final Widget Function(AuthService auth) construir;
+
+  /// Monta a tela. [aoNavegar] permite que os links internos ("Ver todos",
+  /// "Repor", "Ver log") levem para outra tela da casca autenticada.
+  final Widget Function(AuthService auth, {void Function(String destino)? aoNavegar})
+      construir;
 }
 
 /// Menu "administrador": espelha o bloco `userRole === 'admin'` do layout web.
@@ -43,14 +47,23 @@ List<ItemMenuSgsst> menuDoPerfil(AuthService auth) =>
     auth.ehAdmin ? menuAdministrador : menuColaborador;
 
 // Construtores das telas (referências de função constantes).
-Widget _dashboard(AuthService auth) => DashboardScreen(auth: auth);
-Widget _matriz(AuthService auth) => MatrizTreinamentoScreen(auth: auth);
-Widget _epis(AuthService auth) => EpisScreen(auth: auth);
-Widget _colaboradores(AuthService auth) => ColaboradoresScreen(auth: auth);
-Widget _cadastramentos(AuthService auth) => CadastramentosScreen(auth: auth);
-Widget _importacao(AuthService auth) => ImportacaoMassaScreen(auth: auth);
-Widget _ajudaSuporte(AuthService auth) => AjudaSuporteScreen(auth: auth);
-Widget _configuracoes(AuthService auth) => ConfiguracoesScreen(auth: auth);
-Widget _areaColaborador(AuthService auth) => AreaColaboradorScreen(auth: auth);
-Widget _ajudaColaborador(AuthService auth) =>
+Widget _dashboard(AuthService auth, {void Function(String)? aoNavegar}) =>
+    DashboardScreen(auth: auth, aoNavegar: aoNavegar);
+Widget _matriz(AuthService auth, {void Function(String)? aoNavegar}) =>
+    MatrizTreinamentoScreen(auth: auth);
+Widget _epis(AuthService auth, {void Function(String)? aoNavegar}) =>
+    EpisScreen(auth: auth);
+Widget _colaboradores(AuthService auth, {void Function(String)? aoNavegar}) =>
+    ColaboradoresScreen(auth: auth);
+Widget _cadastramentos(AuthService auth, {void Function(String)? aoNavegar}) =>
+    CadastramentosScreen(auth: auth);
+Widget _importacao(AuthService auth, {void Function(String)? aoNavegar}) =>
+    ImportacaoMassaScreen(auth: auth);
+Widget _ajudaSuporte(AuthService auth, {void Function(String)? aoNavegar}) =>
+    AjudaSuporteScreen(auth: auth);
+Widget _configuracoes(AuthService auth, {void Function(String)? aoNavegar}) =>
+    ConfiguracoesScreen(auth: auth);
+Widget _areaColaborador(AuthService auth, {void Function(String)? aoNavegar}) =>
+    AreaColaboradorScreen(auth: auth);
+Widget _ajudaColaborador(AuthService auth, {void Function(String)? aoNavegar}) =>
     AjudaSuporteColaboradorScreen(auth: auth);

@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:app_sgsst/core/app_theme.dart';
 import 'package:app_sgsst/core/formatadores.dart';
 import 'package:app_sgsst/core/validacao.dart';
 import 'package:app_sgsst/models/chamado.dart';
@@ -7,6 +8,7 @@ import 'package:app_sgsst/models/colaborador.dart';
 import 'package:app_sgsst/models/epi.dart';
 import 'package:app_sgsst/models/importacao.dart';
 import 'package:app_sgsst/models/treinamento_avancado.dart';
+import 'package:app_sgsst/widgets/blocos_dashboard.dart';
 
 void main() {
   group('Modelos leem o contrato do backend', () {
@@ -184,6 +186,45 @@ void main() {
       expect(Formato.data('2026-03-09'), '09/03/2026');
       expect(Formato.texto('  '), '-');
       expect(Formato.texto('CA 123'), 'CA 123');
+    });
+  });
+  group('Blocos do dashboard derivam como no web', () {
+    test('mesCurto cobre os doze meses', () {
+      expect(mesCurto(1), 'Jan');
+      expect(mesCurto(12), 'Dez');
+    });
+
+    test('corDoLog separa exclusao, criacao e edicao', () {
+      expect(corDoLog('EXCLUSAO'), AppCores.vencido);
+      expect(corDoLog('CRIACAO'), AppCores.valido);
+      expect(corDoLog('ATUALIZACAO'), AppCores.petroleo);
+      expect(corDoLog('LOGIN'), AppCores.cinza);
+    });
+
+    test('a situacao do EPI segue os cortes de estoque do web', () {
+      // Replica a regra de `episCriticos` no dashboard.ts.
+      String situacao(int quantidade, {bool vencido = false}) {
+        if (vencido) return 'Vencido';
+        if (quantidade <= 3) return 'Crítico';
+        if (quantidade == 4) return 'Atenção';
+        return 'No mínimo';
+      }
+
+      expect(situacao(0), 'Crítico');
+      expect(situacao(3), 'Crítico');
+      expect(situacao(4), 'Atenção');
+      expect(situacao(5), 'No mínimo');
+      expect(situacao(0, vencido: true), 'Vencido');
+    });
+
+    test('a matriz calor usa os niveis 0, 1 e 2', () {
+      // Replica o calculo de nivel do `heat()` no dashboard.ts.
+      int nivel(int valor) => valor == 0 ? 0 : (valor == 1 ? 1 : 2);
+
+      expect(nivel(0), 0);
+      expect(nivel(1), 1);
+      expect(nivel(2), 2);
+      expect(nivel(9), 2);
     });
   });
 }

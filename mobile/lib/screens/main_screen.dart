@@ -2,10 +2,17 @@ import 'package:flutter/material.dart';
 
 import '../core/app_theme.dart';
 import '../services/auth_service.dart';
+import '../widgets/balao_ajuda.dart';
+import 'ajuda_suporte_screen.dart';
+import 'ajuda_suporte_colaborador_screen.dart';
 import 'menu_sgsst.dart';
 
-/// Casca autenticada do app: barra inferior com os atalhos do perfil ativo e
-/// um menu lateral com todas as telas da versão web.
+/// Casca autenticada do app.
+///
+/// A navegacao tem dois niveis, como no web: a barra inferior traz os quatro
+/// atalhos do perfil, e uma grade "Todas as telas" fica no topo de cada aba (e
+/// tambem no menu lateral) para as demais telas ficarem alcancaveis sem gesto.
+/// O baleao de ajuda acompanha todas as abas.
 class MainScreen extends StatefulWidget {
   final AuthService auth;
   const MainScreen({super.key, required this.auth});
@@ -17,6 +24,8 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _indice = 0;
   late final List<ItemMenuSgsst> _itens = menuDoPerfil(widget.auth);
+  final GlobalKey<CascaComAjudaState> _chaveCasca = GlobalKey<CascaComAjudaState>();
+  final GlobalKey<ScaffoldState> _chaveScaffold = GlobalKey<ScaffoldState>();
 
   /// Atalhos fixos da barra inferior, derivados do menu do perfil.
   List<ItemMenuSgsst> get _atalhos {
@@ -35,10 +44,27 @@ class _MainScreenState extends State<MainScreen> {
     Navigator.of(context).pushReplacementNamed('/');
   }
 
-  void _abrirDoMenu(ItemMenuSgsst item) {
-    final indice = _itens.indexWhere((i) => i.titulo == item.titulo);
-    setState(() => _indice = indice < 0 ? 0 : indice);
-    Navigator.of(context).pop();
+  void _irParaIndice(int indice) {
+    if (indice < 0 || indice >= _atalhos.length) return;
+    setState(() => _indice = indice);
+    _chaveCasca.currentState?.sinalizarNavegacao();
+  }
+
+  /// Navegacao por nome, usada pelo menu lateral e pelo grid de telas.
+  void _abrirPorTitulo(String titulo) {
+    final indice = _itens.indexWhere((i) => i.titulo == titulo);
+    if (indice < 0) return;
+    if (_chaveScaffold.currentState?.isDrawerOpen ?? false) {
+      Navigator.of(context).pop();
+    }
+    _irParaIndice(indice);
+  }
+
+  void _abrirAjuda() {
+    final tela = widget.auth.ehAdmin
+        ? AjudaSuporteScreen(auth: widget.auth) as Widget
+        : AjudaSuporteColaboradorScreen(auth: widget.auth) as Widget;
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => tela));
   }
 
   @override
@@ -48,19 +74,40 @@ class _MainScreenState extends State<MainScreen> {
       return const Scaffold(body: SizedBox.shrink());
     }
     final indiceSeguro = _indice.clamp(0, atalhos.length - 1);
+    final atual = atalhos[indiceSeguro];
+
+    // O grid lista as telas que NAO estao na barra inferior, para nao duplicar.
+    final demais = _itens.where((i) => !atalhos.any((a) => a.titulo == i.titulo)).toList();
 
     return Scaffold(
+      key: _chaveScaffold,
       drawer: _MenuLateral(
         itens: _itens,
-        tituloAtual: atalhos[indiceSeguro].titulo,
+        tituloAtual: atual.titulo,
         auth: widget.auth,
-        aoSelecionar: _abrirDoMenu,
+        aoSelecionar: (item) => _abrirPorTitulo(item.titulo),
         aoSair: _sair,
       ),
-      body: atalhos[indiceSeguro].construir(widget.auth),
+      body: CascaComAjuda(
+        key: _chaveCasca,
+        gatilhoDeNavegacao: indiceSeguro,
+        aoAbrirAjuda: _abrirAjuda,
+        child: Column(
+          children: [
+            // Cabecalho da aba: identifica a tela e da acesso ao menu e as demais telas.
+            _CabecalhoAba(
+              titulo: atual.titulo,
+              demais: demais,
+              aoAbrirMenu: () => _chaveScaffold.currentState?.openDrawer(),
+              aoEscolher: _abrirPorTitulo,
+            ),
+            Expanded(child: atual.construir(widget.auth, aoNavegar: _abrirPorTitulo)),
+          ],
+        ),
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: indiceSeguro,
-        onDestinationSelected: (i) => setState(() => _indice = i),
+        onDestinationSelected: _irParaIndice,
         backgroundColor: Colors.white,
         indicatorColor: AppCores.petroleo.withValues(alpha: 0.10),
         destinations: [
@@ -78,6 +125,73 @@ class _MainScreenState extends State<MainScreen> {
         'Importação em Massa' => 'Importar',
         _ => titulo,
       };
+}
+
+/// Cabeçalho fixo da aba: botão de menu, título e o seletor "Todas as telas".
+class _CabecalhoAba extends StatelessWidget {
+  final String titulo;
+  final List<ItemMenuSgsst> demais;
+  final VoidCallback aoAbrirMenu;
+  final ValueChanged<String> aoEscolher;
+
+  const _CabecalhoAba({
+    required this.titulo,
+    required this.demais,
+    required this.aoAbrirMenu,
+    required this.aoEscolher,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppCores.petroleo,
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(4, 4, 8, 6),
+          child: Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.menu, color: Colors.white),
+                tooltip: 'Menu',
+                onPressed: aoAbrirMenu,
+              ),
+              Expanded(
+                child: Text(
+                  titulo,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              if (demais.isNotEmpty)
+                PopupMenuButton<String>(
+                  tooltip: 'Todas as telas',
+                  icon: const Icon(Icons.apps, color: Colors.white),
+                  onSelected: aoEscolher,
+                  itemBuilder: (_) => [
+                    for (final item in demais)
+                      PopupMenuItem(
+                        value: item.titulo,
+                        child: Row(
+                          children: [
+                            Icon(item.icone, size: 19, color: AppCores.petroleo),
+                            const SizedBox(width: 12),
+                            Text(item.titulo),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _MenuLateral extends StatelessWidget {
@@ -142,6 +256,18 @@ class _MenuLateral extends StatelessWidget {
               child: ListView(
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 children: [
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(16, 8, 16, 6),
+                    child: Text(
+                      'TELAS DO SISTEMA',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.6,
+                        color: AppCores.cinza,
+                      ),
+                    ),
+                  ),
                   for (final item in itens)
                     ListTile(
                       leading: Icon(

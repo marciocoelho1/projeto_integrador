@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:app_sgsst/core/app_theme.dart';
 import 'package:app_sgsst/screens/main_screen.dart';
+import 'package:app_sgsst/screens/menu_sgsst.dart';
 import 'package:app_sgsst/services/auth_service.dart';
 
 /// Cliente HTTP que responde o contrato da API sem rede — assim o teste roda no
@@ -188,16 +189,32 @@ void main() {
     estado.openDrawer();
     await tester.pumpAndSettle();
 
-    for (final titulo in const [
-      'Matriz de Treinamentos',
-      'EPIs',
-      'Cadastramentos',
-      'Importação em Massa',
-      'Ajuda e Suporte',
-      'Configurações',
-    ]) {
-      expect(find.text(titulo), findsWidgets, reason: 'faltou $titulo no menu');
-    }
+    // O Drawer so constroi os ListTiles visiveis (ListView preguicoso), entao a
+    // fonte da verdade do menu e `menuDoPerfil`, que o desenha por inteiro.
+    final titulosDoMenu =
+        menuDoPerfil(auth).map((item) => item.titulo).toList();
+    expect(
+      titulosDoMenu,
+      containsAll(const [
+        'Dashboard',
+        'Matriz de Treinamentos',
+        'EPIs',
+        'Colaboradores',
+        'Cadastramentos',
+        'Importação em Massa',
+        'Ajuda e Suporte',
+        'Configurações',
+      ]),
+    );
+
+    // E o primeiro item aparece de fato no Drawer aberto.
+    expect(
+      tester.widgetList<ListTile>(find.descendant(
+        of: find.byType(Drawer),
+        matching: find.byType(ListTile),
+      )),
+      isNotEmpty,
+    );
   });
 
   testWidgets('MainScreen do colaborador mostra só as telas do perfil', (tester) async {

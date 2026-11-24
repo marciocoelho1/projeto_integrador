@@ -4,7 +4,9 @@ import 'dart:io';
 /// Servidor de mentira que devolve o contrato real da API para validar as telas
 /// em execução sem precisar do backend e do banco.
 Future<void> main() async {
-  final server = await HttpServer.bind('127.0.0.1', 8099);
+  // 0.0.0.0 permite que o emulador Android alcance o host por 10.0.2.2.
+  final server = await HttpServer.bind(InternetAddress.anyIPv4, 8099);
+  stdout.writeln('Servidor falso em http://0.0.0.0:8099');
 
   String corpoLogin = '';
 
@@ -271,6 +273,9 @@ Future<void> main() async {
   }
 
   await for (final req in server) {
+    // Log de cada requisicao: e como se prova, rodando o app, quais telas de fato
+    // buscaram dados na API.
+    stdout.writeln('${req.method} ${req.uri}');
     // CORS liberado para o app web (flutter build web / flutter run -d chrome).
     req.response.headers.set('Access-Control-Allow-Origin', '*');
     req.response.headers.set('Access-Control-Allow-Headers', '*');

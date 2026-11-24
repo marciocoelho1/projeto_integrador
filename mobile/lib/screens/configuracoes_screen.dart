@@ -14,12 +14,13 @@ import '../widgets/cartao_secao.dart';
 import '../widgets/estado_tela.dart';
 import '../widgets/sgsst_scaffold.dart';
 
+/// Os mesmos rotulos de `guiasNavegacao` no web (configuracoes.ts).
 const _guias = [
-  ('usuarios', 'Usuários', Icons.people_outline),
-  ('grupos', 'Grupos', Icons.groups_outlined),
+  ('usuarios', 'Usuários do Sistema', Icons.people_outline),
+  ('grupos', 'Grupos de Usuários', Icons.groups_outlined),
   ('matriz', 'Matriz de Acessos', Icons.grid_view_outlined),
-  ('globais', 'Globais', Icons.tune_outlined),
-  ('logs', 'Logs', Icons.history),
+  ('globais', 'Configurações Globais', Icons.tune_outlined),
+  ('logs', 'Logs de Auditoria', Icons.history),
 ];
 
 /// Porta de `src/app/tela-configuracoes`: usuários do sistema, grupos, matriz de
