@@ -275,13 +275,34 @@ O repositório já traz as configurações em `.vscode/`. Com o emulador ligado,
 | Task | O que faz |
 | :--- | :--- |
 | `android: iniciar emulador` | Sobe o AVD escolhido (deixe rodando; ~1 min para bootar) |
-| `flutter: run android` | Instala e abre o app no device ligado |
+| `flutter: run android` | Instala e abre o app no emulador, já apontando para a API local |
+| `flutter: reinstalar no emulador` | Remove o app antes de instalar (use quando a tela não mudar) |
 | `flutter: devices` | Lista os devices disponíveis |
 | `flutter: analyze` / `flutter: test` | Análise estática e testes |
 
 O binário `emulator` **não está no PATH** — as tasks usam `$ANDROID_HOME/emulator/emulator`.
 Se o seu AVD tiver outro nome, inclua-o no `input` `avd` em `.vscode/tasks.json`
 (liste com `flutter emulators`).
+
+As tasks de execução fixam o device com `-d emulator-5554`. Isso é necessário porque
+`flutter devices` também lista **Linux (desktop)** e, sem `-d`, o `flutter run` pode
+escolher esse device — que falha neste repositório por falta do toolchain de desktop
+(`clang++` e GTK 3). Se o emulador aparecer com outro id, ajuste o `-d` em
+`.vscode/tasks.json`.
+
+##### O emulador abre, mas a tela não muda
+
+O emulador guarda um snapshot do estado anterior: ele "acorda" com o app já instalado
+na versão antiga, e a task de run pode terminar sem reinstalar. Para forçar a versão
+da branch atual, rode a task `flutter: reinstalar no emulador` (ou, no terminal):
+
+```bash
+cd mobile
+adb uninstall br.com.senac.sgsst.app_sgsst
+flutter run -d emulator-5554 --dart-define=API_BASE_URL=http://10.0.2.2:8080/api
+```
+
+Para conferir qual versão está instalada, `adb shell dumpsys package br.com.senac.sgsst.app_sgsst | grep lastUpdateTime`.
 
 #### Emulador no Android Studio (Flatpak)
 
