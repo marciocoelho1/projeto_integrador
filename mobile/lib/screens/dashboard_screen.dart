@@ -54,7 +54,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             tooltip: 'Sair',
             onPressed: () async {
               await widget.auth.sair();
-              if (context.mounted) Navigator.of(context).pop();
+              if (context.mounted) Navigator.of(context).pushReplacementNamed('/');
             },
           ),
         ],

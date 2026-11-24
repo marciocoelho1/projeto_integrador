@@ -312,6 +312,35 @@ emulador do SDK é compilado sem o plugin Wayland e o fallback X11 não carrega 
 Forçar renderização por software (`-gpu swiftshader_indirect`) **não resolve**: o emulador
 já cai para software rendering por conta própria e aborta antes, na inicialização do Qt.
 
+#### Telas portadas da versão web
+
+O app mobile cobre as mesmas funcionalidades do frontend Angular, com o design do
+dashboard ("Carteira digital"). A navegação fica em `mobile/lib/screens/main_screen.dart`:
+barra inferior com os atalhos do perfil e menu lateral com todas as telas.
+
+| Perfil | Telas |
+| :--- | :--- |
+| Administrador | Dashboard, Matriz de Treinamentos, EPIs, Colaboradores, Cadastramentos, Importação em Massa, Ajuda e Suporte, Configurações |
+| Colaborador | Área do Colaborador, Ajuda e Suporte |
+
+Comum aos dois perfis: Login e Recuperar Senha. A pasta `mobile/lib` segue a mesma
+organização do web — `models/`, `services/`, `screens/` e `widgets/` — e os nomes dos
+arquivos espelham os do Angular (`colaborador_service.dart` ↔ `colaborador.service.ts`).
+
+Pontos de paridade que valem conferir numa apresentação:
+
+| Recurso web | Equivalente mobile |
+| :--- | :--- |
+| Edição de colaborador (modal + validação) | `colaboradores_screen.dart`, `core/validacao.dart` |
+| Entrega de EPI abate estoque; excluir estorna | `epis_screen.dart` (`EpiService.registrarEntrega`/`excluirEntrega`) |
+| Matriz cruzada por NR e LNT | `matriz_treinamento_screen.dart` (mesma janela de 60 dias e status OK/Alerta/Vencido/N-A) |
+| Importação em massa (CSV) | `importacao_massa_screen.dart` (mesmos cabeçalhos aceitos e normalização de acentos) |
+| Chamados do colaborador só os próprios | `ajuda_suporte_colaborador_screen.dart` (`GET /api/chamados?meus=true`) |
+| Menu por perfil (admin x colaborador) | `menu_sgsst.dart` + `AuthService.perfil` |
+
+O Excel (`.xlsx`) **não** é lido no celular: a importação em massa aceita CSV exportado do
+Excel, mantendo os mesmos nomes de coluna e aliases da versão web.
+
 ### Login e sessão
 
 O primeiro administrador é criado por `POST /api/auth/bootstrap` (sem senha versionada no repositório). Depois disso, `POST /api/auth/login` devolve `{ token, expiraEm, usuario }` e as rotas de `/api/**` esperam `Authorization: Bearer <token>`. A senha é gravada como hash BCrypt; a recuperação de senha grava um token na tabela `redefinicoes_senha` e o exibe ao administrador em `GET /api/auth/redefinicoes` (não há envio de e-mail no projeto).
