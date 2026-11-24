@@ -1,0 +1,1296 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+src/
+  models/
+    certificacao.dart
+    epi.dart
+    reciclagem.dart
+  services/
+    colaborador_service.dart
+Telas/
+  tela_colaborador.dart
+main.dart
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="src/models/certificacao.dart">
+class Certificacao {
+  final String treinamento;
+  final String validade;
+  final bool concluida;
+
+  Certificacao({
+    required this.treinamento,
+    required this.validade,
+    required this.concluida,
+  });
+
+  factory Certificacao.fromJson(
+    Map<String, dynamic> json,
+  ) {
+    return Certificacao(
+      treinamento: json['treinamento'] ?? '',
+      validade: json['validade'] ?? '',
+      concluida: json['concluida'] ?? false,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'treinamento': treinamento,
+      'validade': validade,
+      'concluida': concluida,
+    };
+  }
+}
+</file>
+
+<file path="src/models/epi.dart">
+class Epi {
+  final int id;
+  final String epi;
+  final int quantidade;
+  final String ca;
+  final String dataEntrega;
+  final bool termoAssinado;
+
+Epi({
+    required this.id,
+    required this.epi,
+    required this.quantidade,
+    required this.ca,
+    required this.dataEntrega,
+    required this.termoAssinado,
+  });
+
+  factory Epi.fromJson(
+    Map<String, dynamic> json,
+  ) {
+    return Epi(
+      id: json['id'] ?? 0,
+      epi: json['epi'] ?? '',
+      quantidade: json['quantidade'] ?? 0,
+      ca: json['ca'] ?? '',
+      dataEntrega: json['dataEntrega'] ?? '',
+      termoAssinado: json['termoAssinado'] ?? false,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'epi': epi,
+      'quantidade': quantidade,
+      'ca': ca,
+      'dataEntrega': dataEntrega,
+      'termoAssinado': termoAssinado,
+    };
+  }
+}
+</file>
+
+<file path="src/models/reciclagem.dart">
+class Reciclagem {
+  final String titulo;
+  final String prazo;
+  final String enderecoMaterial;
+
+  Reciclagem({
+    required this.titulo,
+    required this.prazo,
+    required this.enderecoMaterial,
+  });
+
+  factory Reciclagem.fromJson(
+    Map<String, dynamic> json,
+  ) {
+    return Reciclagem(
+      titulo: json['titulo'] ?? '',
+      prazo: json['prazo'] ?? '',
+      enderecoMaterial: json['enderecoMaterial'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'titulo': titulo,
+      'prazo': prazo,
+      'enderecoMaterial': enderecoMaterial,
+    };
+  }
+}
+</file>
+
+<file path="src/services/colaborador_service.dart">
+import '../models/certificacao.dart';
+import '../models/reciclagem.dart';
+import '../models/epi.dart';
+
+class ServicoColaborador {
+
+  // ==========================================================
+  // BUSCAR CERTIFICAÇÕES
+  // ==========================================================
+
+  Future<List<Certificacao>>
+      buscarCertificacoes() async {
+
+    await Future.delayed(
+      const Duration(milliseconds: 500),
+    );
+
+    return [
+      Certificacao(
+        treinamento:
+            'NR-35 Trabalho em Altura',
+
+        validade:
+            '10/07/2026',
+
+        concluida: true,
+      ),
+    ];
+  }
+
+  // ==========================================================
+  // BUSCAR MATERIAIS DE RECICLAGEM
+  // ==========================================================
+
+  Future<List<Reciclagem>>
+      buscarMateriaisReciclagem() async {
+
+    await Future.delayed(
+      const Duration(milliseconds: 500),
+    );
+
+    return [
+      Reciclagem(
+        titulo:
+            'NR-35 Trabalho em Altura',
+
+        prazo:
+            '12/06/2026',
+
+        enderecoMaterial:
+            'https://exemplo.com/material',
+      ),
+    ];
+  }
+
+  // ==========================================================
+  // BUSCAR EPIs
+  // ==========================================================
+
+  Future<List<Epi>>
+      buscarEpis() async {
+
+    await Future.delayed(
+      const Duration(milliseconds: 500),
+    );
+
+    return [];
+  }
+
+  // ==========================================================
+  // QUANTIDADE DE CERTIFICAÇÕES
+  // ==========================================================
+
+  Future<int> quantidadeCertificacoes() async {
+
+    final certificacoes =
+        await buscarCertificacoes();
+
+    return certificacoes.length;
+  }
+
+  // ==========================================================
+  // QUANTIDADE DE RECICLAGENS
+  // ==========================================================
+
+  Future<int> quantidadeReciclagens() async {
+
+    final materiais =
+        await buscarMateriaisReciclagem();
+
+    return materiais.length;
+  }
+
+  // ==========================================================
+  // QUANTIDADE DE EPIs
+  // ==========================================================
+
+  Future<int> quantidadeEpis() async {
+
+    final epis =
+        await buscarEpis();
+
+    return epis.length;
+  }
+}
+</file>
+
+<file path="Telas/tela_colaborador.dart">
+import 'package:flutter/material.dart';
+
+import '../models/certificacao.dart';
+import '../models/reciclagem.dart';
+import '../models/epi.dart';
+
+import '../service/colaborador.dart';
+
+class TelaColaborador extends StatefulWidget {
+  const TelaColaborador({
+    super.key,
+  });
+
+  @override
+  State<TelaColaborador> createState() =>
+      _EstadoTelaColaborador();
+}
+
+class _EstadoTelaColaborador
+    extends State<TelaColaborador> {
+
+  final ColaboradorService service =
+      ColaboradorService();
+
+  List<Certificacao> certificacoes = [];
+
+  List<Reciclagem> materiaisReciclagem = [];
+
+  List<Epi> epis = [];
+
+  bool carregando = true;
+
+  @override
+  void initState() {
+    super.initState();
+
+    carregarDados();
+  }
+
+  // ==========================================================
+  // CARREGAR DADOS
+  // ==========================================================
+
+  Future<void> carregarDados() async {
+
+    setState(() {
+      carregando = true;
+    });
+
+    try {
+
+      final dadosCertificacoes =
+          await servico.buscarCertificacoes();
+
+      final dadosReciclagem =
+          await servico.buscarMateriaisReciclagem();
+
+      final dadosEpis =
+          await servico.buscarEpis();
+
+      setState(() {
+
+        certificacoes =
+            dadosCertificacoes;
+
+        materiaisReciclagem =
+            dadosReciclagem;
+
+        epis =
+            dadosEpis;
+
+        carregando = false;
+      });
+
+    } catch (erro) {
+
+      setState(() {
+        carregando = false;
+      });
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context)
+          .showSnackBar(
+        SnackBar(
+          content: Text(
+            'Erro ao carregar dados: $erro',
+          ),
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+
+    return Scaffold(
+
+      backgroundColor:
+          const Color(0xFFF1F5F9),
+
+      appBar: AppBar(
+
+        backgroundColor:
+            const Color(0xFFF1F5F9),
+
+        elevation: 0,
+
+        title: const Text(
+          'Minha Área',
+
+          style: TextStyle(
+            color: Color(0xFF071B36),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+
+      drawer: const MenuLateral(),
+
+      body: carregando
+
+          ? const Center(
+              child: CircularProgressIndicator(),
+            )
+
+          : RefreshIndicator(
+
+              onRefresh:
+                  carregarDados,
+
+              child: SingleChildScrollView(
+
+                physics:
+                    const AlwaysScrollableScrollPhysics(),
+
+                padding:
+                    const EdgeInsets.all(16),
+
+                child: Column(
+
+                  crossAxisAlignment:
+                      CrossAxisAlignment.start,
+
+                  children: [
+
+                    const Text(
+                      'SGSST / Portal do Colaborador',
+
+                      style: TextStyle(
+                        fontSize: 12,
+                        color:
+                            Color(0xFF64748B),
+                      ),
+                    ),
+
+                    const SizedBox(height: 5),
+
+                    const Text(
+                      'Minha Área',
+
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight:
+                            FontWeight.bold,
+                        color:
+                            Color(0xFF071B36),
+                      ),
+                    ),
+
+                    const SizedBox(height: 25),
+
+                    SecaoEstatisticas(
+                      quantidadeCertificacoes:
+                          certificacoes.length,
+
+                      quantidadeReciclagens:
+                          materiaisReciclagem.length,
+
+                      quantidadeEpis:
+                          epis.length,
+                    ),
+
+                    const SizedBox(height: 25),
+
+                    SecaoCertificacoes(
+                      certificacoes:
+                          certificacoes,
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    SecaoReciclagens(
+                      materiais:
+                          materiaisReciclagem,
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    SecaoEpis(
+                      epis: epis,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+    );
+  }
+}
+class SecaoEstatisticas extends StatelessWidget {
+
+  final int quantidadeCertificacoes;
+  final int quantidadeReciclagens;
+  final int quantidadeEpis;
+
+  const SecaoEstatisticas({
+    super.key,
+    required this.quantidadeCertificacoes,
+    required this.quantidadeReciclagens,
+    required this.quantidadeEpis,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+
+    return Column(
+      children: [
+
+        CartaoEstatistica(
+          titulo: 'Certificações',
+          descricao:
+              'Concluídas e registradas',
+          valor:
+              quantidadeCertificacoes.toString(),
+        ),
+
+        const SizedBox(height: 12),
+
+        CartaoEstatistica(
+          titulo: 'Reciclagens',
+          descricao:
+              'Materiais pendentes',
+          valor:
+              quantidadeReciclagens.toString(),
+        ),
+
+        const SizedBox(height: 12),
+
+        CartaoEstatistica(
+          titulo: 'EPIs Recebidos',
+          descricao:
+              'Equipamentos em sua posse',
+          valor:
+              quantidadeEpis.toString(),
+        ),
+      ],
+    );
+  }
+}
+
+//ESTATÍSTICAS//
+class CartaoEstatistica extends StatelessWidget {
+
+  final String titulo;
+  final String descricao;
+  final String valor;
+
+  const CartaoEstatistica({
+    super.key,
+    required this.titulo,
+    required this.descricao,
+    required this.valor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+
+    return Container(
+
+      width: double.infinity,
+
+      padding:
+          const EdgeInsets.all(20),
+
+      decoration: BoxDecoration(
+
+        color: Colors.white,
+
+        border: Border.all(
+          color:
+              const Color(0xFFCBD5E1),
+        ),
+
+        borderRadius:
+            BorderRadius.circular(8),
+
+        boxShadow: const [
+          BoxShadow(
+            color:
+                Color(0x12000000),
+            blurRadius: 3,
+            offset:
+                Offset(0, 1),
+          ),
+        ],
+      ),
+
+      child: Column(
+
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
+
+        children: [
+
+          Text(
+            titulo,
+
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight:
+                  FontWeight.bold,
+              color:
+                  Color(0xFF071B36),
+            ),
+          ),
+
+          const SizedBox(height: 25),
+
+          Text(
+            descricao,
+
+            style: const TextStyle(
+              fontSize: 13,
+              color:
+                  Color(0xFF071B36),
+            ),
+          ),
+
+          const SizedBox(height: 8),
+
+          Text(
+            valor,
+
+            style: const TextStyle(
+              fontSize: 16,
+              color:
+                  Color(0xFF071B36),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+//CERTIFICAÇÕES
+class SecaoCertificacoes extends StatelessWidget {
+
+  final List<Certificacao> certificacoes;
+
+  const SecaoCertificacoes({
+    super.key,
+    required this.certificacoes,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+
+    return Container(
+
+      width: double.infinity,
+
+      padding:
+          const EdgeInsets.all(20),
+
+      decoration: BoxDecoration(
+
+        color: Colors.white,
+
+        border: Border.all(
+          color:
+              const Color(0xFFCBD5E1),
+        ),
+
+        borderRadius:
+            BorderRadius.circular(8),
+      ),
+
+      child: Column(
+
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
+
+        children: [
+
+          const Text(
+            'Minhas Certificações',
+
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight:
+                  FontWeight.bold,
+              color:
+                  Color(0xFF071B36),
+            ),
+          ),
+
+          const SizedBox(height: 18),
+
+          Container(
+
+            padding:
+                const EdgeInsets.all(12),
+
+            decoration: BoxDecoration(
+
+              color:
+                  const Color(0xFFD2D5DB),
+
+              borderRadius:
+                  BorderRadius.circular(6),
+            ),
+
+            child: const Row(
+
+              children: [
+
+                Expanded(
+                  flex: 3,
+
+                  child: Text(
+                    'TREINAMENTO',
+
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight:
+                          FontWeight.bold,
+                    ),
+                  ),
+                ),
+
+                Expanded(
+                  child: Text(
+                    'VALIDADE',
+
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight:
+                          FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          if (certificacoes.isEmpty)
+
+            const Padding(
+              padding:
+                  EdgeInsets.all(20),
+
+              child: Center(
+                child: Text(
+                  'Nenhuma certificação registrada.',
+                ),
+              ),
+            )
+
+          else
+
+            ...certificacoes.map(
+              (certificacao) {
+
+                return Container(
+
+                  padding:
+                      const EdgeInsets.all(12),
+
+                  decoration:
+                      const BoxDecoration(
+
+                    border: Border(
+                      bottom: BorderSide(
+                        color:
+                            Color(0xFFCBD5E1),
+                      ),
+                    ),
+                  ),
+
+                  child: Row(
+
+                    children: [
+
+                      Expanded(
+                        flex: 3,
+
+                        child: Text(
+                          certificacao
+                              .treinamento,
+                        ),
+                      ),
+
+                      Expanded(
+                        child: Text(
+                          certificacao
+                              .validade,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+        ],
+      ),
+    );
+  }
+}
+//RECICLAGENS//
+class SecaoReciclagens extends StatelessWidget {
+
+  final List<Reciclagem> materiais;
+
+  const SecaoReciclagens({
+    super.key,
+    required this.materiais,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+
+    return Container(
+
+      width: double.infinity,
+
+      padding:
+          const EdgeInsets.all(20),
+
+      decoration: BoxDecoration(
+
+        color: Colors.white,
+
+        border: Border.all(
+          color:
+              const Color(0xFFCBD5E1),
+        ),
+
+        borderRadius:
+            BorderRadius.circular(8),
+      ),
+
+      child: Column(
+
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
+
+        children: [
+
+          const Text(
+            'Materiais de Reciclagem',
+
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight:
+                  FontWeight.bold,
+              color:
+                  Color(0xFF071B36),
+            ),
+          ),
+
+          const SizedBox(height: 18),
+
+          ...materiais.map(
+            (material) {
+
+              return Container(
+
+                width: double.infinity,
+
+                padding:
+                    const EdgeInsets.all(14),
+
+                decoration: BoxDecoration(
+
+                  border: Border.all(
+                    color:
+                        const Color(
+                            0xFFCBD5E1),
+                  ),
+
+                  borderRadius:
+                      BorderRadius.circular(6),
+                ),
+
+                child: Column(
+
+                  crossAxisAlignment:
+                      CrossAxisAlignment.start,
+
+                  children: [
+
+                    Text(
+                      material.titulo,
+
+                      style:
+                          const TextStyle(
+                        fontSize: 13,
+                        fontWeight:
+                            FontWeight.bold,
+                      ),
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    Wrap(
+
+                      spacing: 8,
+                      runSpacing: 8,
+
+                      children: [
+
+                        Container(
+
+                          padding:
+                              const EdgeInsets
+                                  .symmetric(
+                            horizontal: 8,
+                            vertical: 5,
+                          ),
+
+                          decoration:
+                              BoxDecoration(
+                            color: Colors.black,
+                            borderRadius:
+                                BorderRadius
+                                    .circular(15),
+                          ),
+
+                          child: Text(
+                            '⚠ Prazo de conclusão: '
+                            '${material.prazo}',
+
+                            style:
+                                const TextStyle(
+                              color:
+                                  Colors.yellow,
+                              fontSize: 10,
+                              fontWeight:
+                                  FontWeight.bold,
+                            ),
+                          ),
+                        ),
+
+                        TextButton(
+
+                          onPressed: () {
+
+                            ScaffoldMessenger
+                                .of(context)
+                                .showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Abrindo material: '
+                                  '${material.titulo}',
+                                ),
+                              ),
+                            );
+                          },
+
+                          child: const Text(
+                            'Acessar material →',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+//EPIS//
+class SecaoEpis extends StatelessWidget {
+
+  final List<Epi> epis;
+
+  const SecaoEpis({
+    super.key,
+    required this.epis,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+
+    return Container(
+
+      width: double.infinity,
+
+      padding:
+          const EdgeInsets.all(20),
+
+      decoration: BoxDecoration(
+
+        color: Colors.white,
+
+        border: Border.all(
+          color:
+              const Color(0xFFCBD5E1),
+        ),
+
+        borderRadius:
+            BorderRadius.circular(8),
+      ),
+
+      child: Column(
+
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
+
+        children: [
+
+          const Text(
+            'Meus EPIs',
+
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight:
+                  FontWeight.bold,
+              color:
+                  Color(0xFF071B36),
+            ),
+          ),
+
+          const SizedBox(height: 18),
+
+          if (epis.isEmpty)
+
+            const Padding(
+              padding:
+                  EdgeInsets.all(15),
+
+              child: Center(
+                child: Text(
+                  'Nenhum EPI registrado no momento.',
+                ),
+              ),
+            )
+
+          else
+
+            SingleChildScrollView(
+
+              scrollDirection:
+                  Axis.horizontal,
+
+              child: DataTable(
+
+                headingRowColor:
+                    WidgetStateProperty.all(
+                  const Color(0xFFD2D5DB),
+                ),
+
+                columns: const [
+
+                  DataColumn(
+                    label:
+                        Text('ID'),
+                  ),
+
+                  DataColumn(
+                    label:
+                        Text('EPI'),
+                  ),
+
+                  DataColumn(
+                    label:
+                        Text('QUANTIDADE'),
+                  ),
+
+                  DataColumn(
+                    label:
+                        Text('CA'),
+                  ),
+
+                  DataColumn(
+                    label:
+                        Text(
+                          'DATA DE ENTREGA',
+                        ),
+                  ),
+
+                  DataColumn(
+                    label:
+                        Text(
+                          'ASSINATURA DO TERMO',
+                        ),
+                  ),
+                ],
+
+                rows: epis.map(
+                  (epi) {
+
+                    return DataRow(
+                      cells: [
+
+                        DataCell(
+                          Text(
+                            epi.id.toString(),
+                          ),
+                        ),
+
+                        DataCell(
+                          Text(epi.epi),
+                        ),
+
+                        DataCell(
+                          Text(
+                            epi.quantidade
+                                .toString(),
+                          ),
+                        ),
+
+                        DataCell(
+                          Text(epi.ca),
+                        ),
+
+                        DataCell(
+                          Text(
+                            epi.dataEntrega,
+                          ),
+                        ),
+
+                        DataCell(
+                          Text(
+                            epi.termoAssinado
+                                ? 'Assinado'
+                                : 'Pendente',
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ).toList(),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+//MENU LATERAL//
+class MenuLateral extends StatelessWidget {
+
+  const MenuLateral({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+
+    return Drawer(
+
+      child: SafeArea(
+
+        child: Column(
+
+          children: [
+
+            const SizedBox(height: 25),
+
+            const Text(
+              'Sistema de Gestão de\nSST',
+
+              textAlign:
+                  TextAlign.center,
+
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight:
+                    FontWeight.bold,
+                color:
+                    Color(0xFF071B36),
+              ),
+            ),
+
+            const SizedBox(height: 5),
+
+            const Text(
+              'Essenza Supermercados Ltda.',
+
+              style: TextStyle(
+                fontSize: 11,
+                color:
+                    Color(0xFF64748B),
+              ),
+            ),
+
+            const SizedBox(height: 30),
+
+            ListTile(
+
+              selected: true,
+
+              leading: const Icon(
+                Icons.dashboard_outlined,
+              ),
+
+              title: const Text(
+                'Área do Colaborador',
+              ),
+
+              onTap: () {
+                Navigator.pop(context);
+              },
+            ),
+
+            ListTile(
+
+              leading: const Icon(
+                Icons.help_outline,
+              ),
+
+              title: const Text(
+                'Ajuda e Suporte',
+              ),
+
+              onTap: () {
+
+                Navigator.pop(context);
+
+                ScaffoldMessenger
+                    .of(context)
+                    .showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Ajuda e Suporte',
+                    ),
+                  ),
+                );
+              },
+            ),
+
+            const Spacer(),
+
+            ListTile(
+
+              leading: const Icon(
+                Icons.logout,
+                color: Colors.red,
+              ),
+
+              title: const Text(
+                'Sair',
+
+                style: TextStyle(
+                  color: Colors.red,
+                ),
+              ),
+
+              onTap: () {
+
+                Navigator.pop(context);
+
+                ScaffoldMessenger
+                    .of(context)
+                    .showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Sessão encerrada.',
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+</file>
+
+<file path="main.dart">
+import 'package:flutter/material.dart';
+import 'telas/tela_colaborador.dart';
+
+void main() {
+  runApp(const AplicativoSst());
+}
+
+class AplicativoSst extends StatelessWidget {
+  const AplicativoSst({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+
+      title: 'Sistema de Gestão de SST',
+
+      theme: ThemeData(
+        useMaterial3: true,
+
+        scaffoldBackgroundColor:
+            const Color(0xFFF1F5F9),
+
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF1E3A5F),
+        ),
+      ),
+
+      home: const TelaColaborador(),
+    );
+  }
+}
+</file>
+
+</files>
