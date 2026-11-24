@@ -39,6 +39,26 @@
       }
     },
     {
+      // Inicia o emulador Android. Deixe rodando; ele demora ~1 min para bootar.
+      // Requer um AVD criado (veja 'flutter emulators' para listar os disponiveis).
+      "label": "android: iniciar emulador",
+      "type": "shell",
+      "command": "$ANDROID_HOME/emulator/emulator -avd ${input:avd}",
+      "options": { "cwd": "mobile" },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      // Roda o app no emulador ja ligado. Se houver mais de um device,
+      // o Flutter pergunta em qual rodar.
+      "label": "flutter: run android",
+      "type": "shell",
+      "command": "flutter run",
+      "options": { "cwd": "mobile" },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
       "label": "flutter: run web",
       "type": "shell",
       "command": "flutter run -d chrome --web-port=4200",
@@ -59,6 +79,24 @@
       "command": "flutter test",
       "options": { "cwd": "mobile" },
       "problemMatcher": []
+    },
+    {
+      "label": "flutter: devices",
+      "type": "shell",
+      "command": "flutter devices",
+      "options": { "cwd": "mobile" },
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      // Lista de AVDs. Para adicionar outro, rode 'flutter emulators'
+      // e inclua o id na lista abaixo.
+      "id": "avd",
+      "type": "pickString",
+      "description": "Qual emulador Android iniciar?",
+      "options": ["Medium_Phone_API_37.0"],
+      "default": "Medium_Phone_API_37.0"
     }
   ]
 }
