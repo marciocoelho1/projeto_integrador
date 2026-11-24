@@ -336,8 +336,10 @@ já cai para software rendering por conta própria e aborta antes, na inicializa
 #### Telas portadas da versão web
 
 O app mobile cobre as mesmas funcionalidades do frontend Angular, com o design do
-dashboard ("Carteira digital"). A navegação fica em `mobile/lib/screens/main_screen.dart`:
-barra inferior com os atalhos do perfil e menu lateral com todas as telas.
+dashboard ("Carteira digital"). A navegação fica em `mobile/lib/screens/main_screen.dart`
+e tem dois níveis: a barra inferior traz os quatro atalhos do perfil, e o seletor
+**Todas as telas** (ícone de grade no cabeçalho) mais o menu lateral expõem todas as
+demais telas sem exigir gesto.
 
 | Perfil | Telas |
 | :--- | :--- |
@@ -358,6 +360,10 @@ Pontos de paridade que valem conferir numa apresentação:
 | Importação em massa (CSV) | `importacao_massa_screen.dart` (mesmos cabeçalhos aceitos e normalização de acentos) |
 | Chamados do colaborador só os próprios | `ajuda_suporte_colaborador_screen.dart` (`GET /api/chamados?meus=true`) |
 | Menu por perfil (admin x colaborador) | `menu_sgsst.dart` + `AuthService.perfil` |
+| Dashboard com 8 fontes e 8 blocos | `dashboard_screen.dart` + `widgets/blocos_dashboard.dart` (matriz de calor, setores, EPIs críticos, entregas por mês, últimas entregas e atividade recente) |
+| Botão **Exportar** do dashboard | `DashboardService.baixarRelatorioCsv` + `salvarCsv` em `core/formatadores.dart` |
+| Configurações com 5 abas | `configuracoes_screen.dart` (Usuários do Sistema, Grupos de Usuários, Matriz de Acessos, Configurações Globais, Logs de Auditoria) |
+| Balão de Ajuda flutuante | `widgets/balao_ajuda.dart` — recolhe a só o ícone ao navegar ou rolar e volta inteiro após 4 s de tela parada |
 
 O Excel (`.xlsx`) **não** é lido no celular: a importação em massa aceita CSV exportado do
 Excel, mantendo os mesmos nomes de coluna e aliases da versão web.
