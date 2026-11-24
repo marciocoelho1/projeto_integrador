@@ -275,7 +275,9 @@ O repositório já traz as configurações em `.vscode/`. Com o emulador ligado,
 | Task | O que faz |
 | :--- | :--- |
 | `android: iniciar emulador` | Sobe o AVD escolhido (deixe rodando; ~1 min para bootar) |
-| `flutter: run android` | Instala e abre o app no emulador, já apontando para a API local |
+| `backend: subir com dados demo` | Sobe a API com o perfil `demo` (contas `admin` / `123456` e `colaborador` / `123456`) |
+| `flutter: run android` | Instala, abre o app e **mantém o hot reload** — a forma normal de ver suas mudanças |
+| `flutter: atualizar app no emulador` | Compila o APK, instala por cima e reabre (sem hot reload) |
 | `flutter: reinstalar no emulador` | Remove o app antes de instalar (use quando a tela não mudar) |
 | `flutter: devices` | Lista os devices disponíveis |
 | `flutter: analyze` / `flutter: test` | Análise estática e testes |
@@ -290,19 +292,48 @@ escolher esse device — que falha neste repositório por falta do toolchain de 
 (`clang++` e GTK 3). Se o emulador aparecer com outro id, ajuste o `-d` em
 `.vscode/tasks.json`.
 
-##### O emulador abre, mas a tela não muda
+##### Atualizar a versão do app no emulador
 
-O emulador guarda um snapshot do estado anterior: ele "acorda" com o app já instalado
-na versão antiga, e a task de run pode terminar sem reinstalar. Para forçar a versão
-da branch atual, rode a task `flutter: reinstalar no emulador` (ou, no terminal):
+Há três formas, da mais leve para a mais pesada:
 
-```bash
-cd mobile
-adb uninstall br.com.senac.sgsst.app_sgsst
-flutter run -d emulator-5554 --dart-define=API_BASE_URL=http://10.0.2.2:8080/api
-```
+1. **Hot reload (o dia a dia).** Deixe a task `flutter: run android` rodando e salve um
+   arquivo Dart: o emulador atualiza em ~1 s. No terminal onde o `flutter run` está
+   aberto, `r` recarrega e `R` reinicia o app.
+2. **Nova instalação sem desinstalar.** Rode a task `flutter: atualizar app no emulador`.
+   É o caminho quando o hot reload caiu ou quando o app está em outro estado (por
+   exemplo, logado). Equivale a:
+
+   ```bash
+   cd mobile
+   flutter build apk --debug --dart-define=API_BASE_URL=http://10.0.2.2:8080/api
+   adb install -r build/app/outputs/flutter-apk/app-debug.apk
+   adb shell am force-stop br.com.senac.sgsst.app_sgsst
+   adb shell am start -n br.com.senac.sgsst.app_sgsst/.MainActivity
+   ```
+
+3. **Instalação limpa.** Use a task `flutter: reinstalar no emulador` quando a tela
+   ainda mostrar a versão antiga ou a sessão estiver atrapalhando:
+
+   ```bash
+   cd mobile
+   adb uninstall br.com.senac.sgsst.app_sgsst
+   flutter run -d emulator-5554 --dart-define=API_BASE_URL=http://10.0.2.2:8080/api
+   ```
+
+   Para voltar à tela de login sem desinstalar, `adb shell pm clear br.com.senac.sgsst.app_sgsst`.
 
 Para conferir qual versão está instalada, `adb shell dumpsys package br.com.senac.sgsst.app_sgsst | grep lastUpdateTime`.
+
+##### Duas causas de "a tela não atualizou"
+
+1. **O emulador guarda um snapshot.** Ele "acorda" com o app já instalado na versão
+   antiga; por isso a atualização precisa ser explícita (hot reload ou reinstalação).
+2. **O aplicativo está falando com outra API.** A task aponta para
+   `http://10.0.2.2:8080/api` — o `10.0.2.2` é o apelido da sua máquina dentro do
+   emulador. Se o backend não estiver no ar, o login falha com *Usuário ou senha
+   inválidos* ou erro de conexão mesmo com a senha certa. Suba o backend
+   (`backend: subir com dados demo`) antes de testar. No perfil `demo`, as contas são
+   `admin` / `123456` e `colaborador` / `123456`.
 
 #### Emulador no Android Studio (Flatpak)
 
