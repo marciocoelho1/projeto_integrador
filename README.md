@@ -256,6 +256,62 @@ Para subir com dados fictícios de demonstração, use o perfil `demo` (`SPRING_
 
 A configuração CORS da base local permite as origens de `app.cors.origins` (`http://localhost:4200` e `https://sgsst-frontend-mvbu.onrender.com` por padrão; ajuste com `CORS_ORIGINS`). A disponibilidade da API e do banco pode ser consultada em `http://localhost:8080/api/health`.
 
+### App Mobile (Flutter)
+
+O app fica em `mobile/` e consome a mesma API do backend. O endereço é resolvido
+automaticamente por `mobile/lib/config/api_config.dart`: no emulador Android ele usa
+`10.0.2.2:8080` (alias do emulador para a máquina que roda a API) e no desktop usa
+`localhost:8080`. Para apontar para outro endereço:
+
+```bash
+flutter run --dart-define=API_BASE_URL=http://192.168.0.10:8080/api
+```
+
+#### Rodando pelo VS Code (recomendado)
+
+O repositório já traz as configurações em `.vscode/`. Com o emulador ligado, use
+**F5** e escolha **app_sgsst (mobile)** — ou **Ctrl+Shift+P → Tasks: Run Task**:
+
+| Task | O que faz |
+| :--- | :--- |
+| `android: iniciar emulador` | Sobe o AVD escolhido (deixe rodando; ~1 min para bootar) |
+| `flutter: run android` | Instala e abre o app no device ligado |
+| `flutter: devices` | Lista os devices disponíveis |
+| `flutter: analyze` / `flutter: test` | Análise estática e testes |
+
+O binário `emulator` **não está no PATH** — as tasks usam `$ANDROID_HOME/emulator/emulator`.
+Se o seu AVD tiver outro nome, inclua-o no `input` `avd` em `.vscode/tasks.json`
+(liste com `flutter emulators`).
+
+#### Emulador no Android Studio (Flatpak)
+
+**O emulador não inicia pelo Android Studio instalado como Flatpak.** Ele aparece como
+`terminated` e o log (`~/.var/app/com.google.AndroidStudio/cache/Google/AndroidStudio*/log/idea.log`)
+mostra o motivo:
+
+```
+Warning: Could not find the Qt platform plugin "wayland"
+Could not load the Qt platform plugin "xcb" ... even though it was found
+Fatal: This application failed to start because no Qt platform plugin could be initialized.
+Process finished with exit code 134 (interrupted by signal 6:SIGABRT)
+```
+
+A causa não é o AVD nem o projeto: dentro do sandbox do Flatpak, o emulador não consegue
+inicializar o plugin Qt. O Flatpak expõe os sockets `wayland` e `fallback-x11`, mas o
+emulador do SDK é compilado sem o plugin Wayland e o fallback X11 não carrega no sandbox.
+
+**Soluções:**
+
+1. **Inicie o emulador por fora do Studio** (a task do VS Code ou
+   `$ANDROID_HOME/emulator/emulator -avd <nome>`). Ele herda a sessão gráfica do host e
+   funciona; o Android Studio continua servindo para editar o código e o `adb` enxerga
+   o device normalmente. **É o caminho recomendado.**
+2. Instale o Android Studio pelo tarball oficial em vez do Flatpak.
+3. Tente atualizar o emulador: `sdkmanager --update`.
+
+Forçar renderização por software (`-gpu swiftshader_indirect`) **não resolve**: o emulador
+já cai para software rendering por conta própria e aborta antes, na inicialização do Qt.
+
 ### Login e sessão
 
 O primeiro administrador é criado por `POST /api/auth/bootstrap` (sem senha versionada no repositório). Depois disso, `POST /api/auth/login` devolve `{ token, expiraEm, usuario }` e as rotas de `/api/**` esperam `Authorization: Bearer <token>`. A senha é gravada como hash BCrypt; a recuperação de senha grava um token na tabela `redefinicoes_senha` e o exibe ao administrador em `GET /api/auth/redefinicoes` (não há envio de e-mail no projeto).
@@ -375,6 +431,9 @@ O que a regra da `main` exige, hoje:
 | `mvn spring-boot:run` | Executar a API local |
 | `mvn test` | Executar os testes do backend |
 | `mvn package` | Gerar o JAR do backend |
+| `cd mobile && flutter run` | Executar o app Flutter no device ligado |
+| `cd mobile && flutter test` | Executar os testes do app |
+| `$ANDROID_HOME/emulator/emulator -avd <nome>` | Iniciar o emulador Android (fora do Flatpak) |
 
 ---
 
