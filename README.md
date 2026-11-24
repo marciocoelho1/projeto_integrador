@@ -205,15 +205,52 @@ Use estes passos quando precisar do banco de verdade (Java 17, Maven e PostgreSQ
 
 ### Backend Local
 
-A configuração do banco utiliza as seguintes variáveis de ambiente:
+A configuração do banco usa as variáveis de ambiente abaixo. Elas podem chegar por
+`application-local.properties` (recomendado no dia a dia) ou pelo próprio ambiente:
 
 | Variável | Finalidade | Valor padrão |
 | :--- | :--- | :--- |
 | `DB_URL` | URL JDBC do PostgreSQL | `jdbc:postgresql://127.0.0.1:5432/sgsst` |
 | `DB_USERNAME` | Usuário do banco | `sgsst_app` |
-| `DB_PASSWORD` | Senha do usuário do banco | Vazia; preencher no ambiente local |
+| `DB_PASSWORD` | Senha do usuário do banco | Vazia; **precisa ser definida** |
+| `CORS_ORIGINS` | Origens liberadas, separadas por vírgula | `http://localhost:4200,https://sgsst-frontend-mvbu.onrender.com` |
 
-Prepare o banco `sgsst`, configure as variáveis de ambiente e execute `SgsstApplication` no IntelliJ ou `mvn spring-boot:run` na raiz. **As tabelas são criadas pelo Flyway na inicialização** (`spring.flyway.enabled=true`, migrações `V1` a `V9` em `src/main/resources/db/migration`). Em um banco que já existia com o script aplicado à mão, o Flyway faz `baseline` na versão 1 e aplica apenas o que falta; a `V2` é idempotente e não falha se `src/sql/migracoes/001-unicidade-colaborador-epi.sql` já tiver sido executado. O Hibernate está configurado com `ddl-auto=validate`: as tabelas precisam existir antes da inicialização — em banco vazio é o próprio Flyway que as cria.
+#### Configurando as credenciais localmente
+
+Crie um arquivo **`application-local.properties` na raiz do projeto** (o mesmo diretório do
+`pom.xml`) com as suas credenciais:
+
+```properties
+spring.datasource.url=jdbc:postgresql://SEU_HOST/SEU_BANCO?sslmode=require
+spring.datasource.username=SEU_USUARIO
+spring.datasource.password=SUA_SENHA
+```
+
+O arquivo é **carregado automaticamente** — não é preciso ativar perfil nem exportar variável de
+ambiente. Isso é feito por `spring.config.import` no `application.properties`, com o prefixo
+`optional:` para que a ausência do arquivo não quebre CI nem o deploy no Render (lá as variáveis
+do painel continuam sendo usadas).
+
+O `.env.example` na raiz documenta as mesmas variáveis, caso prefira fornecê-las pelo ambiente.
+
+> **O arquivo está no `.gitignore`** e nunca deve ser versionado. Se você definir a senha por
+> engenharia reversa no histórico do Git, rotacione a credencial no painel do banco: remover a
+> linha depois não apaga o valor dos commits antigos.
+>
+> **Formato da URL:** o Neon entrega `postgresql://...`; converta para `jdbc:postgresql://...` e
+> mantenha `?sslmode=require` (o Neon recusa conexões sem TLS).
+
+Se a senha estiver ausente, a aplicação aborta na inicialização com uma mensagem explícita
+(`ValidacaoConfiguracaoBanco`) apontando a variável e a URL que seria usada, em vez de uma cascata
+de erros do Flyway/Hibernate.
+
+#### Subindo a API
+
+Execute `SgsstApplication` no IntelliJ ou `./mvnw spring-boot:run` na raiz. **As tabelas são criadas pelo Flyway na inicialização** (`spring.flyway.enabled=true`, migrações `V1` a `V9` em `src/main/resources/db/migration`). Em um banco que já existia com o script aplicado à mão, o Flyway faz `baseline` na versão 1 e aplica apenas o que falta; a `V2` é idempotente e não falha se `src/sql/migracoes/001-unicidade-colaborador-epi.sql` já tiver sido executado. O Hibernate está configurado com `ddl-auto=validate`: as tabelas precisam existir antes da inicialização — em banco vazio é o próprio Flyway que as cria.
+
+Para subir com dados fictícios de demonstração, use o perfil `demo` (`SPRING_PROFILES_ACTIVE=demo`): ele acrescenta `src/main/resources/db/demo` às locations do Flyway e cria três colaboradores, três treinamentos, três EPIs e as duas contas de acesso abaixo. O perfil não altera bancos sem a variável.
+
+A disponibilidade da API e do banco pode ser consultada em `http://localhost:8080/api/health`. **As tabelas são criadas pelo Flyway na inicialização** (`spring.flyway.enabled=true`, migrações `V1` a `V9` em `src/main/resources/db/migration`). Em um banco que já existia com o script aplicado à mão, o Flyway faz `baseline` na versão 1 e aplica apenas o que falta; a `V2` é idempotente e não falha se `src/sql/migracoes/001-unicidade-colaborador-epi.sql` já tiver sido executado. O Hibernate está configurado com `ddl-auto=validate`: as tabelas precisam existir antes da inicialização — em banco vazio é o próprio Flyway que as cria.
 
 Para subir com dados fictícios de demonstração, use o perfil `demo` (`SPRING_PROFILES_ACTIVE=demo`): ele acrescenta `src/main/resources/db/demo` às locations do Flyway e cria três colaboradores, três treinamentos, três EPIs e as duas contas de acesso abaixo. O perfil não altera bancos sem a variável.
 
