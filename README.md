@@ -205,19 +205,112 @@ Use estes passos quando precisar do banco de verdade (Java 17, Maven e PostgreSQ
 
 ### Backend Local
 
-A configuração do banco utiliza as seguintes variáveis de ambiente:
+A configuração do banco usa as variáveis de ambiente abaixo. Elas podem chegar por
+`application-local.properties` (recomendado no dia a dia) ou pelo próprio ambiente:
 
 | Variável | Finalidade | Valor padrão |
 | :--- | :--- | :--- |
 | `DB_URL` | URL JDBC do PostgreSQL | `jdbc:postgresql://127.0.0.1:5432/sgsst` |
 | `DB_USERNAME` | Usuário do banco | `sgsst_app` |
-| `DB_PASSWORD` | Senha do usuário do banco | Vazia; preencher no ambiente local |
+| `DB_PASSWORD` | Senha do usuário do banco | Vazia; **precisa ser definida** |
+| `CORS_ORIGINS` | Origens liberadas, separadas por vírgula | `http://localhost:4200,https://sgsst-frontend-mvbu.onrender.com` |
 
-Prepare o banco `sgsst`, configure as variáveis de ambiente e execute `SgsstApplication` no IntelliJ ou `mvn spring-boot:run` na raiz. **As tabelas são criadas pelo Flyway na inicialização** (`spring.flyway.enabled=true`, migrações `V1` a `V9` em `src/main/resources/db/migration`). Em um banco que já existia com o script aplicado à mão, o Flyway faz `baseline` na versão 1 e aplica apenas o que falta; a `V2` é idempotente e não falha se `src/sql/migracoes/001-unicidade-colaborador-epi.sql` já tiver sido executado. O Hibernate está configurado com `ddl-auto=validate`: as tabelas precisam existir antes da inicialização — em banco vazio é o próprio Flyway que as cria.
+#### Configurando as credenciais localmente
+
+Crie um arquivo **`application-local.properties` na raiz do projeto** (o mesmo diretório do
+`pom.xml`) com as suas credenciais:
+
+```properties
+spring.datasource.url=jdbc:postgresql://SEU_HOST/SEU_BANCO?sslmode=require
+spring.datasource.username=SEU_USUARIO
+spring.datasource.password=SUA_SENHA
+```
+
+O arquivo é **carregado automaticamente** — não é preciso ativar perfil nem exportar variável de
+ambiente. Isso é feito por `spring.config.import` no `application.properties`, com o prefixo
+`optional:` para que a ausência do arquivo não quebre CI nem o deploy no Render (lá as variáveis
+do painel continuam sendo usadas).
+
+O `.env.example` na raiz documenta as mesmas variáveis, caso prefira fornecê-las pelo ambiente.
+
+> **O arquivo está no `.gitignore`** e nunca deve ser versionado. Se você definir a senha por
+> engenharia reversa no histórico do Git, rotacione a credencial no painel do banco: remover a
+> linha depois não apaga o valor dos commits antigos.
+>
+> **Formato da URL:** o Neon entrega `postgresql://...`; converta para `jdbc:postgresql://...` e
+> mantenha `?sslmode=require` (o Neon recusa conexões sem TLS).
+
+Se a senha estiver ausente, a aplicação aborta na inicialização com uma mensagem explícita
+(`ValidacaoConfiguracaoBanco`) apontando a variável e a URL que seria usada, em vez de uma cascata
+de erros do Flyway/Hibernate.
+
+#### Subindo a API
+
+Execute `SgsstApplication` no IntelliJ ou `./mvnw spring-boot:run` na raiz. **As tabelas são criadas pelo Flyway na inicialização** (`spring.flyway.enabled=true`, migrações `V1` a `V9` em `src/main/resources/db/migration`). Em um banco que já existia com o script aplicado à mão, o Flyway faz `baseline` na versão 1 e aplica apenas o que falta; a `V2` é idempotente e não falha se `src/sql/migracoes/001-unicidade-colaborador-epi.sql` já tiver sido executado. O Hibernate está configurado com `ddl-auto=validate`: as tabelas precisam existir antes da inicialização — em banco vazio é o próprio Flyway que as cria.
+
+Para subir com dados fictícios de demonstração, use o perfil `demo` (`SPRING_PROFILES_ACTIVE=demo`): ele acrescenta `src/main/resources/db/demo` às locations do Flyway e cria três colaboradores, três treinamentos, três EPIs e as duas contas de acesso abaixo. O perfil não altera bancos sem a variável.
+
+A disponibilidade da API e do banco pode ser consultada em `http://localhost:8080/api/health`. **As tabelas são criadas pelo Flyway na inicialização** (`spring.flyway.enabled=true`, migrações `V1` a `V9` em `src/main/resources/db/migration`). Em um banco que já existia com o script aplicado à mão, o Flyway faz `baseline` na versão 1 e aplica apenas o que falta; a `V2` é idempotente e não falha se `src/sql/migracoes/001-unicidade-colaborador-epi.sql` já tiver sido executado. O Hibernate está configurado com `ddl-auto=validate`: as tabelas precisam existir antes da inicialização — em banco vazio é o próprio Flyway que as cria.
 
 Para subir com dados fictícios de demonstração, use o perfil `demo` (`SPRING_PROFILES_ACTIVE=demo`): ele acrescenta `src/main/resources/db/demo` às locations do Flyway e cria três colaboradores, três treinamentos, três EPIs e as duas contas de acesso abaixo. O perfil não altera bancos sem a variável.
 
 A configuração CORS da base local permite as origens de `app.cors.origins` (`http://localhost:4200` e `https://sgsst-frontend-mvbu.onrender.com` por padrão; ajuste com `CORS_ORIGINS`). A disponibilidade da API e do banco pode ser consultada em `http://localhost:8080/api/health`.
+
+### App Mobile (Flutter)
+
+O app fica em `mobile/` e consome a mesma API do backend. O endereço é resolvido
+automaticamente por `mobile/lib/config/api_config.dart`: no emulador Android ele usa
+`10.0.2.2:8080` (alias do emulador para a máquina que roda a API) e no desktop usa
+`localhost:8080`. Para apontar para outro endereço:
+
+```bash
+flutter run --dart-define=API_BASE_URL=http://192.168.0.10:8080/api
+```
+
+#### Rodando pelo VS Code (recomendado)
+
+O repositório já traz as configurações em `.vscode/`. Com o emulador ligado, use
+**F5** e escolha **app_sgsst (mobile)** — ou **Ctrl+Shift+P → Tasks: Run Task**:
+
+| Task | O que faz |
+| :--- | :--- |
+| `android: iniciar emulador` | Sobe o AVD escolhido (deixe rodando; ~1 min para bootar) |
+| `flutter: run android` | Instala e abre o app no device ligado |
+| `flutter: devices` | Lista os devices disponíveis |
+| `flutter: analyze` / `flutter: test` | Análise estática e testes |
+
+O binário `emulator` **não está no PATH** — as tasks usam `$ANDROID_HOME/emulator/emulator`.
+Se o seu AVD tiver outro nome, inclua-o no `input` `avd` em `.vscode/tasks.json`
+(liste com `flutter emulators`).
+
+#### Emulador no Android Studio (Flatpak)
+
+**O emulador não inicia pelo Android Studio instalado como Flatpak.** Ele aparece como
+`terminated` e o log (`~/.var/app/com.google.AndroidStudio/cache/Google/AndroidStudio*/log/idea.log`)
+mostra o motivo:
+
+```
+Warning: Could not find the Qt platform plugin "wayland"
+Could not load the Qt platform plugin "xcb" ... even though it was found
+Fatal: This application failed to start because no Qt platform plugin could be initialized.
+Process finished with exit code 134 (interrupted by signal 6:SIGABRT)
+```
+
+A causa não é o AVD nem o projeto: dentro do sandbox do Flatpak, o emulador não consegue
+inicializar o plugin Qt. O Flatpak expõe os sockets `wayland` e `fallback-x11`, mas o
+emulador do SDK é compilado sem o plugin Wayland e o fallback X11 não carrega no sandbox.
+
+**Soluções:**
+
+1. **Inicie o emulador por fora do Studio** (a task do VS Code ou
+   `$ANDROID_HOME/emulator/emulator -avd <nome>`). Ele herda a sessão gráfica do host e
+   funciona; o Android Studio continua servindo para editar o código e o `adb` enxerga
+   o device normalmente. **É o caminho recomendado.**
+2. Instale o Android Studio pelo tarball oficial em vez do Flatpak.
+3. Tente atualizar o emulador: `sdkmanager --update`.
+
+Forçar renderização por software (`-gpu swiftshader_indirect`) **não resolve**: o emulador
+já cai para software rendering por conta própria e aborta antes, na inicialização do Qt.
 
 ### Login e sessão
 
@@ -338,6 +431,9 @@ O que a regra da `main` exige, hoje:
 | `mvn spring-boot:run` | Executar a API local |
 | `mvn test` | Executar os testes do backend |
 | `mvn package` | Gerar o JAR do backend |
+| `cd mobile && flutter run` | Executar o app Flutter no device ligado |
+| `cd mobile && flutter test` | Executar os testes do app |
+| `$ANDROID_HOME/emulator/emulator -avd <nome>` | Iniciar o emulador Android (fora do Flatpak) |
 
 ---
 

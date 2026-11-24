@@ -15,6 +15,34 @@
       "request": "launch",
       "preLaunchTask": "npm: test",
       "url": "http://localhost:9876/debug.html"
+    },
+    {
+      // Roda o app em qualquer device ligado (emulador Android ou desktop).
+      // Requer o emulador ja iniciado: task 'android: iniciar emulador'.
+      // O ApiConfig detecta Android e usa 10.0.2.2:8080 automaticamente.
+      "name": "app_sgsst (mobile)",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main.dart",
+      "cwd": "mobile"
+    },
+    {
+      // Aponta para a API publicada no Render, em vez do backend local.
+      "name": "app_sgsst (API Render)",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main.dart",
+      "cwd": "mobile",
+      "toolArgs": ["--dart-define=API_BASE_URL=https://sgsst-api-r3iv.onrender.com/api"]
+    },
+    {
+      // Perfil de release: sem hot reload, mas com a performance real.
+      "name": "app_sgsst (release)",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main.dart",
+      "cwd": "mobile",
+      "flutterMode": "release"
     }
   ]
 }
