@@ -24,4 +24,13 @@ class DadosReferencia {
     'Estoque / Logística',
     'Higienização',
   ];
+  /// Mesmas NRs do datalist "lista-nr-reciclagem" do web.
+  static const nrsReferentes = <String>[
+    'NR-06',
+    'NR-11',
+    'NR-12',
+    'NR-17',
+    'NR-23',
+    'NR-35',
+  ];
 }

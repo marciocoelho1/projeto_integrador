@@ -69,14 +69,8 @@ class _CadastramentosScreenState extends State<CadastramentosScreen>
                 _FormularioColaborador(auth: widget.auth),
                 _FormularioTreinamento(auth: widget.auth),
                 _FormularioEpi(auth: widget.auth),
-                const _ForaDoEscopo(
-                  titulo: 'LNT / Cargos',
-                  mensagem: 'LNT / Cargos: funcionalidade fora do escopo, sem persistência.',
-                ),
-                const _ForaDoEscopo(
-                  titulo: 'Reciclagens',
-                  mensagem: 'Reciclagens: funcionalidade fora do escopo, sem persistência.',
-                ),
+                const _FormularioLnt(),
+                const _FormularioReciclagem(),
               ],
             ),
           ),
@@ -86,25 +80,6 @@ class _CadastramentosScreenState extends State<CadastramentosScreen>
   }
 }
 
-class _ForaDoEscopo extends StatelessWidget {
-  const _ForaDoEscopo({required this.titulo, required this.mensagem});
-
-  final String titulo;
-  final String mensagem;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: CartaoSecao(
-          titulo: titulo,
-          child: Text(mensagem, style: Theme.of(context).textTheme.bodyMedium),
-        ),
-      ),
-    );
-  }
-}
 
 class _FormularioColaborador extends StatefulWidget {
   const _FormularioColaborador({required this.auth});
@@ -492,6 +467,148 @@ class _Sugestoes extends StatelessWidget {
           side: const BorderSide(color: AppCores.hairline),
         ),
       ),
+    );
+  }
+}
+
+/// Cadastro de LNT / Cargo.
+///
+/// O web mostra o formulario e, ao salvar, avisa que a funcionalidade esta
+/// fora do escopo. O mobile antes exibia so uma caixa vazia, o que parecia
+/// defeito. Agora os dois se comportam igual.
+class _FormularioLnt extends StatefulWidget {
+  const _FormularioLnt();
+
+  @override
+  State<_FormularioLnt> createState() => _FormularioLntState();
+}
+
+class _FormularioLntState extends State<_FormularioLnt> {
+  final _cargo = TextEditingController();
+  final _setor = TextEditingController();
+
+  @override
+  void dispose() {
+    _cargo.dispose();
+    _setor.dispose();
+    super.dispose();
+  }
+
+  void _salvar() {
+    // Mesma mensagem do web (salvarLnt).
+    Toast.aviso(context, 'LNT / Cargos: funcionalidade fora do escopo, sem persistência.');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.all(18),
+      children: [
+        CartaoSecao(
+          titulo: 'Novo LNT / Cargo',
+          subtitulo: 'Ainda fora do escopo: nada é gravado',
+          child: Column(
+            children: [
+              CampoTexto(rotulo: 'Nome do Cargo', controlador: _cargo, maxCaracteres: 120),
+              const SizedBox(height: 6),
+              _Sugestoes(
+                opcoes: DadosReferencia.cargosCadastrados,
+                aoEscolher: (v) => setState(() => _cargo.text = v),
+              ),
+              const SizedBox(height: 12),
+              CampoTexto(rotulo: 'Setor', controlador: _setor, maxCaracteres: 120),
+              const SizedBox(height: 6),
+              _Sugestoes(
+                opcoes: DadosReferencia.setoresCadastrados,
+                aoEscolher: (v) => setState(() => _setor.text = v),
+              ),
+              const SizedBox(height: 18),
+              BotaoPrimario(
+                rotulo: 'Salvar LNT / Cargo',
+                aoClicar: _salvar,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Cadastro de Reciclagem (mesmo comportamento do web: sem persistencia).
+class _FormularioReciclagem extends StatefulWidget {
+  const _FormularioReciclagem();
+
+  @override
+  State<_FormularioReciclagem> createState() => _FormularioReciclagemState();
+}
+
+class _FormularioReciclagemState extends State<_FormularioReciclagem> {
+  final _nome = TextEditingController();
+  final _nr = TextEditingController();
+  final _cargaHoraria = TextEditingController();
+  final _validade = TextEditingController();
+
+  @override
+  void dispose() {
+    _nome.dispose();
+    _nr.dispose();
+    _cargaHoraria.dispose();
+    _validade.dispose();
+    super.dispose();
+  }
+
+  void _salvar() {
+    // Mesma mensagem do web (salvarReciclagem).
+    Toast.aviso(context, 'Reciclagens: funcionalidade fora do escopo, sem persistência.');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.all(18),
+      children: [
+        CartaoSecao(
+          titulo: 'Nova Reciclagem',
+          subtitulo: 'Ainda fora do escopo: nada é gravado',
+          child: Column(
+            children: [
+              CampoTexto(rotulo: 'Nome da Reciclagem', controlador: _nome, maxCaracteres: 180),
+              const SizedBox(height: 12),
+              CampoTexto(
+                rotulo: 'NR Referente',
+                controlador: _nr,
+                maxCaracteres: 60,
+                dica: 'Ex.: NR-06',
+              ),
+              const SizedBox(height: 6),
+              _Sugestoes(
+                opcoes: DadosReferencia.nrsReferentes,
+                aoEscolher: (v) => setState(() => _nr.text = v),
+              ),
+              const SizedBox(height: 12),
+              CampoTexto(
+                rotulo: 'Carga Horária',
+                controlador: _cargaHoraria,
+                maxCaracteres: 30,
+                dica: 'Ex.: 8h',
+              ),
+              const SizedBox(height: 12),
+              CampoTexto(
+                rotulo: 'Validade (meses ou período)',
+                controlador: _validade,
+                maxCaracteres: 40,
+                dica: 'Ex.: 12 meses',
+              ),
+              const SizedBox(height: 18),
+              BotaoPrimario(
+                rotulo: 'Salvar Reciclagem',
+                aoClicar: _salvar,
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

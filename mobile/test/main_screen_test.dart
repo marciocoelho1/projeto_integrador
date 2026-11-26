@@ -418,6 +418,44 @@ void main() {
     expect(find.byTooltip('Fechar'), findsOneWidget);
     expect(find.text('Detalhes e edição'), findsOneWidget);
   });
+  testWidgets('LNT e Reciclagem mostram formulario, nao caixa vazia', (tester) async {
+    HttpOverrides.global = _OverridesFalso();
+    SharedPreferences.setMockInitialValues({});
+
+    final auth = AuthService();
+    await auth.entrar('admin', 'admin123');
+
+    await tester.pumpWidget(
+      MaterialApp(theme: AppTheme.tema, home: MainScreen(auth: auth)),
+    );
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pump(const Duration(seconds: 1));
+
+    final barra = tester.widget<NavigationBar>(find.byType(NavigationBar));
+    final idx = barra.destinations.indexWhere(
+      (d) => d is NavigationDestination && d.label == 'Configurações',
+    );
+    barra.onDestinationSelected!(idx);
+    await tester.pumpAndSettle();
+
+    // Abre Cadastramentos pelo menu lateral.
+    await tester.tap(find.byIcon(Icons.menu));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('menu-Cadastramentos')));
+    await tester.pumpAndSettle();
+
+    // Antes as duas abas eram uma caixa vazia com aviso de fora do escopo.
+    final abas = tester.widget<TabBar>(find.byType(TabBar));
+    abas.controller!.index = 3;
+    await tester.pumpAndSettle();
+    expect(find.text('Novo LNT / Cargo'), findsOneWidget);
+    expect(find.text('Nome do Cargo'), findsOneWidget);
+
+    abas.controller!.index = 4;
+    await tester.pumpAndSettle();
+    expect(find.text('Nova Reciclagem'), findsOneWidget);
+    expect(find.text('NR Referente'), findsOneWidget);
+  });
 }
 
 class _OverridesFalso extends HttpOverrides {
