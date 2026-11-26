@@ -10,14 +10,21 @@ import '../services/dados_referencia.dart';
 import '../widgets/campo_formulario.dart';
 import '../widgets/cartao_secao.dart';
 import '../widgets/estado_tela.dart';
+import '../widgets/acao_com_legenda.dart';
+import '../widgets/folha_formulario.dart';
 import '../widgets/sgsst_scaffold.dart';
 import 'cadastramentos_screen.dart';
 
 /// Porta de `src/app/tela-colaboradores`.
 class ColaboradoresScreen extends StatefulWidget {
-  const ColaboradoresScreen({super.key, required this.auth});
+  const ColaboradoresScreen({super.key, required this.auth, this.aoNavegar});
 
   final AuthService auth;
+
+  /// Navegacao entre telas da casca (menu lateral). Quando existe, o cadastro
+  /// abre a tela de Cadastramentos dentro da casca, mantendo o menu e o titulo;
+  /// sem ela (uso isolado), cai no push de sempre.
+  final void Function(String destino)? aoNavegar;
 
   @override
   State<ColaboradoresScreen> createState() => _ColaboradoresScreenState();
@@ -73,6 +80,11 @@ class _ColaboradoresScreenState extends State<ColaboradoresScreen> {
 
   /// Novo cadastro vai para a aba "Colaborador" da tela de Cadastramentos.
   Future<void> _novoColaborador() async {
+    final navegar = widget.aoNavegar;
+    if (navegar != null) {
+      navegar('Cadastramentos');
+      return;
+    }
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => CadastramentosScreen(auth: widget.auth, abaInicial: 'colaborador'),
@@ -148,10 +160,10 @@ class _ColaboradoresScreenState extends State<ColaboradoresScreen> {
       embutido: true,
       titulo: 'Colaboradores',
       subtitulo: 'Equipe e Matriz de SST',
-      acao: IconButton(
-        tooltip: 'Cadastrar novo colaborador',
-        icon: const Icon(Icons.person_add_alt),
-        onPressed: _novoColaborador,
+      acao: AcaoComLegenda(
+        rotulo: 'Novo colaborador',
+        icone: Icons.person_add_alt,
+        aoClicar: _novoColaborador,
       ),
       child: RefreshIndicator(
         onRefresh: _carregar,
@@ -349,34 +361,18 @@ class _DetalhesColaboradorState extends State<_DetalhesColaborador> {
 
   @override
   Widget build(BuildContext context) {
-    return DraggableScrollableSheet(
-      initialChildSize: 0.92,
-      maxChildSize: 0.96,
-      builder: (_, controller) => Container(
-        decoration: const BoxDecoration(
-          color: AppCores.areia,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Form(
+    // A barra repete a das telas: o cadastro nao perde o contexto do modulo.
+    // O Form em volta mantem a validacao de _salvar (validar() dos campos).
+    return FolhaFormulario(
+      titulo: widget.original.nome,
+      subtitulo: 'Detalhes e edição',
+      tamanhoInicial: 0.92,
+      children: [
+        Form(
           key: _formulario,
-          child: ListView(
-            controller: controller,
-            padding: const EdgeInsets.fromLTRB(18, 12, 18, 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Center(
-                child: Container(
-                  width: 46,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: AppCores.hairline,
-                    borderRadius: BorderRadius.circular(99),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(widget.original.nome, style: Theme.of(context).textTheme.titleLarge),
-              Text('Detalhes e edição', style: Theme.of(context).textTheme.bodyMedium),
-              const SizedBox(height: 16),
               CampoTexto(rotulo: 'Nome Completo', controlador: _nome, maxCaracteres: 150),
               const SizedBox(height: 12),
               CampoTexto(rotulo: 'E-mail', controlador: _email, maxCaracteres: 180),
@@ -443,7 +439,7 @@ class _DetalhesColaboradorState extends State<_DetalhesColaborador> {
             ],
           ),
         ),
-      ),
+      ],
     );
   }
 }

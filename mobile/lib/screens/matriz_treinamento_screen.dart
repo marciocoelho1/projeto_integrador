@@ -15,6 +15,8 @@ import '../services/treinamento_service.dart';
 import '../widgets/campo_formulario.dart';
 import '../widgets/cartao_secao.dart';
 import '../widgets/estado_tela.dart';
+import '../widgets/acao_com_legenda.dart';
+import '../widgets/folha_formulario.dart';
 import '../widgets/sgsst_scaffold.dart';
 
 /// Porta de `src/app/tela-matriz-treinamento`: cartões de resumo (Visão Geral,
@@ -378,20 +380,20 @@ class _MatrizTreinamentoScreenState extends State<MatrizTreinamentoScreen> {
       // Mesma acao "Exportar Matriz" do web.
       acao: _exportando
           ? const Padding(
-              padding: EdgeInsets.all(16),
+              padding: EdgeInsets.symmetric(horizontal: 18, vertical: 12),
               child: SizedBox(
                 width: 18,
                 height: 18,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: Colors.white,
+                  color: AppCores.petroleo,
                 ),
               ),
             )
-          : IconButton(
-              icon: const Icon(Icons.file_download_outlined),
-              tooltip: 'Exportar Matriz',
-              onPressed: _exportarMatriz,
+          : AcaoComLegenda(
+              rotulo: 'Exportar Matriz',
+              icone: Icons.file_download_outlined,
+              aoClicar: _exportarMatriz,
             ),
       child: RefreshIndicator(
         onRefresh: _carregar,
@@ -1589,49 +1591,26 @@ class _FolhaModal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DraggableScrollableSheet(
-      initialChildSize: 0.9,
-      maxChildSize: 0.96,
-      builder: (_, controller) => Container(
-        decoration: const BoxDecoration(
-          color: AppCores.areia,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+    // Mesma barra das telas: titulo, subtitulo e fechar a esquerda.
+    return FolhaFormulario(
+      titulo: titulo,
+      subtitulo: subtitulo,
+      children: [
+        for (final (i, filho) in filhos.indexed) ...[
+          filho,
+          if (i != filhos.length - 1) const SizedBox(height: 12),
+        ],
+        const SizedBox(height: 20),
+        BotaoPrimario(
+          rotulo: 'Salvar',
+          carregando: carregando,
+          aoClicar: aoSalvar,
         ),
-        child: ListView(
-          controller: controller,
-          padding: const EdgeInsets.fromLTRB(18, 12, 18, 24),
-          children: [
-            Center(
-              child: Container(
-                width: 46,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: AppCores.hairline,
-                  borderRadius: BorderRadius.circular(99),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(titulo, style: Theme.of(context).textTheme.titleLarge),
-            Text(subtitulo, style: Theme.of(context).textTheme.bodyMedium),
-            const SizedBox(height: 16),
-            for (final (i, filho) in filhos.indexed) ...[
-              filho,
-              if (i != filhos.length - 1) const SizedBox(height: 12),
-            ],
-            const SizedBox(height: 20),
-            BotaoPrimario(
-              rotulo: 'Salvar',
-              carregando: carregando,
-              aoClicar: aoSalvar,
-            ),
-            TextButton(
-              onPressed: carregando ? null : () => Navigator.of(context).pop(),
-              child: const Text('Cancelar'),
-            ),
-          ],
+        TextButton(
+          onPressed: carregando ? null : () => Navigator.of(context).pop(),
+          child: const Text('Cancelar'),
         ),
-      ),
+      ],
     );
   }
 }

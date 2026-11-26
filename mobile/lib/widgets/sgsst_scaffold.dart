@@ -44,10 +44,15 @@ class SgsstScaffold extends StatelessWidget {
               Container(
                 width: double.infinity,
                 color: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [?acao, ...?acoes],
+                padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+                // Rola na horizontal para os botoes com legenda nao serem
+                // espremidos em telas estreitas.
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  reverse: true,
+                  child: Row(
+                    children: [?acao, ...?acoes],
+                  ),
                 ),
               ),
             if (temAcoes) const Divider(height: 1, color: AppCores.hairline),

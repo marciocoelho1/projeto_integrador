@@ -12,6 +12,7 @@ import '../services/configuracoes_service.dart';
 import '../widgets/campo_formulario.dart';
 import '../widgets/cartao_secao.dart';
 import '../widgets/estado_tela.dart';
+import '../widgets/folha_formulario.dart';
 import '../widgets/sgsst_scaffold.dart';
 
 /// Os mesmos rotulos de `guiasNavegacao` no web (configuracoes.ts).
@@ -751,34 +752,11 @@ class _ModalUsuarioState extends State<_ModalUsuario> {
 
   @override
   Widget build(BuildContext context) {
-    return DraggableScrollableSheet(
-      initialChildSize: 0.9,
-      maxChildSize: 0.96,
-      builder: (_, controller) => Container(
-        decoration: const BoxDecoration(
-          color: AppCores.areia,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: ListView(
-          controller: controller,
-          padding: const EdgeInsets.fromLTRB(18, 12, 18, 24),
-          children: [
-            Center(
-              child: Container(
-                width: 46,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: AppCores.hairline,
-                  borderRadius: BorderRadius.circular(99),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              _novo ? 'Novo usuário' : 'Editar usuário',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 16),
+    return FolhaFormulario(
+      titulo: _novo ? 'Novo usuário' : 'Editar usuário',
+      subtitulo: 'Usuários do Sistema',
+      tamanhoInicial: 0.9,
+      children: [
             CampoTexto(rotulo: 'Nome completo', controlador: _nomeCompleto, maxCaracteres: 150),
             const SizedBox(height: 12),
             CampoTexto(rotulo: 'Usuário de acesso', controlador: _login, maxCaracteres: 60),
@@ -827,9 +805,7 @@ class _ModalUsuarioState extends State<_ModalUsuario> {
               onPressed: _salvando ? null : () => Navigator.of(context).pop(),
               child: const Text('Cancelar'),
             ),
-          ],
-        ),
-      ),
+      ],
     );
   }
 }

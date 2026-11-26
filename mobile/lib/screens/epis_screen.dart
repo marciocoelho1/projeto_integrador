@@ -12,15 +12,21 @@ import '../services/epi_service.dart';
 import '../widgets/campo_formulario.dart';
 import '../widgets/cartao_secao.dart';
 import '../widgets/estado_tela.dart';
+import '../widgets/acao_com_legenda.dart';
+import '../widgets/folha_formulario.dart';
 import '../widgets/sgsst_scaffold.dart';
 import 'cadastramentos_screen.dart';
 
 /// Porta de `src/app/tela-epis`: estoque, edição de EPI e registro de entregas
 /// (a entrega abate o estoque no servidor; excluir estorna).
 class EpisScreen extends StatefulWidget {
-  const EpisScreen({super.key, required this.auth});
+  const EpisScreen({super.key, required this.auth, this.aoNavegar});
 
   final AuthService auth;
+
+  /// Navegacao entre telas da casca: o cadastro abre Cadastramentos dentro da
+  /// casca em vez de empilhar outra tela sobre ela.
+  final void Function(String destino)? aoNavegar;
 
   @override
   State<EpisScreen> createState() => _EpisScreenState();
@@ -92,6 +98,11 @@ class _EpisScreenState extends State<EpisScreen> {
   }
 
   Future<void> _novoEpi() async {
+    final navegar = widget.aoNavegar;
+    if (navegar != null) {
+      navegar('Cadastramentos');
+      return;
+    }
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => CadastramentosScreen(auth: widget.auth, abaInicial: 'epi'),
@@ -225,15 +236,15 @@ class _EpisScreenState extends State<EpisScreen> {
       titulo: 'EPIs',
       subtitulo: 'Estoque e entregas',
       acoes: [
-        IconButton(
-          tooltip: 'Registrar entrega',
-          icon: const Icon(Icons.assignment_turned_in_outlined),
-          onPressed: _abrirEntrega,
+        AcaoComLegenda(
+          rotulo: 'Registrar entrega',
+          icone: Icons.assignment_turned_in_outlined,
+          aoClicar: _abrirEntrega,
         ),
-        IconButton(
-          tooltip: 'Cadastrar EPI',
-          icon: const Icon(Icons.add_box_outlined),
-          onPressed: _novoEpi,
+        AcaoComLegenda(
+          rotulo: 'Cadastrar EPI',
+          icone: Icons.add_box_outlined,
+          aoClicar: _novoEpi,
         ),
       ],
       child: RefreshIndicator(
@@ -486,32 +497,11 @@ class _EditarEpiState extends State<_EditarEpi> {
 
   @override
   Widget build(BuildContext context) {
-    return DraggableScrollableSheet(
-      initialChildSize: 0.88,
-      maxChildSize: 0.95,
-      builder: (_, controller) => Container(
-        decoration: const BoxDecoration(
-          color: AppCores.areia,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: ListView(
-          controller: controller,
-          padding: const EdgeInsets.fromLTRB(18, 12, 18, 24),
-          children: [
-            Center(
-              child: Container(
-                width: 46,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: AppCores.hairline,
-                  borderRadius: BorderRadius.circular(99),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text('Editar EPI #${widget.original.id}',
-                style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 16),
+    return FolhaFormulario(
+      titulo: 'Editar EPI #${widget.original.id}',
+      subtitulo: 'Estoque, CA e validade',
+      tamanhoInicial: 0.88,
+      children: [
             CampoTexto(rotulo: 'Descrição', controlador: _descricao, maxCaracteres: 180),
             const SizedBox(height: 12),
             CampoTexto(
@@ -549,9 +539,7 @@ class _EditarEpiState extends State<_EditarEpi> {
               onPressed: _salvando ? null : () => Navigator.of(context).pop(),
               child: const Text('Cancelar'),
             ),
-          ],
-        ),
-      ),
+      ],
     );
   }
 }
@@ -620,32 +608,11 @@ class _RegistrarEntregaState extends State<_RegistrarEntrega> {
 
   @override
   Widget build(BuildContext context) {
-    return DraggableScrollableSheet(
-      initialChildSize: 0.85,
-      maxChildSize: 0.95,
-      builder: (_, controller) => Container(
-        decoration: const BoxDecoration(
-          color: AppCores.areia,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: ListView(
-          controller: controller,
-          padding: const EdgeInsets.fromLTRB(18, 12, 18, 24),
-          children: [
-            Center(
-              child: Container(
-                width: 46,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: AppCores.hairline,
-                  borderRadius: BorderRadius.circular(99),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text('Registrar Entrega de EPI',
-                style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 16),
+    return FolhaFormulario(
+      titulo: 'Registrar Entrega de EPI',
+      subtitulo: 'A entrega abate o estoque do EPI',
+      tamanhoInicial: 0.85,
+      children: [
             CampoSelecao<int>(
               rotulo: 'Colaborador',
               valor: _colaborador?.id,
@@ -702,9 +669,7 @@ class _RegistrarEntregaState extends State<_RegistrarEntrega> {
               onPressed: _salvando ? null : () => Navigator.of(context).pop(),
               child: const Text('Cancelar'),
             ),
-          ],
-        ),
-      ),
+      ],
     );
   }
 }

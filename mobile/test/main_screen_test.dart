@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:app_sgsst/core/app_theme.dart';
 import 'package:app_sgsst/screens/main_screen.dart';
 import 'package:app_sgsst/screens/menu_sgsst.dart';
+import 'package:app_sgsst/widgets/folha_formulario.dart';
 import 'package:app_sgsst/services/auth_service.dart';
 
 /// Cliente HTTP que responde o contrato da API sem rede — assim o teste roda no
@@ -82,18 +83,21 @@ class _RequisicaoFalso implements HttpClientRequest {
       });
     }
     if (p.contains('/colaboradores')) {
-      return jsonEncode([
-        {
-          'id': 1,
-          'matricula': 'MAT-001',
-          'nome': 'Maria Souza',
-          'cpf': '11122233344',
-          'email': 'maria@empresa.com',
-          'cargo': 'Repositora',
-          'setor': 'Mercearia',
-          'status': 'Ativo',
-        },
-      ]);
+      final umColaborador = {
+        'id': 1,
+        'matricula': 'MAT-001',
+        'nome': 'Maria Souza',
+        'cpf': '11122233344',
+        'email': 'maria@empresa.com',
+        'cargo': 'Repositora',
+        'setor': 'Mercearia',
+        'status': 'Ativo',
+      };
+      // /colaboradores/1 devolve o objeto; a lista so na rota raiz.
+      if (RegExp(r'/colaboradores/\d+').hasMatch(p)) {
+        return jsonEncode(umColaborador);
+      }
+      return jsonEncode([umColaborador]);
     }
     return '[]';
   }
@@ -355,6 +359,64 @@ void main() {
       // O titulo aparece uma vez no cabecalho (e uma na barra inferior).
       expect(find.text(titulo), findsNWidgets(2));
     }
+  });
+  testWidgets('Cadastrar EPI abre Cadastramentos dentro da casca', (tester) async {
+    HttpOverrides.global = _OverridesFalso();
+    SharedPreferences.setMockInitialValues({});
+
+    final auth = AuthService();
+    await auth.entrar('admin', 'admin123');
+
+    await tester.pumpWidget(
+      MaterialApp(theme: AppTheme.tema, home: MainScreen(auth: auth)),
+    );
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pump(const Duration(seconds: 1));
+
+    final barra = tester.widget<NavigationBar>(find.byType(NavigationBar));
+    final idx = barra.destinations.indexWhere(
+      (d) => d is NavigationDestination && d.label == 'EPIs',
+    );
+    barra.onDestinationSelected!(idx);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Cadastrar EPI'));
+    await tester.pumpAndSettle();
+
+    // Antes empilhava uma tela inteira sobre a casca e o menu/titulo sumiam.
+    // Agora troca a aba dentro da casca: o menu e o titulo continuam.
+    expect(find.byType(NavigationBar), findsOneWidget, reason: 'a barra inferior sumiu');
+    expect(find.byTooltip('Menu'), findsOneWidget, reason: 'o botao de menu sumiu');
+    expect(find.byType(AppBar), findsNothing, reason: 'abriu uma tela empilhada');
+  });
+  testWidgets('a folha de edicao repete a barra das telas', (tester) async {
+    HttpOverrides.global = _OverridesFalso();
+    SharedPreferences.setMockInitialValues({});
+
+    final auth = AuthService();
+    await auth.entrar('admin', 'admin123');
+
+    await tester.pumpWidget(
+      MaterialApp(theme: AppTheme.tema, home: MainScreen(auth: auth)),
+    );
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pump(const Duration(seconds: 1));
+
+    final barra = tester.widget<NavigationBar>(find.byType(NavigationBar));
+    final idx = barra.destinations.indexWhere(
+      (d) => d is NavigationDestination && d.label == 'Colaboradores',
+    );
+    barra.onDestinationSelected!(idx);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Ver Detalhes / Editar').first);
+    await tester.pumpAndSettle();
+
+    // A folha antiga nao tinha barra: o usuario nao sabia onde estava nem
+    // como fechar. Agora repete a barra das telas.
+    expect(find.byType(FolhaFormulario), findsOneWidget);
+    expect(find.byTooltip('Fechar'), findsOneWidget);
+    expect(find.text('Detalhes e edição'), findsOneWidget);
   });
 }
 

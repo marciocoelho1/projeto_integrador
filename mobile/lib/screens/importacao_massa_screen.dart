@@ -488,21 +488,38 @@ class _ImportacaoMassaScreenState extends State<ImportacaoMassaScreen> {
                   aoMudar: (v) => setState(() => _tipo = v),
                 ),
                 const SizedBox(height: 14),
+                Text(
+                  'Baixe a planilha modelo, preencha no Excel e exporte em CSV antes de escolher o arquivo.',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppCores.cinza,
+                  ),
+                ),
+                const SizedBox(height: 10),
                 Row(
                   children: [
                     Expanded(
                       child: OutlinedButton.icon(
                         onPressed: _baixarModelo,
-                        icon: const Icon(Icons.download_outlined),
+                        icon: const Icon(Icons.download_outlined, size: 18),
                         label: const Text('Baixar modelo'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppCores.petroleo,
+                          side: const BorderSide(color: AppCores.hairline),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: OutlinedButton.icon(
                         onPressed: _selecionarArquivo,
-                        icon: const Icon(Icons.upload_file_outlined),
+                        icon: const Icon(Icons.upload_file_outlined, size: 18),
                         label: const Text('Escolher arquivo'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppCores.petroleo,
+                          side: const BorderSide(color: AppCores.hairline),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
                       ),
                     ),
                   ],

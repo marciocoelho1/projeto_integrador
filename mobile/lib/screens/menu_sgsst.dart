@@ -93,9 +93,9 @@ Widget _dashboard(AuthService auth, {void Function(String)? aoNavegar}) =>
 Widget _matriz(AuthService auth, {void Function(String)? aoNavegar}) =>
     MatrizTreinamentoScreen(auth: auth);
 Widget _epis(AuthService auth, {void Function(String)? aoNavegar}) =>
-    EpisScreen(auth: auth);
+    EpisScreen(auth: auth, aoNavegar: aoNavegar);
 Widget _colaboradores(AuthService auth, {void Function(String)? aoNavegar}) =>
-    ColaboradoresScreen(auth: auth);
+    ColaboradoresScreen(auth: auth, aoNavegar: aoNavegar);
 Widget _cadastramentos(AuthService auth, {void Function(String)? aoNavegar}) =>
     CadastramentosScreen(auth: auth);
 Widget _importacao(AuthService auth, {void Function(String)? aoNavegar}) =>

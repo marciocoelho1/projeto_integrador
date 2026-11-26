@@ -33,7 +33,6 @@ class _MainScreenState extends State<MainScreen> {
   final GlobalKey<ScaffoldState> _chaveScaffold = GlobalKey<ScaffoldState>();
 
   List<ItemMenuSgsst> get _barra => itensDaBarra(widget.auth);
-  List<ItemMenuSgsst> get _foraDaBarra => itensForaDaBarra(widget.auth);
 
   @override
   void initState() {
@@ -94,7 +93,6 @@ class _MainScreenState extends State<MainScreen> {
     // Se o titulo atual nao estiver na barra (tela do seletor), nenhum destino
     // fica marcado; ao voltar para um atalho, ele volta a acender.
     final indiceNaBarra = barra.indexWhere((i) => i.titulo == _tituloAtual);
-    final foraDaBarra = _foraDaBarra;
     final itemAtual = menuDoPerfil(widget.auth)
         .where((i) => i.titulo == _tituloAtual)
         .firstOrNull;
@@ -117,12 +115,7 @@ class _MainScreenState extends State<MainScreen> {
             _CabecalhoAba(
               titulo: _tituloAtual,
               subtitulo: subtituloDaTela(_tituloAtual),
-              demais: foraDaBarra,
-              // O botao de voltar so aparece quando a tela veio do seletor:
-
-              aoVoltar: indiceNaBarra < 0 ? () => _abrirPorTitulo(barra.first.titulo) : null,
               aoAbrirMenu: () => _chaveScaffold.currentState?.openDrawer(),
-              aoEscolher: _abrirPorTitulo,
             ),
             Expanded(
               child: itemAtual == null
@@ -154,23 +147,19 @@ class _MainScreenState extends State<MainScreen> {
       };
 }
 
-/// Cabecalho fixo da aba: menu, titulo, voltar (quando fora da barra) e o
-/// seletor "Todas as telas".
+/// Cabecalho fixo da aba: menu a esquerda e titulo/subtitulo.
+///
+/// O seletor "Todas as telas" saiu daqui: com o menu lateral sempre presente,
+/// ele virou um segundo caminho para a mesma coisa.
 class _CabecalhoAba extends StatelessWidget {
   final String titulo;
   final String? subtitulo;
-  final List<ItemMenuSgsst> demais;
   final VoidCallback aoAbrirMenu;
-  final VoidCallback? aoVoltar;
-  final ValueChanged<String> aoEscolher;
 
   const _CabecalhoAba({
     required this.titulo,
     this.subtitulo,
-    required this.demais,
     required this.aoAbrirMenu,
-    required this.aoEscolher,
-    this.aoVoltar,
   });
 
   @override
@@ -183,18 +172,13 @@ class _CabecalhoAba extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(4, 4, 8, 6),
           child: Row(
             children: [
-              if (aoVoltar != null)
-                IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.white),
-                  tooltip: 'Voltar',
-                  onPressed: aoVoltar,
-                )
-              else
-                IconButton(
-                  icon: const Icon(Icons.menu, color: Colors.white),
-                  tooltip: 'Menu',
-                  onPressed: aoAbrirMenu,
-                ),
+              // Menu sempre no mesmo lugar, inclusive nas telas que entram pelo
+              // proprio menu lateral: sem botao "Voltar", a saida e o menu.
+              IconButton(
+                icon: const Icon(Icons.menu, color: Colors.white),
+                tooltip: 'Menu',
+                onPressed: aoAbrirMenu,
+              ),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -223,25 +207,6 @@ class _CabecalhoAba extends StatelessWidget {
                   ],
                 ),
               ),
-              if (demais.isNotEmpty)
-                PopupMenuButton<String>(
-                  tooltip: 'Todas as telas',
-                  icon: const Icon(Icons.apps, color: Colors.white),
-                  onSelected: aoEscolher,
-                  itemBuilder: (_) => [
-                    for (final item in demais)
-                      PopupMenuItem(
-                        value: item.titulo,
-                        child: Row(
-                          children: [
-                            Icon(item.icone, size: 19, color: AppCores.petroleo),
-                            const SizedBox(width: 12),
-                            Text(item.titulo),
-                          ],
-                        ),
-                      ),
-                  ],
-                ),
             ],
           ),
         ),
