@@ -239,4 +239,49 @@ void main() {
       expect(RelatorioService.relatorios, hasLength(6));
     });
   });
+  group('Validacao (espelha a do web)', () {
+    bool colaboradorValido({
+      String matricula = 'MAT-001',
+      String nome = 'Ana Souza',
+      String cpf = '12345678901',
+      String email = 'ana@exemplo.com',
+      String cargo = 'Operadora',
+      String setor = 'Frente de Loja',
+      String status = 'Ativo',
+    }) =>
+        Validacao.colaborador(
+          matricula: matricula,
+          nome: nome,
+          cpf: cpf,
+          email: email,
+          cargo: cargo,
+          setor: setor,
+          status: status,
+        );
+
+    test('colaborador valido passa', () {
+      expect(colaboradorValido(), isTrue);
+    });
+
+    test('CPF sem 11 digitos e recusado', () {
+      expect(colaboradorValido(cpf: '123'), isFalse);
+      expect(colaboradorValido(cpf: '1234567890'), isFalse);
+    });
+
+    test('e-mail sem dominio e recusado', () {
+      expect(colaboradorValido(email: 'sem-arroba'), isFalse);
+      expect(colaboradorValido(email: 'a@b'), isFalse);
+    });
+
+    test('campo obrigatorio vazio ou em branco e recusado', () {
+      expect(colaboradorValido(nome: ''), isFalse);
+      expect(colaboradorValido(nome: '   '), isFalse);
+      expect(colaboradorValido(setor: ''), isFalse);
+    });
+
+    test('status fora da lista e recusado', () {
+      expect(colaboradorValido(status: 'Demitido'), isFalse);
+      expect(colaboradorValido(status: 'Afastado'), isTrue);
+    });
+  });
 }
