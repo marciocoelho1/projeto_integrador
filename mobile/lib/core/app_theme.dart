@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 
+/// Razão social que aparece sob o nome "Meu SGSST" no login e no cabeçalho.
+///
+/// Texto idêntico ao subtítulo do app web (`sidebarsubtitle` em
+/// `layout-padrao.html`), para as duas versões se apresentarem igual.
+const String razaoSocial = 'Essenza Supermercados Ltda.';
+
 /// Design system do mockup "Carteira digital".
 class AppCores {
   static const petroleo = Color(0xFF0B3B4A);

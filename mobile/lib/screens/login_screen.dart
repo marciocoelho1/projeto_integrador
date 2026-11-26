@@ -53,6 +53,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 4),
                     Text('Sistema de Gestão de SST',
                         style: Theme.of(context).textTheme.bodyMedium),
+                    const SizedBox(height: 2),
+                    Text(razaoSocial,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppCores.cinza,
+                              letterSpacing: 0.2,
+                            )),
                     const SizedBox(height: 24),
                     TextField(
                       controller: _login,

@@ -276,24 +276,27 @@ void main() {
       estado.openDrawer();
       await tester.pumpAndSettle();
 
-      // O menu rola: o item pode estar fora da area visivel do ListView.
+      // O menu rola e o ListView so constroi o que esta visivel: o item pode
+      // nem existir na arvore. O bloco da marca (nome + razao social) muda de
+      // altura conforme o texto, entao rolo em passos pequenos ate achar.
       final item = find.byKey(ValueKey('menu-$titulo'));
       await tester.scrollUntilVisible(
         item,
-        80,
+        40,
         scrollable: find
             .descendant(of: find.byType(Drawer), matching: find.byType(Scrollable))
             .first,
       );
+      await tester.pumpAndSettle();
       await tester.tap(item);
       await tester.pumpAndSettle();
 
-      // O cabecalho da casca passa a mostrar o titulo escolhido. Ele vive num
-      // Material proprio (nao ha AppBar na casca), entao procuro o texto dentro
-      // do Material do cabecalho.
+      // O cabecalho da casca passa a mostrar o titulo escolhido. O drawer fica
+      // em cima, entao procuro o texto na arvore inteira menos o proprio menu:
+      // o titulo tem de existir fora do Drawer depois da navegacao.
       expect(
         find.descendant(
-          of: find.byType(Material).first,
+          of: find.byType(MainScreen),
           matching: find.text(titulo),
         ),
         findsWidgets,

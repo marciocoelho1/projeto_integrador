@@ -257,6 +257,11 @@ class _MenuLateral extends StatelessWidget {
                     'Sistema de Gestão de SST',
                     style: TextStyle(color: Color(0xB3FFFFFF), fontSize: 12.5),
                   ),
+                  const SizedBox(height: 2),
+                  const Text(
+                    razaoSocial,
+                    style: TextStyle(color: Color(0x99FFFFFF), fontSize: 11.5),
+                  ),
                   const SizedBox(height: 10),
                   Text(
                     auth.ehAdmin ? 'Administrador TST' : 'Colaborador',

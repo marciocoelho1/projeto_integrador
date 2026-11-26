@@ -6,7 +6,7 @@
     <!-- A API de desenvolvimento roda em HTTP (sem TLS). Em producao,
          sirva a API em HTTPS e remova usesCleartextTraffic. -->
     <application
-        android:label="app_sgsst"
+        android:label="Meu SGSST"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="true">
