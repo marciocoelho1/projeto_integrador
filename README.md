@@ -275,13 +275,65 @@ O repositório já traz as configurações em `.vscode/`. Com o emulador ligado,
 | Task | O que faz |
 | :--- | :--- |
 | `android: iniciar emulador` | Sobe o AVD escolhido (deixe rodando; ~1 min para bootar) |
-| `flutter: run android` | Instala e abre o app no device ligado |
+| `backend: subir com dados demo` | Sobe a API com o perfil `demo` (contas `admin` / `123456` e `colaborador` / `123456`) |
+| `flutter: run android` | Instala, abre o app e **mantém o hot reload** — a forma normal de ver suas mudanças |
+| `flutter: atualizar app no emulador` | Compila o APK, instala por cima e reabre (sem hot reload) |
+| `flutter: reinstalar no emulador` | Remove o app antes de instalar (use quando a tela não mudar) |
 | `flutter: devices` | Lista os devices disponíveis |
 | `flutter: analyze` / `flutter: test` | Análise estática e testes |
 
 O binário `emulator` **não está no PATH** — as tasks usam `$ANDROID_HOME/emulator/emulator`.
 Se o seu AVD tiver outro nome, inclua-o no `input` `avd` em `.vscode/tasks.json`
 (liste com `flutter emulators`).
+
+As tasks de execução fixam o device com `-d emulator-5554`. Isso é necessário porque
+`flutter devices` também lista **Linux (desktop)** e, sem `-d`, o `flutter run` pode
+escolher esse device — que falha neste repositório por falta do toolchain de desktop
+(`clang++` e GTK 3). Se o emulador aparecer com outro id, ajuste o `-d` em
+`.vscode/tasks.json`.
+
+##### Atualizar a versão do app no emulador
+
+Há três formas, da mais leve para a mais pesada:
+
+1. **Hot reload (o dia a dia).** Deixe a task `flutter: run android` rodando e salve um
+   arquivo Dart: o emulador atualiza em ~1 s. No terminal onde o `flutter run` está
+   aberto, `r` recarrega e `R` reinicia o app.
+2. **Nova instalação sem desinstalar.** Rode a task `flutter: atualizar app no emulador`.
+   É o caminho quando o hot reload caiu ou quando o app está em outro estado (por
+   exemplo, logado). Equivale a:
+
+   ```bash
+   cd mobile
+   flutter build apk --debug --dart-define=API_BASE_URL=http://10.0.2.2:8080/api
+   adb install -r build/app/outputs/flutter-apk/app-debug.apk
+   adb shell am force-stop br.com.senac.sgsst.app_sgsst
+   adb shell am start -n br.com.senac.sgsst.app_sgsst/.MainActivity
+   ```
+
+3. **Instalação limpa.** Use a task `flutter: reinstalar no emulador` quando a tela
+   ainda mostrar a versão antiga ou a sessão estiver atrapalhando:
+
+   ```bash
+   cd mobile
+   adb uninstall br.com.senac.sgsst.app_sgsst
+   flutter run -d emulator-5554 --dart-define=API_BASE_URL=http://10.0.2.2:8080/api
+   ```
+
+   Para voltar à tela de login sem desinstalar, `adb shell pm clear br.com.senac.sgsst.app_sgsst`.
+
+Para conferir qual versão está instalada, `adb shell dumpsys package br.com.senac.sgsst.app_sgsst | grep lastUpdateTime`.
+
+##### Duas causas de "a tela não atualizou"
+
+1. **O emulador guarda um snapshot.** Ele "acorda" com o app já instalado na versão
+   antiga; por isso a atualização precisa ser explícita (hot reload ou reinstalação).
+2. **O aplicativo está falando com outra API.** A task aponta para
+   `http://10.0.2.2:8080/api` — o `10.0.2.2` é o apelido da sua máquina dentro do
+   emulador. Se o backend não estiver no ar, o login falha com *Usuário ou senha
+   inválidos* ou erro de conexão mesmo com a senha certa. Suba o backend
+   (`backend: subir com dados demo`) antes de testar. No perfil `demo`, as contas são
+   `admin` / `123456` e `colaborador` / `123456`.
 
 #### Emulador no Android Studio (Flatpak)
 
@@ -311,6 +363,41 @@ emulador do SDK é compilado sem o plugin Wayland e o fallback X11 não carrega 
 
 Forçar renderização por software (`-gpu swiftshader_indirect`) **não resolve**: o emulador
 já cai para software rendering por conta própria e aborta antes, na inicialização do Qt.
+
+#### Telas portadas da versão web
+
+O app mobile cobre as mesmas funcionalidades do frontend Angular, com o design do
+dashboard ("Carteira digital"). A navegação fica em `mobile/lib/screens/main_screen.dart`
+e tem dois níveis: a barra inferior traz os quatro atalhos do perfil, e o seletor
+**Todas as telas** (ícone de grade no cabeçalho) mais o menu lateral expõem todas as
+demais telas sem exigir gesto.
+
+| Perfil | Telas |
+| :--- | :--- |
+| Administrador | Dashboard, Matriz de Treinamentos, EPIs, Colaboradores, Cadastramentos, Importação em Massa, Ajuda e Suporte, Configurações |
+| Colaborador | Área do Colaborador, Ajuda e Suporte |
+
+Comum aos dois perfis: Login e Recuperar Senha. A pasta `mobile/lib` segue a mesma
+organização do web — `models/`, `services/`, `screens/` e `widgets/` — e os nomes dos
+arquivos espelham os do Angular (`colaborador_service.dart` ↔ `colaborador.service.ts`).
+
+Pontos de paridade que valem conferir numa apresentação:
+
+| Recurso web | Equivalente mobile |
+| :--- | :--- |
+| Edição de colaborador (modal + validação) | `colaboradores_screen.dart`, `core/validacao.dart` |
+| Entrega de EPI abate estoque; excluir estorna | `epis_screen.dart` (`EpiService.registrarEntrega`/`excluirEntrega`) |
+| Matriz cruzada por NR e LNT | `matriz_treinamento_screen.dart` (mesma janela de 60 dias e status OK/Alerta/Vencido/N-A) |
+| Importação em massa (CSV) | `importacao_massa_screen.dart` (mesmos cabeçalhos aceitos e normalização de acentos) |
+| Chamados do colaborador só os próprios | `ajuda_suporte_colaborador_screen.dart` (`GET /api/chamados?meus=true`) |
+| Menu por perfil (admin x colaborador) | `menu_sgsst.dart` + `AuthService.perfil` |
+| Dashboard com 8 fontes e 8 blocos | `dashboard_screen.dart` + `widgets/blocos_dashboard.dart` (matriz de calor, setores, EPIs críticos, entregas por mês, últimas entregas e atividade recente) |
+| Botão **Exportar** do dashboard | `DashboardService.baixarRelatorioCsv` + `salvarCsv` em `core/formatadores.dart` |
+| Configurações com 5 abas | `configuracoes_screen.dart` (Usuários do Sistema, Grupos de Usuários, Matriz de Acessos, Configurações Globais, Logs de Auditoria) |
+| Balão de Ajuda flutuante | `widgets/balao_ajuda.dart` — recolhe a só o ícone ao navegar ou rolar e volta inteiro após 4 s de tela parada |
+
+O Excel (`.xlsx`) **não** é lido no celular: a importação em massa aceita CSV exportado do
+Excel, mantendo os mesmos nomes de coluna e aliases da versão web.
 
 ### Login e sessão
 

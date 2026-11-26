@@ -29,6 +29,11 @@ class MyApp extends StatelessWidget {
       theme: AppTheme.tema,
       locale: const Locale('pt', 'BR'),
       home: logado ? MainScreen(auth: auth) : LoginScreen(auth: auth),
+      // Usado pelo logout (`pushReplacementNamed('/')`) em qualquer tela.
+      onGenerateRoute: (settings) => MaterialPageRoute(
+        settings: settings,
+        builder: (_) => LoginScreen(auth: auth),
+      ),
     );
   }
 }

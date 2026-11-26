@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../core/app_theme.dart';
 import '../services/auth_service.dart';
 import 'main_screen.dart';
+import 'recuperar_senha_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   final AuthService auth;
@@ -67,7 +68,21 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 12),
                       Text(_erro!, style: const TextStyle(color: AppCores.vencido)),
                     ],
-                    const SizedBox(height: 24),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: _carregando
+                            ? null
+                            : () => Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        RecuperarSenhaScreen(auth: widget.auth),
+                                  ),
+                                ),
+                        child: const Text('Esqueci minha senha'),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
                     SizedBox(
                       height: 56,
                       child: FilledButton(

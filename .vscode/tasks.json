@@ -49,11 +49,45 @@
       "problemMatcher": []
     },
     {
-      // Roda o app no emulador ja ligado. Se houver mais de um device,
-      // o Flutter pergunta em qual rodar.
+      // Roda o app no emulador ja ligado e deixa o hot reload ativo: com esta task
+      // rodando, salvar um arquivo atualiza o app sem reinstalar nada.
+      // O -d fixa o emulador: sem ele, o Flutter pode escolher "Linux (desktop)"
+      // e falhar porque o toolchain de desktop nao esta instalado.
+      // O --dart-define evita o fallback do app para localhost:8080.
       "label": "flutter: run android",
       "type": "shell",
-      "command": "flutter run",
+      "command": "flutter run -d emulator-5554 --dart-define=API_BASE_URL=http://10.0.2.2:8080/api",
+      "options": { "cwd": "mobile" },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      // Instalacao limpa a partir de um APK: nao precisa do hot reload e serve
+      // quando o app ja esta aberto ou o hot reload perdeu a conexao.
+      // Compila, instala por cima e abre o app no emulador.
+      "label": "flutter: atualizar app no emulador",
+      "type": "shell",
+      "command": "flutter build apk --debug --dart-define=API_BASE_URL=http://10.0.2.2:8080/api && adb install -r build/app/outputs/flutter-apk/app-debug.apk && adb shell am force-stop br.com.senac.sgsst.app_sgsst && adb shell am start -n br.com.senac.sgsst.app_sgsst/.MainActivity",
+      "options": { "cwd": "mobile" },
+      "problemMatcher": []
+    },
+    {
+      // Sobe o backend com o perfil demo (banco com os dados de demonstracao).
+      // Deixe rodando; o app do emulador alcanca a API por 10.0.2.2:8080.
+      // Contas do perfil demo: admin / 123456 e colaborador / 123456.
+      "label": "backend: subir com dados demo",
+      "type": "shell",
+      "command": "SPRING_PROFILES_ACTIVE=demo ./mvnw spring-boot:run",
+      "options": { "cwd": "." },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      // Instalacao limpa: remove o app antes, para garantir que a versao da
+      // branch atual (e nao um APK antigo em cache) seja a instalada.
+      "label": "flutter: reinstalar no emulador",
+      "type": "shell",
+      "command": "adb uninstall br.com.senac.sgsst.app_sgsst; flutter run -d emulator-5554 --dart-define=API_BASE_URL=http://10.0.2.2:8080/api",
       "options": { "cwd": "mobile" },
       "isBackground": true,
       "problemMatcher": []
