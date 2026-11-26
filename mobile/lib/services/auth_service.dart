@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -56,16 +58,28 @@ class AuthService {
   }
 
   Future<Sessao> entrar(String login, String senha) async {
-    final resposta = await http
-        .post(
-          Uri.parse('${ApiConfig.baseUrl}/auth/login'),
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({'login': login.trim(), 'senha': senha}),
-        )
-        .timeout(ApiConfig.timeout);
+    final http.Response resposta;
+    try {
+      resposta = await http
+          .post(
+            Uri.parse('${ApiConfig.baseUrl}/auth/login'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'login': login.trim(), 'senha': senha}),
+          )
+          .timeout(ApiConfig.timeout);
+    } on TimeoutException {
+      throw AuthException(ApiConfig.mensagemServidorLento);
+    } on SocketException {
+      throw AuthException(ApiConfig.mensagemSemConexao);
+    } on http.ClientException {
+      throw AuthException(ApiConfig.mensagemSemConexao);
+    }
 
     if (resposta.statusCode == 401) {
       throw AuthException('Usuário ou senha inválidos.');
+    }
+    if (resposta.statusCode >= 500) {
+      throw AuthException(ApiConfig.mensagemServidorIndisponivel);
     }
     if (resposta.statusCode != 200) {
       throw AuthException('Não foi possível entrar (${resposta.statusCode}).');

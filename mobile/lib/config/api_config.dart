@@ -21,4 +21,16 @@ class ApiConfig {
   /// Em produção (Render):
   /// flutter build apk --dart-define=API_BASE_URL=https://sgsst-api-r3iv.onrender.com/api
   static const Duration timeout = Duration(seconds: 15);
+
+  // Mensagens de falha de rede. O Render hiberna no plano gratuito e o
+  // primeiro acesso pode demorar, entao o aviso explica em vez de exibir a
+  // excecao crua do Dart.
+  static const String mensagemServidorLento =
+      'O servidor demorou para responder. Ele pode estar iniciando — aguarde alguns segundos e tente de novo.';
+
+  static const String mensagemSemConexao =
+      'Sem conexao com o servidor. Verifique o Wi-Fi ou os dados moveis e tente novamente.';
+
+  static const String mensagemServidorIndisponivel =
+      'O servidor esta indisponivel no momento. Tente novamente em instantes.';
 }
