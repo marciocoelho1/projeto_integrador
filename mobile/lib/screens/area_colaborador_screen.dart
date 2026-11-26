@@ -148,6 +148,11 @@ class _AreaColaboradorScreenState extends State<AreaColaboradorScreen> {
                         Etiqueta.situacao(c.status),
                       ],
                     ),
+                    // Barra de validade: mostra quanto do prazo ainda resta,
+                    // como no card de certificacao do colaborador.
+                    const SizedBox(height: 8),
+                    _BarraValidade(validade: c.validade, status: c.status),
+                    const SizedBox(height: 12),
                   ],
                 ],
               ),
@@ -228,6 +233,55 @@ class _AreaColaboradorScreenState extends State<AreaColaboradorScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Barra de validade de uma certificação.
+///
+/// O prazo vale 12 meses; a barra mostra a fração restante e muda de cor com o
+/// status, para o colaborador ver de relance o que está perto de vencer.
+class _BarraValidade extends StatelessWidget {
+  const _BarraValidade({required this.validade, required this.status});
+
+  final String validade;
+  final String status;
+
+  static const _mesesValidade = 12;
+
+  /// Fração do prazo ainda disponível (0 a 1).
+  double _fracaoRestante() {
+    final partes = validade.split('/');
+    if (partes.length != 3) return 0;
+    final data = DateTime.tryParse(
+      '${partes[2]}-${partes[1].padLeft(2, '0')}-${partes[0].padLeft(2, '0')}',
+    );
+    if (data == null) return 0;
+
+    final diasRestantes = data.difference(DateTime.now()).inDays;
+    final total = _mesesValidade * 30;
+    final fracao = diasRestantes / total;
+    return fracao.clamp(0.0, 1.0);
+  }
+
+  Color _cor() {
+    final s = status.toLowerCase();
+    if (s.contains('vencid')) return AppCores.vencido;
+    if (s.contains('alerta') || s.contains('vencendo')) return AppCores.vencendo;
+    return AppCores.valido;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cor = _cor();
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(10),
+      child: LinearProgressIndicator(
+        value: _fracaoRestante(),
+        minHeight: 7,
+        backgroundColor: AppCores.hairline,
+        valueColor: AlwaysStoppedAnimation<Color>(cor),
       ),
     );
   }
