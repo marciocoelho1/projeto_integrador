@@ -13,6 +13,11 @@ import 'menu_sgsst.dart';
 /// atalhos do perfil, e uma grade "Todas as telas" fica no topo de cada aba (e
 /// tambem no menu lateral) para as demais telas ficarem alcancaveis sem gesto.
 /// O baleao de ajuda acompanha todas as abas.
+///
+/// A tela exibida e guardada pelo TITULO, e nao por indice: a barra inferior
+/// mostra um subconjunto do menu, entao um indice do menu completo apontaria
+/// para a tela errada (era o bug em que "Matriz de Treinamentos" abria
+/// "Colaboradores" e as ultimas telas caiam todas em "Configuracoes").
 class MainScreen extends StatefulWidget {
   final AuthService auth;
   const MainScreen({super.key, required this.auth});
@@ -22,20 +27,17 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _indice = 0;
-  late final List<ItemMenuSgsst> _itens = menuDoPerfil(widget.auth);
+  String _tituloAtual = '';
   final GlobalKey<CascaComAjudaState> _chaveCasca = GlobalKey<CascaComAjudaState>();
   final GlobalKey<ScaffoldState> _chaveScaffold = GlobalKey<ScaffoldState>();
 
-  /// Atalhos fixos da barra inferior, derivados do menu do perfil.
-  List<ItemMenuSgsst> get _atalhos {
-    final preferidos = widget.auth.ehAdmin
-        ? const ['Dashboard', 'Colaboradores', 'EPIs', 'Configurações']
-        : const ['Área do Colaborador', 'Ajuda e Suporte'];
-    return preferidos
-        .map((titulo) => _itens.where((i) => i.titulo == titulo).firstOrNull)
-        .whereType<ItemMenuSgsst>()
-        .toList();
+  List<ItemMenuSgsst> get _barra => itensDaBarra(widget.auth);
+  List<ItemMenuSgsst> get _foraDaBarra => itensForaDaBarra(widget.auth);
+
+  @override
+  void initState() {
+    super.initState();
+    _tituloAtual = _barra.isEmpty ? '' : _barra.first.titulo;
   }
 
   Future<void> _sair() async {
@@ -44,20 +46,18 @@ class _MainScreenState extends State<MainScreen> {
     Navigator.of(context).pushReplacementNamed('/');
   }
 
-  void _irParaIndice(int indice) {
-    if (indice < 0 || indice >= _atalhos.length) return;
-    setState(() => _indice = indice);
-    _chaveCasca.currentState?.sinalizarNavegacao();
-  }
-
-  /// Navegacao por nome, usada pelo menu lateral e pelo grid de telas.
+  /// Abre a tela pelo titulo, venha ela do menu lateral, do seletor de telas ou
+  /// de um link dentro de outro bloco.
   void _abrirPorTitulo(String titulo) {
-    final indice = _itens.indexWhere((i) => i.titulo == titulo);
-    if (indice < 0) return;
+    final existe = menuDoPerfil(widget.auth).any((i) => i.titulo == titulo);
+    if (!existe) return;
+
     if (_chaveScaffold.currentState?.isDrawerOpen ?? false) {
       Navigator.of(context).pop();
     }
-    _irParaIndice(indice);
+    if (!mounted) return;
+    setState(() => _tituloAtual = titulo);
+    _chaveCasca.currentState?.sinalizarNavegacao();
   }
 
   void _abrirAjuda() {
@@ -69,49 +69,58 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final atalhos = _atalhos;
-    if (atalhos.isEmpty) {
+    final barra = _barra;
+    if (barra.isEmpty) {
       return const Scaffold(body: SizedBox.shrink());
     }
-    final indiceSeguro = _indice.clamp(0, atalhos.length - 1);
-    final atual = atalhos[indiceSeguro];
 
-    // O grid lista as telas que NAO estao na barra inferior, para nao duplicar.
-    final demais = _itens.where((i) => !atalhos.any((a) => a.titulo == i.titulo)).toList();
+    // Se o titulo atual nao estiver na barra (tela do seletor), nenhum destino
+    // fica marcado; ao voltar para um atalho, ele volta a acender.
+    final indiceNaBarra = barra.indexWhere((i) => i.titulo == _tituloAtual);
+    final foraDaBarra = _foraDaBarra;
+    final itemAtual = menuDoPerfil(widget.auth)
+        .where((i) => i.titulo == _tituloAtual)
+        .firstOrNull;
 
     return Scaffold(
       key: _chaveScaffold,
       drawer: _MenuLateral(
-        itens: _itens,
-        tituloAtual: atual.titulo,
+        itens: menuDoPerfil(widget.auth),
+        tituloAtual: _tituloAtual,
         auth: widget.auth,
         aoSelecionar: (item) => _abrirPorTitulo(item.titulo),
         aoSair: _sair,
       ),
       body: CascaComAjuda(
         key: _chaveCasca,
-        gatilhoDeNavegacao: indiceSeguro,
+        gatilhoDeNavegacao: _tituloAtual,
         aoAbrirAjuda: _abrirAjuda,
         child: Column(
           children: [
-            // Cabecalho da aba: identifica a tela e da acesso ao menu e as demais telas.
             _CabecalhoAba(
-              titulo: atual.titulo,
-              demais: demais,
+              titulo: _tituloAtual,
+              demais: foraDaBarra,
+              // O botao de voltar so aparece quando a tela veio do seletor:
+
+              aoVoltar: indiceNaBarra < 0 ? () => _abrirPorTitulo(barra.first.titulo) : null,
               aoAbrirMenu: () => _chaveScaffold.currentState?.openDrawer(),
               aoEscolher: _abrirPorTitulo,
             ),
-            Expanded(child: atual.construir(widget.auth, aoNavegar: _abrirPorTitulo)),
+            Expanded(
+              child: itemAtual == null
+                  ? const SizedBox.shrink()
+                  : itemAtual.construir(widget.auth, aoNavegar: _abrirPorTitulo),
+            ),
           ],
         ),
       ),
       bottomNavigationBar: NavigationBar(
-        selectedIndex: indiceSeguro,
-        onDestinationSelected: _irParaIndice,
+        selectedIndex: indiceNaBarra < 0 ? 0 : indiceNaBarra,
+        onDestinationSelected: (i) => _abrirPorTitulo(barra[i].titulo),
         backgroundColor: Colors.white,
         indicatorColor: AppCores.petroleo.withValues(alpha: 0.10),
         destinations: [
-          for (final item in atalhos)
+          for (final item in barra)
             NavigationDestination(icon: Icon(item.icone), label: _rotuloCurto(item.titulo)),
         ],
       ),
@@ -127,11 +136,13 @@ class _MainScreenState extends State<MainScreen> {
       };
 }
 
-/// Cabeçalho fixo da aba: botão de menu, título e o seletor "Todas as telas".
+/// Cabecalho fixo da aba: menu, titulo, voltar (quando fora da barra) e o
+/// seletor "Todas as telas".
 class _CabecalhoAba extends StatelessWidget {
   final String titulo;
   final List<ItemMenuSgsst> demais;
   final VoidCallback aoAbrirMenu;
+  final VoidCallback? aoVoltar;
   final ValueChanged<String> aoEscolher;
 
   const _CabecalhoAba({
@@ -139,6 +150,7 @@ class _CabecalhoAba extends StatelessWidget {
     required this.demais,
     required this.aoAbrirMenu,
     required this.aoEscolher,
+    this.aoVoltar,
   });
 
   @override
@@ -151,11 +163,18 @@ class _CabecalhoAba extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(4, 4, 8, 6),
           child: Row(
             children: [
-              IconButton(
-                icon: const Icon(Icons.menu, color: Colors.white),
-                tooltip: 'Menu',
-                onPressed: aoAbrirMenu,
-              ),
+              if (aoVoltar != null)
+                IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  tooltip: 'Voltar',
+                  onPressed: aoVoltar,
+                )
+              else
+                IconButton(
+                  icon: const Icon(Icons.menu, color: Colors.white),
+                  tooltip: 'Menu',
+                  onPressed: aoAbrirMenu,
+                ),
               Expanded(
                 child: Text(
                   titulo,
@@ -270,6 +289,7 @@ class _MenuLateral extends StatelessWidget {
                   ),
                   for (final item in itens)
                     ListTile(
+                      key: ValueKey('menu-${item.titulo}'),
                       leading: Icon(
                         item.icone,
                         color: item.titulo == tituloAtual

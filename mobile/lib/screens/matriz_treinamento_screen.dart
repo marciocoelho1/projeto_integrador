@@ -360,8 +360,10 @@ class _MatrizTreinamentoScreenState extends State<MatrizTreinamentoScreen> {
         child: ListView(
           padding: const EdgeInsets.all(18),
           children: [
+            // Altura da faixa de cards: o titulo do card pode ocupar duas linhas
+            // (ex.: "Matriz de Treinamentos"), entao 84 px estourava.
             SizedBox(
-              height: 84,
+              height: 96,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: _resumos.length,
@@ -919,20 +921,26 @@ class _CartaoResumo extends StatelessWidget {
             color: selecionado ? AppCores.petroleo : AppCores.hairline,
           ),
         ),
+        // O titulo pode ocupar duas linhas; sem o MainAxisSize.min a Column
+        // estourava 7 px dentro da altura fixa do card.
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Row(
               children: [
                 Text(icone, style: const TextStyle(fontSize: 16)),
                 const SizedBox(width: 6),
                 if (total != null)
-                  Text(
-                    '$total',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w800,
-                      color: selecionado ? Colors.white : AppCores.petroleo,
+                  Flexible(
+                    child: Text(
+                      '$total',
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        color: selecionado ? Colors.white : AppCores.petroleo,
+                      ),
                     ),
                   ),
               ],
@@ -940,6 +948,8 @@ class _CartaoResumo extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               titulo,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w700,

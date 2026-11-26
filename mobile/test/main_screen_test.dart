@@ -239,6 +239,62 @@ void main() {
     expect(find.text('Configurações'), findsNothing);
     expect(find.text('Colaboradores'), findsNothing);
   });
+  testWidgets('cada item do menu abre a tela correspondente', (tester) async {
+    HttpOverrides.global = _OverridesFalso();
+    SharedPreferences.setMockInitialValues({});
+
+    final auth = AuthService();
+    await auth.entrar('admin', 'admin123');
+
+    await tester.pumpWidget(
+      MaterialApp(theme: AppTheme.tema, home: MainScreen(auth: auth)),
+    );
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pump(const Duration(seconds: 1));
+
+    final estado = tester.state<ScaffoldState>(find.byType(Scaffold).first);
+
+    // O bug original: o menu calculava o indice na lista completa e o aplicava
+    // na barra inferior (4 itens), entao "Matriz de Treinamentos" abria
+    // "Colaboradores" e as ultimas telas caiam todas em "Configuracoes".
+    for (final titulo in const [
+      'Matriz de Treinamentos',
+      'EPIs',
+      'Colaboradores',
+      'Cadastramentos',
+      'Importação em Massa',
+      'Ajuda e Suporte',
+      'Configurações',
+      'Dashboard',
+    ]) {
+      estado.openDrawer();
+      await tester.pumpAndSettle();
+
+      // O menu rola: o item pode estar fora da area visivel do ListView.
+      final item = find.byKey(ValueKey('menu-$titulo'));
+      await tester.scrollUntilVisible(
+        item,
+        80,
+        scrollable: find
+            .descendant(of: find.byType(Drawer), matching: find.byType(Scrollable))
+            .first,
+      );
+      await tester.tap(item);
+      await tester.pumpAndSettle();
+
+      // O cabecalho da casca passa a mostrar o titulo escolhido. Ele vive num
+      // Material proprio (nao ha AppBar na casca), entao procuro o texto dentro
+      // do Material do cabecalho.
+      expect(
+        find.descendant(
+          of: find.byType(Material).first,
+          matching: find.text(titulo),
+        ),
+        findsWidgets,
+        reason: '$titulo nao apareceu no cabecalho',
+      );
+    }
+  });
 }
 
 class _OverridesFalso extends HttpOverrides {

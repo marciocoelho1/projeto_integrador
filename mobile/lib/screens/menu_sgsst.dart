@@ -46,6 +46,31 @@ const menuColaborador = <ItemMenuSgsst>[
 List<ItemMenuSgsst> menuDoPerfil(AuthService auth) =>
     auth.ehAdmin ? menuAdministrador : menuColaborador;
 
+/// Os destinos que a barra inferior mostra, na ordem em que aparecem.
+///
+/// A barra so tem espaco para quatro: os demais ficam no seletor "Todas as
+/// telas" e no menu lateral.
+List<String> atalhosDoPerfil(AuthService auth) => auth.ehAdmin
+    ? const ['Dashboard', 'Colaboradores', 'EPIs', 'Configurações']
+    : const ['Área do Colaborador', 'Ajuda e Suporte'];
+
+/// Os itens do perfil que a barra inferior exibe, na ordem dos atalhos.
+List<ItemMenuSgsst> itensDaBarra(AuthService auth) {
+  final todos = menuDoPerfil(auth);
+  return atalhosDoPerfil(auth)
+      .map((titulo) => todos.where((i) => i.titulo == titulo).firstOrNull)
+      .whereType<ItemMenuSgsst>()
+      .toList();
+}
+
+/// As telas do perfil que NAO cabem na barra inferior.
+List<ItemMenuSgsst> itensForaDaBarra(AuthService auth) {
+  final barra = itensDaBarra(auth);
+  return menuDoPerfil(auth)
+      .where((i) => !barra.any((b) => b.titulo == i.titulo))
+      .toList();
+}
+
 // Construtores das telas (referências de função constantes).
 Widget _dashboard(AuthService auth, {void Function(String)? aoNavegar}) =>
     DashboardScreen(auth: auth, aoNavegar: aoNavegar);
