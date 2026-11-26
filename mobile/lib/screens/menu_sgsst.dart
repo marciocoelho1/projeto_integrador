@@ -63,6 +63,22 @@ List<ItemMenuSgsst> itensDaBarra(AuthService auth) {
       .toList();
 }
 
+/// Subtitulo de cada tela, como no web. O cabecalho da casca mostra o par
+/// titulo/subtitulo uma unica vez; as telas nao desenham barra propria quando
+/// aparecem dentro dela.
+String? subtituloDaTela(String titulo) => switch (titulo) {
+      'Dashboard' => 'Indicadores de SST',
+      'Colaboradores' => 'Equipe e Matriz de SST',
+      'EPIs' => 'Estoque e entregas',
+      'Configurações' => 'Acessos, parâmetros e auditoria',
+      'Matriz de Treinamentos' => 'LNT, certificações e reciclagens',
+      'Cadastramentos' => 'Novo registro',
+      'Importação em Massa' => 'Planilha CSV (Excel exportado em CSV)',
+      'Ajuda e Suporte' => 'Chamados de ajuda e erros',
+      'Área do Colaborador' => null,
+      _ => null,
+    };
+
 /// As telas do perfil que NAO cabem na barra inferior.
 List<ItemMenuSgsst> itensForaDaBarra(AuthService auth) {
   final barra = itensDaBarra(auth);

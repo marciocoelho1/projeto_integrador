@@ -145,6 +145,7 @@ class _ColaboradoresScreenState extends State<ColaboradoresScreen> {
   @override
   Widget build(BuildContext context) {
     return SgsstScaffold(
+      embutido: true,
       titulo: 'Colaboradores',
       subtitulo: 'Equipe e Matriz de SST',
       acao: IconButton(

@@ -46,6 +46,7 @@ class _CadastramentosScreenState extends State<CadastramentosScreen>
   @override
   Widget build(BuildContext context) {
     return SgsstScaffold(
+      embutido: true,
       titulo: 'Cadastramentos',
       subtitulo: 'Novo registro',
       child: Column(

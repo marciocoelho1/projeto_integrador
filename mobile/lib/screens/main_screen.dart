@@ -4,6 +4,7 @@ import '../core/app_theme.dart';
 import '../services/auth_service.dart';
 import '../widgets/balao_ajuda.dart';
 import 'ajuda_suporte_screen.dart';
+import 'login_screen.dart';
 import 'ajuda_suporte_colaborador_screen.dart';
 import 'menu_sgsst.dart';
 
@@ -41,9 +42,25 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Future<void> _sair() async {
+    // Fecha o menu lateral antes de trocar a rota. Sem isso o Navigator.pop do
+    // drawer consome a troca e o app fica na mesma tela, ja sem sessao — era o
+    // bug em que "Sair" deixava o colaborador logado na Area do Colaborador.
+    final navigator = Navigator.of(context);
+    final scaffold = _chaveScaffold.currentState;
+    if (scaffold?.isDrawerOpen ?? false) {
+      scaffold!.closeDrawer();
+      await Future<void>.delayed(const Duration(milliseconds: 250));
+    }
+
     await widget.auth.sair();
     if (!mounted) return;
-    Navigator.of(context).pushReplacementNamed('/');
+    navigator.pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (_) => LoginScreen(auth: widget.auth),
+        settings: const RouteSettings(name: '/'),
+      ),
+      (rota) => false,
+    );
   }
 
   /// Abre a tela pelo titulo, venha ela do menu lateral, do seletor de telas ou
@@ -99,6 +116,7 @@ class _MainScreenState extends State<MainScreen> {
           children: [
             _CabecalhoAba(
               titulo: _tituloAtual,
+              subtitulo: subtituloDaTela(_tituloAtual),
               demais: foraDaBarra,
               // O botao de voltar so aparece quando a tela veio do seletor:
 
@@ -140,6 +158,7 @@ class _MainScreenState extends State<MainScreen> {
 /// seletor "Todas as telas".
 class _CabecalhoAba extends StatelessWidget {
   final String titulo;
+  final String? subtitulo;
   final List<ItemMenuSgsst> demais;
   final VoidCallback aoAbrirMenu;
   final VoidCallback? aoVoltar;
@@ -147,6 +166,7 @@ class _CabecalhoAba extends StatelessWidget {
 
   const _CabecalhoAba({
     required this.titulo,
+    this.subtitulo,
     required this.demais,
     required this.aoAbrirMenu,
     required this.aoEscolher,
@@ -176,14 +196,31 @@ class _CabecalhoAba extends StatelessWidget {
                   onPressed: aoAbrirMenu,
                 ),
               Expanded(
-                child: Text(
-                  titulo,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      titulo,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    if (subtitulo != null)
+                      Text(
+                        subtitulo!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Color(0xB3FFFFFF),
+                          fontSize: 11.5,
+                        ),
+                      ),
+                  ],
                 ),
               ),
               if (demais.isNotEmpty)

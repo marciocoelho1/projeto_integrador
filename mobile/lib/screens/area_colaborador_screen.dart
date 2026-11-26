@@ -104,6 +104,7 @@ class _AreaColaboradorScreenState extends State<AreaColaboradorScreen> {
   @override
   Widget build(BuildContext context) {
     return SgsstScaffold(
+      embutido: true,
       titulo: 'Área do Colaborador',
       subtitulo: widget.auth.sessao?.nomeCompleto ?? '',
       child: RefreshIndicator(

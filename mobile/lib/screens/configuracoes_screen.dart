@@ -291,6 +291,7 @@ class _ConfiguracoesScreenState extends State<ConfiguracoesScreen> {
   @override
   Widget build(BuildContext context) {
     return SgsstScaffold(
+      embutido: true,
       titulo: 'Configurações',
       subtitulo: 'Acessos, parâmetros e auditoria',
       child: Column(

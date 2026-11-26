@@ -295,6 +295,67 @@ void main() {
       );
     }
   });
+  testWidgets('Sair encerra a sessao e leva para o login', (tester) async {
+    HttpOverrides.global = _OverridesFalso();
+    SharedPreferences.setMockInitialValues({});
+
+    final auth = AuthService();
+    await auth.entrar('colaborador', 'colaborador');
+    expect(auth.sessao, isNotNull);
+
+    await tester.pumpWidget(
+      MaterialApp(theme: AppTheme.tema, home: MainScreen(auth: auth)),
+    );
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pump(const Duration(seconds: 1));
+
+    final estado = tester.state<ScaffoldState>(find.byType(Scaffold).first);
+    estado.openDrawer();
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(ListTile, 'Sair'));
+    await tester.pumpAndSettle();
+
+    // A sessao tem de ser apagada e a tela trocada pelo login.
+    expect(auth.sessao, isNull, reason: 'a sessao continuou ativa depois de Sair');
+    expect(find.text('Entrar'), findsOneWidget, reason: 'nao foi para a tela de login');
+    expect(find.text('Área do Colaborador'), findsNothing);
+  });
+  testWidgets('o titulo da tela aparece uma unica vez no cabecalho', (tester) async {
+    HttpOverrides.global = _OverridesFalso();
+    SharedPreferences.setMockInitialValues({});
+
+    final auth = AuthService();
+    await auth.entrar('admin', 'admin123');
+
+    await tester.pumpWidget(
+      MaterialApp(theme: AppTheme.tema, home: MainScreen(auth: auth)),
+    );
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pump(const Duration(seconds: 1));
+
+    // Dashboard nao usa SgsstScaffold; as demais sim. Antes da correcao cada
+    // uma desenhava o proprio AppBar dentro da casca, repetindo o titulo ao lado
+    // do botao de menu.
+    for (final titulo in const ['Colaboradores', 'EPIs', 'Configurações']) {
+      final barra = tester.widget<NavigationBar>(find.byType(NavigationBar));
+      final destino = barra.destinations.indexWhere(
+        (d) => d is NavigationDestination && d.label == titulo,
+      );
+      if (destino < 0) continue;
+      barra.onDestinationSelected!(destino);
+      await tester.pumpAndSettle();
+
+      // Nenhum AppBar empilhado dentro da casca.
+      expect(
+        find.byType(AppBar),
+        findsNothing,
+        reason: '$titulo desenhou um AppBar proprio dentro da casca',
+      );
+      // O titulo aparece uma vez no cabecalho (e uma na barra inferior).
+      expect(find.text(titulo), findsNWidgets(2));
+    }
+  });
 }
 
 class _OverridesFalso extends HttpOverrides {

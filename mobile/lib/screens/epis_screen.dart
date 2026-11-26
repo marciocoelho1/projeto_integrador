@@ -221,6 +221,7 @@ class _EpisScreenState extends State<EpisScreen> {
   @override
   Widget build(BuildContext context) {
     return SgsstScaffold(
+      embutido: true,
       titulo: 'EPIs',
       subtitulo: 'Estoque e entregas',
       acoes: [

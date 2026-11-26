@@ -13,6 +13,7 @@ class SgsstScaffold extends StatelessWidget {
     this.acao,
     this.acoes,
     this.floatingActionButton,
+    this.embutido = false,
   });
 
   final String titulo;
@@ -22,8 +23,39 @@ class SgsstScaffold extends StatelessWidget {
   final List<Widget>? acoes;
   final Widget? floatingActionButton;
 
+  /// Quando a tela aparece dentro da casca (`MainScreen`), quem desenha o
+  /// titulo, o botao de menu e as acoes e o cabecalho da casca. Nesse caso o
+  /// scaffold devolve so o corpo, mais o FAB — antes as duas barras apareciam
+  /// empilhadas e o titulo era repetido ao lado do menu.
+  final bool embutido;
+
   @override
   Widget build(BuildContext context) {
+    if (embutido) {
+      // Barra de acoes propria da tela, abaixo do cabecalho da casca: mantem
+      // "Cadastrar" e "Exportar" acessiveis sem repetir titulo nem menu.
+      final temAcoes = acao != null || (acoes?.isNotEmpty ?? false);
+      return Scaffold(
+        backgroundColor: AppCores.areia,
+        floatingActionButton: floatingActionButton,
+        body: Column(
+          children: [
+            if (temAcoes)
+              Container(
+                width: double.infinity,
+                color: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [?acao, ...?acoes],
+                ),
+              ),
+            if (temAcoes) const Divider(height: 1, color: AppCores.hairline),
+            Expanded(child: child),
+          ],
+        ),
+      );
+    }
     return Scaffold(
       backgroundColor: AppCores.areia,
       appBar: AppBar(

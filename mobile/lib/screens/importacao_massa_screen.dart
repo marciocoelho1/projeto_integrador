@@ -468,6 +468,7 @@ class _ImportacaoMassaScreenState extends State<ImportacaoMassaScreen> {
     final resultado = _resultado;
 
     return SgsstScaffold(
+      embutido: true,
       titulo: 'Importação em Massa',
       subtitulo: 'Planilha CSV (Excel exportado em CSV)',
       child: ListView(

@@ -372,6 +372,7 @@ class _MatrizTreinamentoScreenState extends State<MatrizTreinamentoScreen> {
   @override
   Widget build(BuildContext context) {
     return SgsstScaffold(
+      embutido: true,
       titulo: 'Matriz de Treinamentos',
       subtitulo: 'LNT, certificações e reciclagens',
       // Mesma acao "Exportar Matriz" do web.

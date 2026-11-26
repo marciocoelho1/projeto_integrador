@@ -109,6 +109,7 @@ class _AjudaSuporteScreenState extends State<AjudaSuporteScreen> {
   @override
   Widget build(BuildContext context) {
     return SgsstScaffold(
+      embutido: true,
       titulo: 'Ajuda e Suporte',
       subtitulo: 'Chamados de ajuda e erros',
       child: RefreshIndicator(
