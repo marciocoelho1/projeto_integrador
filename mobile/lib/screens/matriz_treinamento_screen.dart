@@ -9,6 +9,7 @@ import '../models/treinamento.dart';
 import '../models/treinamento_avancado.dart';
 import '../services/auth_service.dart';
 import '../services/colaborador_service.dart';
+import '../services/relatorio_service.dart';
 import '../services/treinamento_avancado_service.dart';
 import '../services/treinamento_service.dart';
 import '../widgets/campo_formulario.dart';
@@ -49,6 +50,7 @@ class _MatrizTreinamentoScreenState extends State<MatrizTreinamentoScreen> {
 
   bool _carregando = true;
   bool _salvando = false;
+  bool _exportando = false;
   String? _erro;
 
   List<Treinamento> _treinamentos = const [];
@@ -90,6 +92,24 @@ class _MatrizTreinamentoScreenState extends State<MatrizTreinamentoScreen> {
       ];
 
   bool get _modoLista => _modo == 'lista';
+
+  /// Exporta a matriz cruzada em CSV (`GET /api/relatorios/matriz-treinamentos.csv`),
+  /// igual ao botao "Exportar Matriz" do web: o arquivo traz todos os vinculos
+  /// gravados no banco, e nao apenas o que a Visao Geral carregou na tela.
+  Future<void> _exportarMatriz() async {
+    setState(() => _exportando = true);
+    try {
+      final csv = await RelatorioService(widget.auth).baixar('matriz-treinamentos');
+      final caminho = await salvarCsv(csv, 'matriz-treinamentos.csv');
+      if (!mounted) return;
+      Toast.sucesso(context, 'Matriz cruzada exportada em CSV.\n$caminho');
+    } catch (_) {
+      if (!mounted) return;
+      Toast.erro(context, 'Não foi possível gerar o relatório agora.');
+    } finally {
+      if (mounted) setState(() => _exportando = false);
+    }
+  }
 
   Future<void> _carregar() async {
     setState(() {
@@ -354,6 +374,24 @@ class _MatrizTreinamentoScreenState extends State<MatrizTreinamentoScreen> {
     return SgsstScaffold(
       titulo: 'Matriz de Treinamentos',
       subtitulo: 'LNT, certificações e reciclagens',
+      // Mesma acao "Exportar Matriz" do web.
+      acao: _exportando
+          ? const Padding(
+              padding: EdgeInsets.all(16),
+              child: SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
+              ),
+            )
+          : IconButton(
+              icon: const Icon(Icons.file_download_outlined),
+              tooltip: 'Exportar Matriz',
+              onPressed: _exportarMatriz,
+            ),
       child: RefreshIndicator(
         onRefresh: _carregar,
         color: AppCores.petroleo,

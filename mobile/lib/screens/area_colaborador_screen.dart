@@ -114,11 +114,23 @@ class _AreaColaboradorScreenState extends State<AreaColaboradorScreen> {
           children: [
             Row(
               children: [
-                _Indicador(rotulo: 'Certificações', valor: '${_certificacoes.length}'),
+                _Indicador(
+                    rotulo: 'Certificações',
+                    valor: '${_certificacoes.length}',
+                    icone: Icons.workspace_premium_outlined,
+                  ),
                 const SizedBox(width: 10),
-                _Indicador(rotulo: 'Reciclagens', valor: '${_reciclagens.length}'),
+                _Indicador(
+                    rotulo: 'Reciclagens',
+                    valor: '${_reciclagens.length}',
+                    icone: Icons.autorenew_outlined,
+                  ),
                 const SizedBox(width: 10),
-                _Indicador(rotulo: 'Meus EPIs', valor: '${_meusEpis.length}'),
+                _Indicador(
+                    rotulo: 'Meus EPIs',
+                    valor: '${_meusEpis.length}',
+                    icone: Icons.health_and_safety_outlined,
+                  ),
               ],
             ),
             const SizedBox(height: 12),
@@ -288,10 +300,15 @@ class _BarraValidade extends StatelessWidget {
 }
 
 class _Indicador extends StatelessWidget {
-  const _Indicador({required this.rotulo, required this.valor});
+  const _Indicador({
+    required this.rotulo,
+    required this.valor,
+    required this.icone,
+  });
 
   final String rotulo;
   final String valor;
+  final IconData icone;
 
   @override
   Widget build(BuildContext context) {
@@ -301,6 +318,18 @@ class _Indicador extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
           child: Column(
             children: [
+              // Selo com o icone: era o destaque do card de indicador que os
+              // colegas desenharam (quadrado colorido ao lado do numero).
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: AppCores.petroleo.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icone, size: 18, color: AppCores.petroleo),
+              ),
+              const SizedBox(height: 8),
               Text(
                 valor,
                 style: const TextStyle(

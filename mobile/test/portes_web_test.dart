@@ -8,6 +8,7 @@ import 'package:app_sgsst/models/colaborador.dart';
 import 'package:app_sgsst/models/epi.dart';
 import 'package:app_sgsst/models/importacao.dart';
 import 'package:app_sgsst/models/treinamento_avancado.dart';
+import 'package:app_sgsst/services/relatorio_service.dart';
 import 'package:app_sgsst/widgets/blocos_dashboard.dart';
 
 void main() {
@@ -225,6 +226,17 @@ void main() {
       expect(nivel(1), 1);
       expect(nivel(2), 2);
       expect(nivel(9), 2);
+    });
+  });
+  group('RelatorioService cobre os relatorios do web', () {
+    test('oferece exatamente os mesmos relatorios do RelatorioService do web', () {
+      // O web baixa 'dashboard' e 'matriz-treinamentos'; o backend ainda expoe
+      // colaboradores, epis, certificacoes e entregas-epis.
+      expect(
+        RelatorioService.relatorios,
+        containsAll(['dashboard', 'matriz-treinamentos']),
+      );
+      expect(RelatorioService.relatorios, hasLength(6));
     });
   });
 }

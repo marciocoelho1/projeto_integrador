@@ -12,6 +12,7 @@ import 'auditoria_service.dart';
 import 'auth_service.dart';
 import 'colaborador_service.dart';
 import 'epi_service.dart';
+import 'relatorio_service.dart';
 import 'treinamento_avancado_service.dart';
 import 'treinamento_service.dart';
 
@@ -63,23 +64,8 @@ class DashboardService {
     return Indicadores.fromJson(json);
   }
 
-  /// Baixa o CSV gerado no servidor (`GET /api/relatorios/{nome}.csv`). O arquivo
-  /// reflete o banco, nao o que a tela ja carregou.
-  Future<String> baixarRelatorioCsv(String relatorio) async {
-    final resposta = await http
-        .get(
-          Uri.parse('${ApiConfig.baseUrl}/relatorios/$relatorio.csv'),
-          headers: _auth.cabecalhoAuth,
-        )
-        .timeout(ApiConfig.timeout);
-
-    if (resposta.statusCode == 401) {
-      throw AuthException('Sessão expirada. Entre novamente.');
-    }
-    if (resposta.statusCode != 200) {
-      throw Exception('Falha ao gerar o relatorio (${resposta.statusCode}).');
-    }
-
-    return utf8.decode(resposta.bodyBytes);
-  }
+  /// Baixa o CSV do dashboard. Delegado ao RelatorioService, que agora atende
+  /// tambem a matriz de treinamentos (mesmo endpoint e mesmo tratamento de erro).
+  Future<String> baixarRelatorioCsv(String relatorio) =>
+      RelatorioService(_auth).baixar(relatorio);
 }
