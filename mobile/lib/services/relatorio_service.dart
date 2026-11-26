@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 
 import '../config/api_config.dart';
 import 'auth_service.dart';
+import 'controle_servidor_frio.dart';
 
 /// Porta de `src/app/service/relatorio.service.ts`: baixa os relatórios CSV que o
 /// servidor monta a partir do banco.
@@ -32,7 +33,8 @@ class RelatorioService {
           Uri.parse('${ApiConfig.baseUrl}/relatorios/$relatorio.csv'),
           headers: _auth.cabecalhoAuth,
         )
-        .timeout(ApiConfig.timeout);
+        .timeout(ControleServidorFrio.instancia.prazo)
+        .whenComplete(ControleServidorFrio.instancia.aquecer);
 
     if (resposta.statusCode == 401) {
       throw AuthException('Sessão expirada. Entre novamente.');

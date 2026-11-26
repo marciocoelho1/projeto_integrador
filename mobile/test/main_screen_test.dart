@@ -11,7 +11,9 @@ import 'package:app_sgsst/core/app_theme.dart';
 import 'package:app_sgsst/screens/main_screen.dart';
 import 'package:app_sgsst/screens/menu_sgsst.dart';
 import 'package:app_sgsst/widgets/folha_formulario.dart';
+import 'package:app_sgsst/config/api_config.dart';
 import 'package:app_sgsst/services/auth_service.dart';
+import 'package:app_sgsst/services/controle_servidor_frio.dart';
 
 /// Cliente HTTP que responde o contrato da API sem rede — assim o teste roda no
 /// ambiente do flutter_test (que bloqueia HTTP real).
@@ -455,6 +457,51 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Nova Reciclagem'), findsOneWidget);
     expect(find.text('NR Referente'), findsOneWidget);
+  });
+
+
+  group('servidor frio (Render hibernando)', () {
+    setUp(() => ControleServidorFrio.instancia.reiniciar());
+    tearDown(() => ControleServidorFrio.instancia.reiniciar());
+
+    test('a primeira chamada usa o prazo longo; depois volta ao normal', () {
+      final frio = ControleServidorFrio.instancia;
+      expect(frio.frio, isTrue);
+      expect(frio.prazo, ApiConfig.timeoutFrio);
+      expect(frio.prazo.inSeconds, greaterThanOrEqualTo(120));
+
+      frio.aquecer();
+
+      expect(frio.frio, isFalse);
+      expect(frio.prazo, ApiConfig.timeout);
+    });
+
+    test('uma falha de rede nao aquece: a proxima tenta o prazo longo de novo', () {
+      final frio = ControleServidorFrio.instancia;
+      frio.iniciar();
+      expect(frio.acordando.value, isTrue);
+
+      frio.encerrarSemResposta();
+
+      expect(frio.frio, isTrue);
+      expect(frio.acordando.value, isFalse);
+      expect(frio.prazo, ApiConfig.timeoutFrio);
+    });
+
+    test('abrir o login acende o aviso, aquecer o servidor apaga', () {
+      final frio = ControleServidorFrio.instancia;
+
+      frio.iniciar();
+      expect(frio.acordando.value, isTrue);
+
+      frio.aquecer();
+      expect(frio.acordando.value, isFalse);
+    });
+
+    test('o aviso de servidor acordando existe e explica a espera', () {
+      expect(ApiConfig.mensagemAcordandoServidor, contains('Acordando'));
+      expect(ApiConfig.mensagemAcordandoServidor, contains('2 minutos'));
+    });
   });
 }
 

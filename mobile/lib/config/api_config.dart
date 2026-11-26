@@ -20,7 +20,22 @@ class ApiConfig {
 
   /// Em produção (Render):
   /// flutter build apk --dart-define=API_BASE_URL=https://sgsst-api-r3iv.onrender.com/api
+  ///
+  /// Timeout normal das requisições já aquecidas.
   static const Duration timeout = Duration(seconds: 15);
+
+  /// Timeout da *primeira* requisição da sessão.
+  ///
+  /// O plano gratuito do Render hiberna a instância após alguns minutos sem
+  /// tráfego e leva ate ~115 s para acordar. Com o [timeout] padrão o login
+  /// desistia antes de a API responder e o usuário via "servidor demorou",
+  /// mesmo com tudo funcionando. A primeira chamada usa este prazo maior;
+  /// depois dela a API esta acordada e o [timeout] normal passa a valer.
+  static const Duration timeoutFrio = Duration(seconds: 120);
+
+  /// Aviso mostrado enquanto a primeira chamada aguarda o servidor acordar.
+  static const String mensagemAcordandoServidor =
+      'Acordando o servidor… a primeira conexão pode levar ate 2 minutos.';
 
   // Mensagens de falha de rede. O Render hiberna no plano gratuito e o
   // primeiro acesso pode demorar, entao o aviso explica em vez de exibir a

@@ -11,6 +11,7 @@ import '../models/treinamento_avancado.dart';
 import 'auditoria_service.dart';
 import 'auth_service.dart';
 import 'colaborador_service.dart';
+import 'controle_servidor_frio.dart';
 import 'epi_service.dart';
 import 'relatorio_service.dart';
 import 'treinamento_avancado_service.dart';
@@ -51,7 +52,8 @@ class DashboardService {
           Uri.parse('${ApiConfig.baseUrl}/dashboard/indicadores'),
           headers: _auth.cabecalhoAuth,
         )
-        .timeout(ApiConfig.timeout);
+        .timeout(ControleServidorFrio.instancia.prazo)
+        .whenComplete(ControleServidorFrio.instancia.aquecer);
 
     if (resposta.statusCode == 401) {
       throw AuthException('Sessão expirada. Entre novamente.');

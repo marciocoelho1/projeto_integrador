@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../config/api_config.dart';
+import 'controle_servidor_frio.dart';
 
 /// Erro devolvido pela API, com a mesma precedência de mensagens do web
 /// (`detalhes` antes de `mensagem`).
@@ -39,31 +40,48 @@ class ApiClient {
   }
 
   Future<dynamic> get(String caminho, {Map<String, String>? query}) async {
-    final resposta = await _cliente
-        .get(_uri(caminho, query), headers: _cabecalhos)
-        .timeout(ApiConfig.timeout);
+    final resposta = await _comPrazo(
+      () => _cliente.get(_uri(caminho, query), headers: _cabecalhos),
+    );
     return _decodificar(resposta);
   }
 
   Future<dynamic> post(String caminho, [Object? corpo]) async {
-    final resposta = await _cliente
-        .post(_uri(caminho), headers: _cabecalhos, body: jsonEncode(corpo ?? {}))
-        .timeout(ApiConfig.timeout);
+    final resposta = await _comPrazo(
+      () => _cliente.post(_uri(caminho), headers: _cabecalhos, body: jsonEncode(corpo ?? {})),
+    );
     return _decodificar(resposta);
   }
 
   Future<dynamic> put(String caminho, [Object? corpo]) async {
-    final resposta = await _cliente
-        .put(_uri(caminho), headers: _cabecalhos, body: jsonEncode(corpo ?? {}))
-        .timeout(ApiConfig.timeout);
+    final resposta = await _comPrazo(
+      () => _cliente.put(_uri(caminho), headers: _cabecalhos, body: jsonEncode(corpo ?? {})),
+    );
     return _decodificar(resposta);
   }
 
   Future<void> delete(String caminho) async {
-    final resposta = await _cliente
-        .delete(_uri(caminho), headers: _cabecalhos)
-        .timeout(ApiConfig.timeout);
+    final resposta = await _comPrazo(
+      () => _cliente.delete(_uri(caminho), headers: _cabecalhos),
+    );
     _decodificar(resposta);
+  }
+
+
+  /// Executa a requisição aplicando o prazo de servidor frio na primeira
+  /// chamada e o prazo normal nas seguintes. Qualquer resposta — inclusive
+  /// erro HTTP — prova que a API está acordada.
+  Future<http.Response> _comPrazo(Future<http.Response> Function() requisicao) async {
+    final frio = ControleServidorFrio.instancia;
+    frio.iniciar();
+    try {
+      final resposta = await requisicao().timeout(frio.prazo);
+      frio.aquecer();
+      return resposta;
+    } catch (_) {
+      frio.encerrarSemResposta();
+      rethrow;
+    }
   }
 
   dynamic _decodificar(http.Response resposta) {

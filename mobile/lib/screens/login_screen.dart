@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import '../config/api_config.dart';
 import '../core/app_theme.dart';
 import '../services/auth_service.dart';
+import '../services/controle_servidor_frio.dart';
 import 'main_screen.dart';
 import 'recuperar_senha_screen.dart';
 
@@ -101,6 +103,21 @@ class _LoginScreenState extends State<LoginScreen> {
                                 style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
                       ),
                     ),
+                    // O Render hiberna no plano gratuito; enquanto a primeira
+                    // chamada aguarda o servidor acordar, avisa em vez de
+                    // deixar o botao girando por ate dois minutos.
+                    if (_carregando)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: ValueListenableBuilder<bool>(
+                          valueListenable: ControleServidorFrio.instancia.acordando,
+                          builder: (context, acordando, _) => Text(
+                            acordando ? ApiConfig.mensagemAcordandoServidor : '',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 13, color: AppCores.cinza),
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),

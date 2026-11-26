@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../config/api_config.dart';
 import '../models/sessao.dart';
 import 'api_client.dart';
+import 'controle_servidor_frio.dart';
 
 class AuthException implements Exception {
   final String mensagem;
@@ -58,6 +59,9 @@ class AuthService {
   }
 
   Future<Sessao> entrar(String login, String senha) async {
+    final frio = ControleServidorFrio.instancia;
+    frio.iniciar();
+
     final http.Response resposta;
     try {
       resposta = await http
@@ -66,14 +70,20 @@ class AuthService {
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode({'login': login.trim(), 'senha': senha}),
           )
-          .timeout(ApiConfig.timeout);
+          .timeout(frio.prazo);
     } on TimeoutException {
+      frio.encerrarSemResposta();
       throw AuthException(ApiConfig.mensagemServidorLento);
     } on SocketException {
+      frio.encerrarSemResposta();
       throw AuthException(ApiConfig.mensagemSemConexao);
     } on http.ClientException {
+      frio.encerrarSemResposta();
       throw AuthException(ApiConfig.mensagemSemConexao);
     }
+
+    // Qualquer resposta prova que a API acordou — inclusive 401.
+    frio.aquecer();
 
     if (resposta.statusCode == 401) {
       throw AuthException('Usuário ou senha inválidos.');
